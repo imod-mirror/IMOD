@@ -13,20 +13,13 @@ import etomo.type.EtomoNumber;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  */
 public class Goodframe {
-  public static final String rcsid =
-    "$Id$";
-
   private final AxisID axisID;
   private final String propertyUserDir;
 
@@ -63,10 +56,10 @@ public class Goodframe {
 
     if (groupframe.getExitValue() != 0) {
       ProcessMessages messages = groupframe.getProcessMessages();
-      if (messages.size(ProcessMessages.ListType.ERROR) > 0) {
+      if (messages.size(ProcessMessages.MessageType.ERROR) > 0) {
         String message = "groupframe returned an error:\n";
-        for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
-          message = message + messages.get(ProcessMessages.ListType.ERROR, i) + "\n";
+        for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
+          message = message + messages.get(ProcessMessages.MessageType.ERROR, i) + "\n";
         }
         Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
         throw new InvalidParameterException(message);
