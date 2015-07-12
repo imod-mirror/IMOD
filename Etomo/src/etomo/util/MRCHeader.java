@@ -372,10 +372,10 @@ public class MRCHeader {
 
     if (header.getExitValue() != 0) {
       ProcessMessages messages = header.getProcessMessages();
-      if (messages.size(ProcessMessages.ListType.ERROR) > 0) {
+      if (messages.size(ProcessMessages.MessageType.ERROR) > 0) {
         String message = "header returned an error:\n";
-        for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
-          message = message + messages.get(ProcessMessages.ListType.ERROR,i) + "\n";
+        for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
+          message = message + messages.get(ProcessMessages.MessageType.ERROR,i) + "\n";
         }
         Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
         throw new InvalidParameterException(filename + ":" + message);
