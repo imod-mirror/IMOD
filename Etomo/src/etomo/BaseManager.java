@@ -384,6 +384,16 @@ public abstract class BaseManager {
     }
   }
 
+  public void logSimpleMessage(final String message, final boolean newline) {
+    LogInterface logInterface = getLogInterface();
+    if (logInterface != null) {
+      logInterface.logMessage(message, false, newline);
+    }
+    else {
+      System.err.println(message);
+    }
+  }
+
   public void logMessage(final String message) {
     LogInterface logInterface = getLogInterface();
     if (logInterface != null) {
