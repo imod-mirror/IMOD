@@ -295,6 +295,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     table.setTableListener(datasetDialog);
     btnStartOver.addActionListener(this);
     ctfEmailAddress.addActionListener(this);
+    btnPause.addActionListener(this);
   }
 
   public void msgStatusChangerAvailable(final StatusChanger changer) {
@@ -582,7 +583,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
           listeners.get(i).statusChanged(status);
         }
       }
-
+    }
+    else if (actionCommand.equals(btnPause.getActionCommand())) {
+      manager.pause(axisID);
     }
     else {
       updateDisplay();
