@@ -22,21 +22,15 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  */
 
 class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
-    ParallelProcessMonitor {
-  public static final String rcsid = "$Id$";
-
+  ParallelProcessMonitor {
   private static final int NO_TCSH_ERROR = 5;
 
   private static final String TITLE = "Processchunks";
@@ -80,34 +74,34 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   public void dumpState() {
     System.err.print("[rootName:" + rootName + ",subdirName:" + subdirName
-        + ",\nsetProgressBarTitle:" + setProgressBarTitle + ",useCommandsPipe:"
-        + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
-        + ",\nkilling:" + killing + ",pid:" + pid + ",starting:" + starting
-        + ",\nfinishing:" + finishing + ",stop:" + stop + ",running:" + running
-        + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages
-        + ",\ntcshErrorCountDown:" + tcshErrorCountDown + "]");
+      + ",\nsetProgressBarTitle:" + setProgressBarTitle + ",useCommandsPipe:"
+      + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
+      + ",\nkilling:" + killing + ",pid:" + pid + ",starting:" + starting
+      + ",\nfinishing:" + finishing + ",stop:" + stop + ",running:" + running
+      + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages
+      + ",\ntcshErrorCountDown:" + tcshErrorCountDown + "]");
   }
 
   ProcesschunksProcessMonitor(final BaseManager manager, final AxisID axisID,
-      final String rootName, final Map<String, String> computerMap,
-      final boolean multiLineMessages) {
+    final String rootName, final Map<String, String> computerMap,
+    final boolean multiLineMessages) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
     this.computerMap = computerMap;
     this.multiLineMessages = multiLineMessages;
-    messages = ProcessMessages.getInstanceForParallelProcessing(manager,
-        multiLineMessages);
+    messages =
+      ProcessMessages.getInstanceForParallelProcessing(manager, multiLineMessages);
     mediator = manager.getProcessingMethodMediator(axisID);
     debugLevel = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   }
 
   public static ProcesschunksProcessMonitor getReconnectInstance(
-      final BaseManager manager, final AxisID axisID, final ProcessData processData,
-      final boolean multiLineMessages) {
-    ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(manager,
-        axisID, processData.getSubProcessName(), processData.getComputerMap(),
-        multiLineMessages);
+    final BaseManager manager, final AxisID axisID, final ProcessData processData,
+    final boolean multiLineMessages) {
+    ProcesschunksProcessMonitor instance =
+      new ProcesschunksProcessMonitor(manager, axisID, processData.getSubProcessName(),
+        processData.getComputerMap(), multiLineMessages);
     instance.reconnect = true;
     return instance;
   }
@@ -157,8 +151,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
        * delete the command pipe file (.cmds file) because it is in use. */
       Thread.sleep(2000);
     }
-    catch (InterruptedException e) {
-    }
+    catch (InterruptedException e) {}
     // Get ready to respond to the Kill Process button and Pause button.
     useCommandsPipe = true;
     // Turn on the Kill Process button and Pause button.
@@ -167,8 +160,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       try {
         Thread.sleep(1000);
       }
-      catch (InterruptedException e) {
-      }
+      catch (InterruptedException e) {}
       while (processRunning && !stop) {
         try {
           if (updateState() || setProgressBarTitle) {
@@ -205,8 +197,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     mediator.deregister(this);
   }
 
-  public final void msgLogFileRenamed() {
-  }
+  public final void msgLogFileRenamed() {}
 
   public final void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
@@ -269,8 +260,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         try {
           Thread.sleep(2001);
         }
-        catch (InterruptedException e) {
-        }
+        catch (InterruptedException e) {}
         if (starting) {
           // processchunks hasn't started chunks and it won't because the "Q" has
           // been sent. So it is safe to kill it in the usual way.
@@ -357,7 +347,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
               System.err.println(array[i]);
             }
             if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
-                || array[i].indexOf("Errno") != -1) {
+              || array[i].indexOf("Errno") != -1) {
               endMonitor(ProcessEndState.FAILED);
               processRunning = false;
             }
@@ -370,7 +360,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
               System.err.println(array[i]);
             }
             if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
-                || array[i].indexOf("Errno") != -1) {
+              || array[i].indexOf("Errno") != -1) {
               endMonitor(ProcessEndState.FAILED);
               processRunning = false;
             }
@@ -411,15 +401,15 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       messageReporter.close();
     }
     if (processOutput != null && processOutputReaderId != null
-        && !processOutputReaderId.isEmpty()) {
+      && !processOutputReaderId.isEmpty()) {
       processOutput.closeRead(processOutputReaderId);
       processOutput = null;
     }
   }
 
   void loadParallelProgressDisplay() {
-    parallelProgressDisplay = manager.getProcessingMethodMediator(axisID)
-        .getParallelProgressDisplay();
+    parallelProgressDisplay =
+      manager.getProcessingMethodMediator(axisID).getParallelProgressDisplay();
   }
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
@@ -427,7 +417,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     boolean returnValue = false;
     boolean failed = false;
     if (isProcessRunning()
-        && (processOutputReaderId == null || processOutputReaderId.isEmpty())) {
+      && (processOutputReaderId == null || processOutputReaderId.isEmpty())) {
       processOutputReaderId = processOutput.openReader();
     }
 
@@ -450,7 +440,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       if (line.indexOf("imodkillgroup") == -1) {
         messages.addProcessOutput(line);
       }
-      if (!messages.isEmpty(ProcessMessages.ListType.ERROR)) {
+      if (!messages.isEmpty(ProcessMessages.MessageType.ERROR)) {
         // Set failure boolean but continue to add all the output lines to
         // messages.
         failed = true;
@@ -478,26 +468,26 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         endMonitor(ProcessEndState.DONE);
       }
       else if (line
-          .equals("When you rerun with a different set of machines, be sure to use")) {
+        .equals("When you rerun with a different set of machines, be sure to use")) {
         endMonitor(ProcessEndState.KILLED);
       }
       else if (line
-          .equals("All previously running chunks are done - exiting as requested")) {
+        .equals("All previously running chunks are done - exiting as requested")) {
         endMonitor(ProcessEndState.PAUSED);
       }
       // A tcsh error can cause processchunks to exit immediately without killing
       // chunks.
       // "No match" has been removed. I may not be producing fatal errors.
       else if ((line.indexOf("Syntax Error") != -1
-          || line.indexOf("Subscript error") != -1
-          || line.indexOf("Undefined variable") != -1
-          || line.indexOf("Expression Syntax") != -1
-          || line.indexOf("Subscript out of range") != -1
-          || line.indexOf("Illegal variable name") != -1
-          || line.indexOf("Variable syntax") != -1
-          || line.indexOf("Badly placed (") != -1 || line.indexOf("Badly formed number") != -1)
-          && (process == null || process.getProcessData() == null || !process
-              .getProcessData().isRunning())) {
+        || line.indexOf("Subscript error") != -1
+        || line.indexOf("Undefined variable") != -1
+        || line.indexOf("Expression Syntax") != -1
+        || line.indexOf("Subscript out of range") != -1
+        || line.indexOf("Illegal variable name") != -1
+        || line.indexOf("Variable syntax") != -1 || line.indexOf("Badly placed (") != -1 || line
+        .indexOf("Badly formed number") != -1)
+        && (process == null || process.getProcessData() == null || !process
+          .getProcessData().isRunning())) {
         // If a tcsh error is found, start a countdown that progresses each time
         // updateState is run. Sometimes a tcsh error will result in an error
         // being generated and processchunks terminating normally, so give this
@@ -571,16 +561,16 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       // user to rerun processchunks before all the chunk processes end.
       System.err.println("ERROR: Tcsh error in processchunks log");
       UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unrecoverable error in processchunks.  Please contact the "
-              + "programmer.  The chunk processes are still running, but "
-              + "they won't show up in the progress bar or appear in the "
-              + "Finished Chunks column.  IMPORTANT:  Let the chunk "
-              + "processes complete before rerunning the parallel process.  "
-              + "The load may decline when your chunks are done.  Also you "
-              + "can ssh to each computer and run top.  After the chunk "
-              + "processes are complete, exit Etomo to clear the parallel "
-              + "processing panel.  To attempt to continue the parallel "
-              + "process, rerun Etomo, and press Resume.", "Fatal Error");
+        "Unrecoverable error in processchunks.  Please contact the "
+          + "programmer.  The chunk processes are still running, but "
+          + "they won't show up in the progress bar or appear in the "
+          + "Finished Chunks column.  IMPORTANT:  Let the chunk "
+          + "processes complete before rerunning the parallel process.  "
+          + "The load may decline when your chunks are done.  Also you "
+          + "can ssh to each computer and run top.  After the chunk "
+          + "processes are complete, exit Etomo to clear the parallel "
+          + "processing panel.  To attempt to continue the parallel "
+          + "process, rerun Etomo, and press Resume.", "Fatal Error");
       tcshErrorCountDown = NO_TCSH_ERROR;
     }
     else if (tcshErrorCountDown < NO_TCSH_ERROR) {
@@ -596,7 +586,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       setProgressBarTitle();
     }
     manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
-        getStatusString(), axisID);
+      getStatusString(), axisID);
     if (messageReporter != null) {
       messageReporter.checkForMessages(manager);
     }
@@ -606,16 +596,15 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     setProgressBarTitle();
     if (reconnect) {
       manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
-          "Reconnecting...", axisID);
+        "Reconnecting...", axisID);
     }
     else {
       manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(), "Starting...",
-          axisID);
+        axisID);
     }
   }
 
-  public void useMessageReporter() {
-  }
+  public void useMessageReporter() {}
 
   private final void setProgressBarTitle() {
     StringBuffer title = new StringBuffer(TITLE);
@@ -646,7 +635,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       }
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID,
-        !reassembling && !killing);
+      !reassembling && !killing);
   }
 
   /**
@@ -655,12 +644,13 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * @throws IOException
    */
   private final void writeCommand(String command) throws LogFile.LockException,
-      IOException {
+    IOException {
     if (!useCommandsPipe) {
       return;
     }
     if (commandsPipe == null) {
-      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
+      commandsPipe =
+        LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getCommandsFileName(subdirName, rootName));
     }
     if (commandsPipeWriterId == null || commandsPipeWriterId.isEmpty()) {
@@ -684,10 +674,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    */
   private final synchronized void createProcessOutput() throws LogFile.LockException {
     if (processOutput == null) {
-      processOutput = LogFile.getInstance(
+      processOutput =
+        LogFile.getInstance(
           manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, subdirName,
-              ProcessName.PROCESSCHUNKS.toString(), axisID));
+            ProcessName.PROCESSCHUNKS.toString(), axisID));
       messageReporter = new MessageReporter(axisID, processOutput);
       // Don't remove the file if this is a reconnect.
       if (!reconnect) {
