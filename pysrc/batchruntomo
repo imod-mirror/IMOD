@@ -20,7 +20,7 @@ global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, ma
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
 global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
 global finalRetVal, correctCTF, eraseGold, axisLet, axisNum, useVolMatch, nxRecA, nyRecA
-global finishSetAndQuit
+global finishSetAndQuit, finalAlignResid
 
 # Print a string to both standard out and a log file if one is defined
 def prnLog(string, end  = '\n', flush = False):
@@ -62,7 +62,8 @@ def abortSet(errString):
    if suppressAbort:
       return
    abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS AND SET: ']
-   prnLog(abortStr[axisNum] + errString, flush = True)
+   prnLog(abortStr[axisNum] + errString)
+   prnLog('', flush = True)
    if dualAxis and axisNum:
       message = 'Batchruntomo aborted axis ' + axisLet.upper() + ' of'
    elif dualAxis:
@@ -114,7 +115,9 @@ def testDirectiveValue(val, directive, dtype):
 # multiline messages and 2 if it should be stripped and 4 if it is not at start of a line
 def printTaggedMessages(logfile, tags):
    global latestMessages
-   printedAny = False
+   blankNeeded = ('ERROR', 'INFO', 'WARNING')
+   needFinalBlank = False
+   needBlank = ''
    latestMessages = []
    anyError = False
    if isinstance(logfile, str):
@@ -130,10 +133,13 @@ def printTaggedMessages(logfile, tags):
    for l in loglines:
       if readingMulti:
          prnLog(l)
-         printedAny = True
+         needFinalBlank = True
          latestMessages.append(l)
          if l.strip() == '':
             readingMulti = False
+            needBlank = ''
+            needFinalBlank = False
+            
       else:
          for tag in tags:
             if tag[1] & 4:
@@ -146,18 +152,34 @@ def printTaggedMessages(logfile, tags):
                                           l.endswith('exited with status 1')):
                   if tag[0].startswith('ERROR'):
                      anyError = True
+
+                  # If we needed a blank for a particular kind of message, and this is
+                  # not another of that type, put the blank out
+                  if needBlank and not tag[0].startswith(needBlank):
+                     prnlog('')
+                     needBlank = ''
+                     needFinalBlank = False
+                     
+                  # Print message one way or the other
                   latestMessages.append(l)
                   if tag[1] & 2:
                      prnLog(l[len(tag[0]):].lstrip())
                   else:
                      prnLog(l)
-                  printedAny = True
+                  needFinalBlank = True
+
+                  # See if a blank is needed after contiguous lines of this type
+                  if not needBlank:
+                     for need in blankNeeded:
+                        if tag[0].startswith(need):
+                           needBlank = need
+                           break
                   
                if tag[1] & 1:
                   readingMulti = True
                break
 
-   if printedAny:
+   if needFinalBlank:
       prnLog(' ')
             
 
@@ -616,7 +638,7 @@ def checkForQuit():
       sys.exit(0)
    if checklines[-1].startswith('F'):
       if not finishSetAndQuit:
-         prnLog('RECEIVED SIGNAL TO FINISH CURRENT SET AND EXIT')
+         prnLog('RECEIVED SIGNAL TO FINISH CURRENT SET AND EXIT', flush = True)
       finishSetAndQuit = True
 
 
@@ -1907,7 +1929,7 @@ def modifyRestrictAndRunAlign(comfile, sedcom, taLines, message, skipRestrict):
 # Run tiltalign in 2 or 3 stages
 def runTiltalign(taLines):
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign
-   global madeZfactors, totalDelTilt, suppressAbort
+   global madeZfactors, totalDelTilt, suppressAbort, finalAlignResid
 
    minTotGlblStretch = 12
    minSurfGlblStretch = 4
@@ -2100,6 +2122,21 @@ def runTiltalign(taLines):
       (totalDelTilt, xtiltNeeded, fidThickness, fidIncShift, fidTotalShift, \
           reconThickness, numBot, numTop) = angleArr
 
+   # Find the last residual output message and echo it as the final result, save for eval
+   for ind in range(len(latestMessages) - 1, -1, -1):
+      line = latestMessages[ind]
+      colonInd = line.find(':')
+      if colonInd > 0 and 'error' in line and 'mean' in line:
+         prnLog('Final align - ' + line.strip())
+         prnLog('')
+         lsplit = line[colonInd + 1:].split()
+         finalAlignResid = 0.
+         try:
+            finalAlignResid = float(lsplit[0])
+         except Exception:
+            pass
+         break
+         
    return 0
      
 
@@ -3764,6 +3801,7 @@ for dfileInd in range(numSets):
    # No need to remove processchunks check file, it takes care of it itself
    checkForQuit()
    if finishSetAndQuit:
+      prnstr('Exiting after finishing dataset as requested')
       sys.exit(0)
 
    os.chdir(startingDir)
@@ -3860,7 +3898,9 @@ for dfileInd in range(numSets):
          reportImodError('Error getting pixel size from ' + stack)
          continue
 
-   prnLog('Starting data set ' + setName)
+   prnLog('Starting data set ' + setName + '   at ' + \
+             datetime.datetime.now().strftime('%H:%M:%S'))
+   prnLog('', flush = True)
 
    if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
 
@@ -3900,7 +3940,7 @@ for dfileInd in range(numSets):
          if isinstance(loglines, str):
             prnLog('WARNING: Error ' + loglines)
          else:
-            printTaggedMessages(loglines, [('INFO:', 1), ('LOG:', 3)])
+            printTaggedMessages(loglines, [('INFO:', 1), ('LOG:', 1)])
             err = 0
             for line in loglines:
                if 'Pixel spacing was set in FEI file' in line:
@@ -3982,6 +4022,7 @@ for dfileInd in range(numSets):
                     seconds, frac))
       
    closeLogFile()
+   prnLog('', flush = True);
 
 sendEmail('Batchruntomo finished all data sets', summaryMessage)
 sys.exit(finalRetVal)
