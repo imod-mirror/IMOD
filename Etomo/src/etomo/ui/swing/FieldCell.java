@@ -222,8 +222,10 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   }
 
   static FieldCell getIneditableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER, null);
-    instance.setEditable(false);
+    boolean editable = false;
+    FieldCell instance =
+      new FieldCell(editable, ParsedElementType.NON_MATLAB_NUMBER, null);
+    instance.setEditable(editable);
     instance.addListeners();
     return instance;
   }
@@ -231,6 +233,15 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   static FieldCell getExpandableInstance(String rootDir) {
     FieldCell instance =
       new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
+    instance.addListeners();
+    return instance;
+  }
+
+  static FieldCell getExpandableIneditableInstance(final String rootDir) {
+    boolean editable = false;
+    FieldCell instance =
+      new FieldCell(editable, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
+    instance.setEditable(editable);
     instance.addListeners();
     return instance;
   }
@@ -292,7 +303,7 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   }
 
   void setEditable(boolean editable) {
-    if (state.isEditableField()) {
+    if (!editable || state.isEditableField()) {
       super.setEditable(editable);
     }
   }
