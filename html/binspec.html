@@ -297,12 +297,20 @@ Length Type         Name     Description
 </pre>
 
 These values are based on the header information in the last image that
-the model was displayed on: <code>cscale</code> is pixel spacing 
-(cell size over grid size, <code>xlen/mx</code>); 
-<code>crot</code> is taken from the current tilt angles; 
-<code>ctrans</code> is based on
-the origin minus the scale times the starting index coordinate of the image
-loaded into 3dmod; <code>otrans</code> has the origin values.
+the model was displayed on:
+<UL>
+<LI> <code>cscale</code> is pixel spacing 
+(cell size over grid size, <code>xlen/mx</code>, etc.); 
+<LI> <code>crot</code> is taken from the current tilt angles; 
+<LI> <code>ctrans</code> is based on
+the origin of the image file minus the scale times the starting index
+coordinate of the image loaded into 3dmod; if a loaded subvolume were extracted
+  into a separate file, it would have this same origin value.  These origins
+  have the original IMOD sign convention (subareas having more negative
+  values).
+<LI> <code>otrans</code> has the origin values of the image file if the
+  OTRANS_ORIGIN flag is set, again with the original IMOD sign convention, 
+</UL>
 <p>
 To get from coordinates in a model file to an image file coordinate system,
 first Y and Z are exchanged if the FLIPYZ flag is set, then coordinates
@@ -312,7 +320,12 @@ then Y then Z.
 In the simple case of no rotation, 
 to get from an X coordinate
 in the model to the X pixel coordinate in the full image file, one would add
-(otrans.x - ctrans.x) / cscale.x .
+(otrans.x - ctrans.x) / cscale.x .  When 3dmod loads a model onto an image
+file, it first transforms coordinates as just described to fit the coordinate
+system of the file it was last loaded on, then it does a forward rotation by
+the current Z, Y, and X angles of the new file, adds the translation values
+for the loaded subvolume of the new file, and divides by its scale values.
+(Rotation is skipped if the old and new angles match).
 
 <HR>
 LABL  Label contour and point data. (Variable data)
