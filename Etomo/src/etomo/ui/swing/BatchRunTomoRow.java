@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -29,7 +28,6 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.BatchRunTomoDatasetStatus;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
 import etomo.type.BatchRunTomoStatus;
@@ -37,8 +35,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.Status;
-import etomo.type.StatusChangeListener;
-import etomo.type.StatusChanger;
+import etomo.type.StatusChangeEvent;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldDisplayer;
@@ -55,8 +52,7 @@ import etomo.util.Utilities;
  *
  * @version $Id$
  */
-final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
-  StatusChangeListener {
+final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private static final String SURFACES_TO_ANALYZE_TWO = "2";
   private static final String SURFACES_TO_ANALYZE_ONE = "1";
   private static final URL IMOD_ICON_URL = ClassLoader
@@ -106,7 +102,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   private BatchRunTomoDatasetDialog datasetDialog = null;
   private BatchRunTomoRowMetaData metaData = null;
   private BatchRunTomoStatus status = null;
-  private Vector<StatusChanger> statusChangers = null;
   private boolean debug = false;
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
@@ -217,22 +212,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     mbcEtomo.addActionListener(listener);
     cbcBoundaryModel.addActionListener(listener);
     bcEditDataset.addActionListener(listener);
-  }
-
-  void msgStatusChangerAvailable(final StatusChanger changer) {
-    changer.addStatusChangeListener(this);
-    if (datasetDialog != null) {
-      datasetDialog.msgStatusChangerAvailable(changer);
-    }
-    // datasetDialog can be added and deleted
-    if (statusChangers == null) {
-      synchronized (this) {
-        if (statusChangers == null) {
-          statusChangers = new Vector<StatusChanger>();
-        }
-      }
-    }
-    statusChangers.add(changer);
   }
 
   /**
@@ -350,11 +329,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
               DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
               dual), this);
           fcEditDataset.setValue("   Set");
-          if (statusChangers != null) {
-            for (int i = 0; i < statusChangers.size(); i++) {
-              datasetDialog.msgStatusChangerAvailable(statusChangers.get(i));
-            }
-          }
         }
         else {
           datasetDialog.setVisible(true);
@@ -394,7 +368,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   void deleteDataset() {
     if (datasetDialog != null) {
       datasetDialog.setVisible(false);
-      datasetDialog.delete();
       datasetDialog = null;
       bcEditDataset.setSelected(false);
       fcEditDataset.setValue("");
@@ -407,28 +380,45 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     mbc3dmodB.setEnabled(dual);
   }
 
-  public void statusChanged(final Status status) {
-    if (status instanceof BatchRunTomoStatus) {
-      this.status = (BatchRunTomoStatus) status;
-      boolean open = status == null || status == BatchRunTomoStatus.OPEN;
-      cbcBoundaryModel.setEditable(open);
-      cbcMontage.setEditable(open);
-      fcSkip.setEditable(open);
-      fcbskip.setEditable(open);
-      cbcSurfacesToAnalyze.setEditable(open);
-      mbcEtomo.setEditable(open);
-      mbc3dmodA.setEditable(open);
-      mbc3dmodB.setEditable(open);
-      bcEditDataset.setEditable(open);
-      if (open) {
-        cbcRun.setEditable(true);
-      }
-      else {
-        cbcRun.setEditable(false);
-      }
+  /**
+   * Handles global status changes.
+   * @param status
+   */
+  void statusChanged(final Status status) {
+    this.status = (BatchRunTomoStatus) status;
+    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+    cbcBoundaryModel.setEditable(open);
+    cbcMontage.setEditable(open);
+    fcSkip.setEditable(open);
+    fcbskip.setEditable(open);
+    cbcSurfacesToAnalyze.setEditable(open);
+    mbcEtomo.setEditable(open);
+    mbc3dmodA.setEditable(open);
+    mbc3dmodB.setEditable(open);
+    bcEditDataset.setEditable(open);
+    if (open) {
+      cbcRun.setEditable(true);
     }
-    else if (status instanceof BatchRunTomoDatasetStatus) {
-      fcStatus.setValue(status.toString());
+    else {
+      cbcRun.setEditable(false);
+    }
+    if (datasetDialog != null) {
+      datasetDialog.statusChanged(status);
+    }
+  }
+
+  /**
+   * Handles dataset-level status changes.
+   * @param statusChangeEvent
+   */
+  void statusChanged(final StatusChangeEvent statusChangeEvent) {
+    Status datasetStatus = null;
+    if (statusChangeEvent == null) {
+      return;
+    }
+    datasetStatus = statusChangeEvent.getStatus();
+    if (datasetStatus != null) {
+      fcStatus.setValue(datasetStatus.toString());
     }
   }
 
@@ -508,11 +498,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     if (isDatasetDialog) {
       datasetDialog = BatchRunTomoDatasetDialog.getSavedRowInstance(manager, this);
       datasetDialog.setParameters(rowMetaData.getDatasetMetaData());
-      if (statusChangers != null) {
-        for (int i = 0; i < statusChangers.size(); i++) {
-          datasetDialog.msgStatusChangerAvailable(statusChangers.get(i));
-        }
-      }
     }
     updateDisplay();
   }
