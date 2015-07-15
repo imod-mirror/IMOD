@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -35,8 +34,6 @@ import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.Status;
-import etomo.type.StatusChangeListener;
-import etomo.type.StatusChanger;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldDisplayer;
@@ -56,7 +53,7 @@ import etomo.ui.UIComponent;
  * @version $Id$
  */
 final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIComponent,
-  SwingComponent, TableListener, FieldDisplayer, StatusChangeListener {
+  SwingComponent, TableListener, FieldDisplayer {
   private static final String LENGTH_OF_PIECES_DEFAULT = "-1";
   private static final String GOLD_DEFAULT = "0";
 
@@ -133,7 +130,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
 
   private String lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
   private Status status = null;// BatchRunTomoStatus.STOPPED;
-  private Vector<StatusChanger> changers = null;
 
   private BatchRunTomoRow row;
   private boolean emptyTable;
@@ -509,26 +505,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       btnRevertToGlobal.addActionListener(this);
     }
     btnModelFile.addActionListener(this);
-  }
-
-  void msgStatusChangerAvailable(final StatusChanger changer) {
-    changer.addStatusChangeListener(this);
-    if (changers == null) {
-      synchronized (this) {
-        if (changers == null) {
-          changers = new Vector<StatusChanger>();
-        }
-      }
-    }
-    changers.add(changer);
-  }
-
-  void delete() {
-    if (changers != null) {
-      for (int i = 0; i < changers.size(); i++) {
-        changers.get(i).removeStatusChangeListener(this);
-      }
-    }
   }
 
   public Component getComponent() {
