@@ -40,6 +40,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.ProcessingMethod;
 import etomo.type.Status;
+import etomo.type.StatusChangeEvent;
 import etomo.type.StatusChangeListener;
 import etomo.type.StatusChanger;
 import etomo.type.TableReference;
@@ -175,7 +176,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     rbGPUMachineList.setSelected(true);
     stepPanel.msgStatusChangerAvailable(this);
     table.msgStatusChangerAvailable(this);
-    datasetDialog.msgStatusChangerAvailable(this);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -302,7 +302,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     changer.addStatusChangeListener(this);
     stepPanel.msgStatusChangerAvailable(changer);
     table.msgStatusChangerAvailable(changer);
-    datasetDialog.msgStatusChangerAvailable(changer);
   }
 
   public void addStatusChangeListener(final StatusChangeListener listener) {
@@ -786,6 +785,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // Stopped - enable:
     // start over
     btnStartOver.setEditable(killedPaused || status == BatchRunTomoStatus.STOPPED);
+    datasetDialog.statusChanged(status);
+  }
+
+  public void statusChanged(final StatusChangeEvent statusChangeEvent) {
+    // No response to dataset-level events
   }
 
   private void setTooltips() {
