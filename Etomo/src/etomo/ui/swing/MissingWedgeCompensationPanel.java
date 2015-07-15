@@ -13,7 +13,7 @@ import javax.swing.JLabel;
 import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -58,10 +58,10 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
       "Z: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
   private final Spinner sEdgeShift = Spinner.getLabeledInstance(
-      FieldLabels.EDGE_SHIFT_LABEL + ": ", MatlabParam.EDGE_SHIFT_DEFAULT,
+      SharedStrings.EDGE_SHIFT_LABEL + ": ", MatlabParam.EDGE_SHIFT_DEFAULT,
       MatlabParam.EDGE_SHIFT_MIN, MatlabParam.EDGE_SHIFT_MAX);
   private final Spinner sNWeightGroup = Spinner.getLabeledInstance(
-      FieldLabels.N_WEIGHT_GROUP_LABEL + ": ", MatlabParam.N_WEIGHT_GROUP_DEFAULT,
+      SharedStrings.N_WEIGHT_GROUP_LABEL + ": ", MatlabParam.N_WEIGHT_GROUP_DEFAULT,
       MatlabParam.N_WEIGHT_GROUP_MIN, MatlabParam.N_WEIGHT_GROUP_MAX);
   private ButtonGroup bgTiltRange = new ButtonGroup();
   private RadioButton rbTiltRangeSingle = new RadioButton("1", bgTiltRange);

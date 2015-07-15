@@ -37,10 +37,10 @@ final class TemplatePanel {
   private static final int NUM_TEMPLATES = 3;
 
   private final JPanel pnlRoot = new JPanel();
-  private final ComboBox cmbScopeTemplate =
-      ComboBox.getInstance("Scope template:", false);
-  private final ComboBox cmbSystemTemplate =
-      ComboBox.getInstance("System template:", false);
+  private final ComboBox cmbScopeTemplate = ComboBox
+    .getInstance("Scope template:", false);
+  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System template:",
+    false);
   private final ComboBox cmbUserTemplate = ComboBox.getInstance("User template:", false);
 
   private final TemplateActionListener listener;
@@ -57,8 +57,8 @@ final class TemplatePanel {
   private boolean actionsActive = true;
 
   private TemplatePanel(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener, final SettingsDialog settings,
-      final boolean drawBorder, final DirectiveFileCollection directiveFileCollection) {
+    final TemplateActionListener listener, final SettingsDialog settings,
+    final boolean drawBorder, final DirectiveFileCollection directiveFileCollection) {
     this.listener = listener;
     this.manager = manager;
     this.axisID = axisID;
@@ -73,21 +73,21 @@ final class TemplatePanel {
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener, final String title,
-      final SettingsDialog settings) {
+    final TemplateActionListener listener, final String title,
+    final SettingsDialog settings) {
     TemplatePanel instance =
-        new TemplatePanel(manager, axisID, listener, settings, true, null);
+      new TemplatePanel(manager, axisID, listener, settings, true, null);
     instance.createPanel(title);
     instance.addListeners();
     return instance;
   }
 
   static TemplatePanel getBorderlessInstance(final BaseManager manager,
-      final AxisID axisID, final TemplateActionListener listener, final String title,
-      final SettingsDialog settings,
-      final DirectiveFileCollection directiveFileCollection,
-      final boolean delayListeners) {
-    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, false,
+    final AxisID axisID, final TemplateActionListener listener, final String title,
+    final SettingsDialog settings, final DirectiveFileCollection directiveFileCollection,
+    final boolean delayListeners) {
+    TemplatePanel instance =
+      new TemplatePanel(manager, axisID, listener, settings, false,
         directiveFileCollection);
     instance.createPanel(title);
     if (!delayListeners) {
@@ -100,28 +100,28 @@ final class TemplatePanel {
     // init
     scopeTemplateFileList = ConfigTool.getScopeTemplateFiles();
     if (scopeTemplateFileList != null && scopeTemplateFileList.length > 0) {
-      cmbScopeTemplate
-          .addItem(SELECT_OPTION1 + scopeTemplateFileList.length + SELECT_OPTION2);
+      cmbScopeTemplate.addItem(SELECT_OPTION1 + scopeTemplateFileList.length
+        + SELECT_OPTION2);
       for (int i = 0; i < scopeTemplateFileList.length; i++) {
         cmbScopeTemplate.addItem(scopeTemplateFileList[i].getName());
       }
     }
     else {
       cmbScopeTemplate.addItem(EMPTY_OPTION);
-      cmbScopeTemplate.setComboBoxEnabled(false);
+      cmbScopeTemplate.setEnabledPolicy(false);
     }
     cmbScopeTemplate.setSelectedIndex(0);
     systemTemplateFileList = ConfigTool.getSystemTemplateFiles();
     if (systemTemplateFileList != null && systemTemplateFileList.length > 0) {
-      cmbSystemTemplate
-          .addItem(SELECT_OPTION1 + systemTemplateFileList.length + SELECT_OPTION2);
+      cmbSystemTemplate.addItem(SELECT_OPTION1 + systemTemplateFileList.length
+        + SELECT_OPTION2);
       for (int i = 0; i < systemTemplateFileList.length; i++) {
         cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
       }
     }
     else {
       cmbSystemTemplate.addItem(EMPTY_OPTION);
-      cmbSystemTemplate.setComboBoxEnabled(false);
+      cmbSystemTemplate.setEnabledPolicy(false);
     }
     cmbSystemTemplate.setSelectedIndex(0);
     loadUserTemplate();
@@ -158,24 +158,36 @@ final class TemplatePanel {
     cmbUserTemplate.addActionListener(listener);
   }
 
+  void setEnabled(final boolean enabled) {
+    cmbScopeTemplate.setEnabled(enabled);
+    cmbSystemTemplate.setEnabled(enabled);
+    cmbUserTemplate.setEnabled(enabled);
+  }
+
+  void setEditable(final boolean enabled) {
+    cmbScopeTemplate.setEditable(enabled);
+    cmbSystemTemplate.setEditable(enabled);
+    cmbUserTemplate.setEditable(enabled);
+  }
+
   void saveAutodoc(final WritableAutodoc autodoc) {
     File templateFile = getScopeTemplateFile();
     if (templateFile != null) {
-      autodoc
-          .addNameValuePairAttribute(DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
-              templateFile.getAbsolutePath());
+      autodoc.addNameValuePairAttribute(
+        DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
+        templateFile.getAbsolutePath());
     }
     templateFile = getSystemTemplateFile();
     if (templateFile != null) {
       autodoc.addNameValuePairAttribute(
-          DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
-          templateFile.getAbsolutePath());
+        DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
+        templateFile.getAbsolutePath());
     }
     templateFile = getUserTemplateFile();
     if (templateFile != null) {
-      autodoc
-          .addNameValuePairAttribute(DirectiveDef.USER_TEMPLATE.getDirective(null, null),
-              templateFile.getAbsolutePath());
+      autodoc.addNameValuePairAttribute(
+        DirectiveDef.USER_TEMPLATE.getDirective(null, null),
+        templateFile.getAbsolutePath());
     }
   }
 
@@ -192,8 +204,8 @@ final class TemplatePanel {
     // default user template, the user template will not be loaded.
     userTemplateFileList = ConfigTool.getUserTemplateFiles(newUserTemplateDir);
     if (userTemplateFileList != null && userTemplateFileList.length > 0) {
-      cmbUserTemplate
-          .addItem(SELECT_OPTION1 + userTemplateFileList.length + SELECT_OPTION2);
+      cmbUserTemplate.addItem(SELECT_OPTION1 + userTemplateFileList.length
+        + SELECT_OPTION2);
       cmbUserTemplate.setComboBoxEnabled(true);
       for (int i = 0; i < userTemplateFileList.length; i++) {
         cmbUserTemplate.addItem(userTemplateFileList[i].getName());
@@ -201,13 +213,12 @@ final class TemplatePanel {
     }
     else {
       cmbUserTemplate.addItem(EMPTY_OPTION);
-      cmbUserTemplate.setComboBoxEnabled(false);
+      cmbUserTemplate.setEnabledPolicy(false);
     }
     cmbUserTemplate.setSelectedIndex(0);
   }
 
-  private File getTemplateFile(final ComboBox cmbTemplate,
-      final File[] templateFileList) {
+  private File getTemplateFile(final ComboBox cmbTemplate, final File[] templateFileList) {
     if (cmbTemplate.isEnabled()) {
       int i = cmbTemplate.getSelectedIndex() - 1;
       if (i != -1 && templateFileList != null) {
@@ -226,7 +237,7 @@ final class TemplatePanel {
    * @param cmbTemplate
    */
   private void setTemplate(final String template, final File[] templateFileList,
-      final ComboBox cmbTemplate) {
+    final ComboBox cmbTemplate) {
     if (templateFileList == null || template == null) {
       return;
     }
@@ -237,8 +248,8 @@ final class TemplatePanel {
     // If template doesn't match something in templateFileList, nothing will be
     // selected in the combobox.
     for (int i = 0; i < templateFileList.length; i++) {
-      if ((absPath && templateFileList[i].getAbsolutePath().equals(template)) ||
-          (!absPath && templateFileList[i].getName().equals(template))) {
+      if ((absPath && templateFileList[i].getAbsolutePath().equals(template))
+        || (!absPath && templateFileList[i].getName().equals(template))) {
         cmbTemplate.setSelectedIndex(i + 1);
         break;
       }
@@ -264,9 +275,9 @@ final class TemplatePanel {
     if (!actionsActive) {
       return false;
     }
-    return actionCommand.equals(cmbScopeTemplate.getActionCommand()) ||
-        actionCommand.equals(cmbSystemTemplate.getActionCommand()) ||
-        actionCommand.equals(cmbUserTemplate.getActionCommand());
+    return actionCommand.equals(cmbScopeTemplate.getActionCommand())
+      || actionCommand.equals(cmbSystemTemplate.getActionCommand())
+      || actionCommand.equals(cmbUserTemplate.getActionCommand());
   }
 
   void getParameters(final UserConfiguration userConfig) {
@@ -291,12 +302,12 @@ final class TemplatePanel {
    * @return
    */
   void refreshDirectiveFileCollection() {
-    directiveFileCollection
-        .setDirectiveFile(getScopeTemplateFile(), DirectiveFileType.SCOPE);
-    directiveFileCollection
-        .setDirectiveFile(getSystemTemplateFile(), DirectiveFileType.SYSTEM);
-    directiveFileCollection
-        .setDirectiveFile(getUserTemplateFile(), DirectiveFileType.USER);
+    directiveFileCollection.setDirectiveFile(getScopeTemplateFile(),
+      DirectiveFileType.SCOPE);
+    directiveFileCollection.setDirectiveFile(getSystemTemplateFile(),
+      DirectiveFileType.SYSTEM);
+    directiveFileCollection.setDirectiveFile(getUserTemplateFile(),
+      DirectiveFileType.USER);
   }
 
   File[] getFiles() {
@@ -338,9 +349,9 @@ final class TemplatePanel {
   }
 
   boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
-    if (!userConfig.equalsScopeTemplate(getScopeTemplateFile()) ||
-        !userConfig.equalsSystemTemplate(getSystemTemplateFile()) ||
-        !userConfig.equalsUserTemplate(getUserTemplateFile())) {
+    if (!userConfig.equalsScopeTemplate(getScopeTemplateFile())
+      || !userConfig.equalsSystemTemplate(getSystemTemplateFile())
+      || !userConfig.equalsUserTemplate(getUserTemplateFile())) {
       return true;
     }
     return false;
@@ -352,7 +363,7 @@ final class TemplatePanel {
     }
     if (userConfig.isSystemTemplateSet()) {
       setTemplate(userConfig.getSystemTemplate(), systemTemplateFileList,
-          cmbSystemTemplate);
+        cmbSystemTemplate);
     }
     if (userConfig.isUserTemplateSet()) {
       setTemplate(userConfig.getUserTemplate(), userTemplateFileList, cmbUserTemplate);
@@ -372,18 +383,18 @@ final class TemplatePanel {
     DirectiveDef directiveDef = DirectiveDef.SCOPE_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
       setTemplate(directiveFile.getValue(directiveDef), scopeTemplateFileList,
-          cmbScopeTemplate);
+        cmbScopeTemplate);
     }
     directiveDef = DirectiveDef.SYSTEM_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
       setTemplate(directiveFile.getValue(directiveDef), systemTemplateFileList,
-          cmbSystemTemplate);
+        cmbSystemTemplate);
     }
     directiveDef = DirectiveDef.USER_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
       reloadUserTemplate();
       setTemplate(directiveFile.getValue(directiveDef), userTemplateFileList,
-          cmbUserTemplate);
+        cmbUserTemplate);
     }
     refreshDirectiveFileCollection();
   }
@@ -399,7 +410,6 @@ final class TemplatePanel {
       template.focusGained();
     }
 
-    public void focusLost(final FocusEvent e) {
-    }
+    public void focusLost(final FocusEvent e) {}
   }
 }

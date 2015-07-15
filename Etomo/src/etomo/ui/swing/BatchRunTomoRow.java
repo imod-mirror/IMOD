@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 
@@ -14,6 +15,7 @@ import javax.swing.JPanel;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.comscript.BatchruntomoParam;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.logic.BatchTool;
 import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveDef;
@@ -23,16 +25,22 @@ import etomo.storage.DirectiveFileInterface;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
+import etomo.type.BatchRunTomoStatus;
+import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.Status;
+import etomo.type.StatusChangeEvent;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldDisplayer;
 import etomo.ui.PreferredTableSize;
+import etomo.ui.SharedStrings;
 import etomo.util.Utilities;
 
 /**
@@ -69,6 +77,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final CheckBoxCell cbcSurfacesToAnalyze = new CheckBoxCell();
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
+  private final FieldCell fcEndingStep = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
   private final MinibuttonCell mbcEtomo = MinibuttonCell.getInstance(new ImageIcon(
     ETOMO_ICON_URL));
@@ -92,6 +101,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private int imodIndexB = -1;
   private BatchRunTomoDatasetDialog datasetDialog = null;
   private BatchRunTomoRowMetaData metaData = null;
+  private BatchRunTomoStatus status = null;
+  private boolean debug = false;
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
@@ -105,7 +116,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     this.stackID = stackID;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
-    fcStack = FieldCell.getExpandableInstance(null);
+    fcStack = FieldCell.getExpandableIneditableInstance(null);
     fcStack.setValue(stack);
     // icons
     if (IMOD_DISABLED_ICON_URL != null) {
@@ -139,12 +150,13 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     // init
     setDefaults();
     copy(prevRow);
+    setTooltips(prevRow);
     // When overridePrevRow is true, overrideDual will replace prevRow dual axis.
     if (overridePrevRow) {
       cbcDual.setSelected(dual);
     }
     cbcRun.setSelected(true);
-    mbcEtomo.setEnabled(false);
+    // mbcEtomo.setEnabled(false);
     // directives
     cbcDual.setDirectiveDef(DirectiveDef.DUAL);
     cbcMontage.setDirectiveDef(DirectiveDef.MONTAGE);
@@ -152,6 +164,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     fcSkip.setDirectiveDef(DirectiveDef.SKIP);
     fcbskip.setDirectiveDef(DirectiveDef.SKIP);
     updateDisplay();
+    statusChanged(status);
   }
 
   static BatchRunTomoRow getInstance(final BatchRunTomoTable table, final JPanel panel,
@@ -177,6 +190,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       cbcMontage.setSelected(prevRow.cbcMontage.isSelected());
       cbcSurfacesToAnalyze.setSelected(prevRow.cbcSurfacesToAnalyze.isSelected());
     }
+    updateDisplay();
   }
 
   boolean isDual() {
@@ -336,6 +350,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcSurfacesToAnalyze.remove();
     fcEditDataset.remove();
     fcStatus.remove();
+    fcEndingStep.remove();
     cbcRun.remove();
     mbcEtomo.remove();
     mbc3dmodA.remove();
@@ -363,6 +378,48 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     boolean dual = cbcDual.isSelected();
     fcbskip.setEnabled(dual);
     mbc3dmodB.setEnabled(dual);
+  }
+
+  /**
+   * Handles global status changes.
+   * @param status
+   */
+  void statusChanged(final Status status) {
+    this.status = (BatchRunTomoStatus) status;
+    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+    cbcBoundaryModel.setEditable(open);
+    cbcMontage.setEditable(open);
+    fcSkip.setEditable(open);
+    fcbskip.setEditable(open);
+    cbcSurfacesToAnalyze.setEditable(open);
+    mbcEtomo.setEditable(open);
+    mbc3dmodA.setEditable(open);
+    mbc3dmodB.setEditable(open);
+    bcEditDataset.setEditable(open);
+    if (open) {
+      cbcRun.setEditable(true);
+    }
+    else {
+      cbcRun.setEditable(false);
+    }
+    if (datasetDialog != null) {
+      datasetDialog.statusChanged(status);
+    }
+  }
+
+  /**
+   * Handles dataset-level status changes.
+   * @param statusChangeEvent
+   */
+  void statusChanged(final StatusChangeEvent statusChangeEvent) {
+    Status datasetStatus = null;
+    if (statusChangeEvent == null) {
+      return;
+    }
+    datasetStatus = statusChangeEvent.getStatus();
+    if (datasetStatus != null) {
+      fcStatus.setValue(datasetStatus.toString());
+    }
   }
 
   void display(final Viewport viewport, final BatchRunTomoTab tab) {
@@ -394,6 +451,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       }
       else {
         fcStatus.add(panel, layout, constraints);
+        fcEndingStep.add(panel, layout, constraints);
         cbcRun.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         mbcEtomo.add(panel, layout, constraints);
@@ -415,6 +473,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcSurfacesToAnalyze.setHighlight(highlight);
     fcEditDataset.setHighlight(highlight);
     fcStatus.setHighlight(highlight);
+    fcEndingStep.setHighlight(highlight);
     cbcRun.setHighlight(highlight);
   }
 
@@ -440,6 +499,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       datasetDialog = BatchRunTomoDatasetDialog.getSavedRowInstance(manager, this);
       datasetDialog.setParameters(rowMetaData.getDatasetMetaData());
     }
+    updateDisplay();
   }
 
   public void getParameters(final BatchRunTomoMetaData metaData) {
@@ -635,6 +695,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (datasetDialog != null) {
       datasetDialog.applyValues(retainUserValues, directiveFileCollection);
     }
+    updateDisplay();
   }
 
   void setNumber(final int input) {
@@ -643,6 +704,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   private void setDefaults() {
     cbcDual.setSelected(true);
+    updateDisplay();
   }
 
   /**
@@ -677,6 +739,60 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   void setValues(final UserConfiguration userConfiguration) {
     cbcDual.setSelected(!userConfiguration.getSingleAxis());
     cbcMontage.setSelected(userConfiguration.getMontage());
+    updateDisplay();
+  }
+
+  private void setTooltips(final BatchRunTomoRow prevRow) {
+    if (prevRow == null) {
+      cbcBoundaryModel.setToolTipText(AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING));
+      cbcBoundaryModel.addTooltip(AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING));
+      cbcDual.setToolTipText(AutodocAttributeRetriever.INSTANCE.getTooltip(cbcDual
+        .getDirectiveDef()));
+      cbcMontage.setToolTipText(AutodocAttributeRetriever.INSTANCE.getTooltip(cbcMontage
+        .getDirectiveDef()));
+      fcSkip.setToolTipText(AutodocAttributeRetriever.INSTANCE.getTooltip(fcSkip
+        .getDirectiveDef()));
+      fcbskip.setToolTipText(AutodocAttributeRetriever.INSTANCE.getTooltip(fcbskip
+        .getDirectiveDef()));
+      cbcSurfacesToAnalyze.setToolTipText(AutodocAttributeRetriever.INSTANCE
+        .getTooltip(cbcSurfacesToAnalyze.getDirectiveDef()));
+      ReadOnlyAutodoc autodoc = null;
+      try {
+        autodoc =
+          AutodocFactory.getInstance(manager, AutodocFactory.BATCH_RUN_TOMO, AxisID.ONLY,
+            false);
+      }
+      catch (FileNotFoundException except) {
+        except.printStackTrace();
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+      }
+      fcEndingStep.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BatchruntomoParam.ENDING_STEP_TAG));
+    }
+    else {
+      cbcBoundaryModel.setTooltip(prevRow.cbcBoundaryModel);
+      cbcDual.setTooltip(prevRow.cbcDual);
+      cbcMontage.setTooltip(prevRow.cbcMontage);
+      fcSkip.setTooltip(prevRow.fcSkip);
+      fcbskip.setTooltip(prevRow.fcbskip);
+      cbcSurfacesToAnalyze.setTooltip(prevRow.cbcSurfacesToAnalyze);
+      fcEndingStep.setTooltip(prevRow.fcEndingStep);
+    }
+    fcEditDataset.setToolTipText(SharedStrings.EDIT_DATASET_TOOLTIP);
+    fcStatus.setToolTipText("Completion status of the dataset");
+    cbcRun.setToolTipText("This dataset will be included in the batchruntomo run");
+    mbcEtomo.setToolTipText("Opens a tab in eTomo contain this dataset");
+    mbc3dmodA.setToolTipText(SharedStrings.IMOD_A_TOOLTIP);
+    mbc3dmodB.setToolTipText(SharedStrings.IMOD_B_TOOLTIP);
+    bcEditDataset.setToolTipText("Use dataset-specific values.");
+    fcStack.setToolTipText(SharedStrings.STACK_TOOLTIP);
   }
 
   private static final class RowListener implements ActionListener {

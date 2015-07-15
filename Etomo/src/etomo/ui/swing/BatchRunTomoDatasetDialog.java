@@ -17,6 +17,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.logic.BatchTool;
 import etomo.logic.ConfigTool;
 import etomo.logic.SeedingMethod;
@@ -27,10 +28,12 @@ import etomo.storage.DirectiveFileCollection;
 import etomo.storage.DirectiveFileInterface;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.BatchRunTomoDatasetMetaData;
+import etomo.type.BatchRunTomoStatus;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
+import etomo.type.Status;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldDisplayer;
@@ -51,8 +54,6 @@ import etomo.ui.UIComponent;
  */
 final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIComponent,
   SwingComponent, TableListener, FieldDisplayer {
-  private static final String DERIVE_THICKNESS_LABEL =
-    "Thickness from calculated value plus: ";
   private static final String LENGTH_OF_PIECES_DEFAULT = "-1";
   private static final String GOLD_DEFAULT = "0";
 
@@ -105,16 +106,13 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     FieldType.INTEGER, "Thickness total (unbinned pixels): ", bgThickness);
   private final RadioTextField rtfBinnedThickness = RadioTextField.getInstance(
     FieldType.INTEGER, "Thickness total (binned pixels): ", bgThickness);
-  private final RadioButton rbDeriveThickness = new RadioButton(DERIVE_THICKNESS_LABEL,
-    bgThickness);
-  private final TextField tfExtraThickness = new TextField(FieldType.INTEGER,
-    DERIVE_THICKNESS_LABEL, null);
+  private final RadioButton rbDeriveThickness = new RadioButton(
+    "Calculated thuckness (unbinned pixels):", bgThickness);
+  private final LabeledTextField ltfExtraThickness = new LabeledTextField(FieldType.INTEGER,
+    "          Plus (optional): ");
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
-    FieldType.INTEGER, "with fallback (unbinned pixels): ");
+    FieldType.INTEGER, "          With fallback: ");
   private final List<Field> fieldList = new ArrayList<Field>();
-  private final MultiLineButton btnOk = new MultiLineButton("OK");
-  private final MultiLineButton btnRevertToGlobal = new MultiLineButton(
-    "Revert to Global");
   private final JPanel pnlRootBody = new JPanel();
   private final Spacer spaceModelFile = new Spacer(FixedDim.x5_y0);
 
@@ -127,8 +125,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private final BaseManager manager;
   private final File datasetFile;
   private final BatchRunTomoDialog parent;
+  private final MultiLineButton btnOk;
+  private final MultiLineButton btnRevertToGlobal;
 
   private String lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
+  private Status status = null;// BatchRunTomoStatus.STOPPED;
 
   private BatchRunTomoRow row;
   private boolean emptyTable;
@@ -150,10 +151,14 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       dialog = null;
       phRootHeader =
         PanelHeader.getInstance("Global Dataset Values", this, DialogType.BATCH_RUN_TOMO);
+      btnOk = null;
+      btnRevertToGlobal = null;
     }
     else {
       dialog = new JDialog();
       phRootHeader = null;
+      btnOk = new MultiLineButton("OK");
+      btnRevertToGlobal = new MultiLineButton("Revert to Global");
     }
   }
 
@@ -165,6 +170,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     BatchRunTomoDatasetDialog instance =
       new BatchRunTomoDatasetDialog(manager, null, true, null, true, parent);
     instance.createPanel();
+    instance.setTooltips();
     instance.addListeners();
     GLOBAL_INSTANCE = instance;
     return instance;
@@ -180,6 +186,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       new BatchRunTomoDatasetDialog(manager, datasetFile, false, row, false, null);
     instance.createPanel();
     instance.copyFromGlobal();
+    instance.setTooltips();
     instance.addListeners();
     instance.setVisible(true);
     return instance;
@@ -191,6 +198,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       new BatchRunTomoDatasetDialog(manager, null, false, row, false, null);
     instance.createPanel();
     instance.copyFromGlobal();
+    instance.setTooltips();
     instance.addListeners();
     return instance;
   }
@@ -206,8 +214,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     JPanel pnlReconstruction = new JPanel();
     JPanel pnlReconstructionType = new JPanel();
     JPanel pnlThickness = new JPanel();
-    JPanel pnlDeriveThickness = new JPanel();
-    JPanel pnlFallbackThickness = new JPanel();
     JPanel pnlAutoFitRangeAndStep = new JPanel();
     JPanel pnlButtons = null;
     if (dialog != null) {
@@ -218,8 +224,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     JPanel pnlLocalAlignments = new JPanel();
     // init
     btnModelFile.setToPreferredSize();
-    btnRevertToGlobal.setToPreferredSize();
-    btnOk.setToPreferredSize();
+    if (btnRevertToGlobal != null) {
+      btnRevertToGlobal.setToPreferredSize();
+    }
+    if (btnOk != null) {
+      btnOk.setToPreferredSize();
+    }
     ftfDistort.setOrigin(ConfigTool.getDistortionDir(manager, null));
     ftfDistort.setAbsolutePath(true);
     ftfGradient.setPreferredWidth(272);
@@ -272,7 +282,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     rtfThickness.setDirectiveDef(DirectiveDef.THICKNESS);
     rtfBinnedThickness.setDirectiveDef(DirectiveDef.BINNED_THICKNESS);
     // rbDeriveThickness is based on multiple directives
-    tfExtraThickness.setDirectiveDef(DirectiveDef.EXTRA_THICKNESS);
+    ltfExtraThickness.setDirectiveDef(DirectiveDef.EXTRA_THICKNESS);
     ltfFallbackThickness.setDirectiveDef(DirectiveDef.FALLBACK_THICKNESS);
     // field list
     fieldList.add(ftfDistort);
@@ -303,7 +313,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     fieldList.add(rtfThickness);
     fieldList.add(rtfBinnedThickness);
     fieldList.add(rbDeriveThickness);
-    fieldList.add(tfExtraThickness);
+    fieldList.add(ltfExtraThickness);
     fieldList.add(ltfFallbackThickness);
     // defaults
     setDefaults();
@@ -434,29 +444,28 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     pnlThickness.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlThickness.add(rtfBinnedThickness.getContainer());
     pnlThickness.add(Box.createRigidArea(FixedDim.x0_y2));
-    pnlThickness.add(pnlDeriveThickness);
-    pnlThickness.add(pnlFallbackThickness);
-    // DeriveThickness
-    pnlDeriveThickness.setLayout(new BoxLayout(pnlDeriveThickness, BoxLayout.X_AXIS));
-    pnlDeriveThickness.add(rbDeriveThickness.getComponent());
-    pnlDeriveThickness.add(tfExtraThickness.getComponent());
-    // FallbackThickness
-    pnlFallbackThickness.setLayout(new BoxLayout(pnlFallbackThickness, BoxLayout.X_AXIS));
-    pnlFallbackThickness.add(Box.createRigidArea(FixedDim.x40_y0));
-    pnlFallbackThickness.add(ltfFallbackThickness.getComponent());
+    pnlThickness.add(rbDeriveThickness.getComponent());
+    pnlThickness.add(ltfFallbackThickness.getComponent());
+    pnlThickness.add(ltfExtraThickness.getComponent());
     // buttons
     if (pnlButtons != null) {
       pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
       pnlButtons.add(Box.createHorizontalGlue());
-      pnlButtons.add(btnOk.getComponent());
+      if (btnOk != null) {
+        pnlButtons.add(btnOk.getComponent());
+      }
       pnlButtons.add(Box.createRigidArea(FixedDim.x20_y0));
-      pnlButtons.add(btnRevertToGlobal.getComponent());
+      if (btnRevertToGlobal != null) {
+        pnlButtons.add(btnRevertToGlobal.getComponent());
+      }
     }
     // align
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlReconstructionType, Component.LEFT_ALIGNMENT);
+    UIUtilities.alignComponentsX(pnlThickness, Component.LEFT_ALIGNMENT); 
     // update
     updateDisplay();
+    statusChanged(status);
     // display
     if (dialog != null) {
       dialog.pack();
@@ -489,8 +498,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     rtfThickness.addActionListener(this);
     rtfBinnedThickness.addActionListener(this);
     rbDeriveThickness.addActionListener(this);
-    btnOk.addActionListener(this);
-    btnRevertToGlobal.addActionListener(this);
+    if (btnOk != null) {
+      btnOk.addActionListener(this);
+    }
+    if (btnRevertToGlobal != null) {
+      btnRevertToGlobal.addActionListener(this);
+    }
     btnModelFile.addActionListener(this);
   }
 
@@ -537,8 +550,50 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     ltfLeaveIterations.setEnabled(sirt);
     cbScaleToInteger.setEnabled(sirt);
     boolean deriveThickness = rbDeriveThickness.isSelected();
-    tfExtraThickness.setEnabled(deriveThickness);
+    ltfExtraThickness.setEnabled(deriveThickness);
     ltfFallbackThickness.setEnabled(deriveThickness);
+  }
+
+  public void statusChanged(final Status status) {
+    this.status = status;
+    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+    cbRemoveXrays.setEditable(open);
+    rbTrackingMethodSeed.setEditable(open);
+    rbTrackingMethodRaptor.setEditable(open);
+    rbTrackingMethodPatchTracking.setEditable(open);
+    rbFiducialless.setEditable(open);
+    lsBinByFactor.setEditable(open);
+    cbCorrectCTF.setEditable(open);
+    rbUseSirtFalse.setEditable(open);
+    rbUseSirtTrue.setEditable(open);
+    rbDoBackprojAlso.setEditable(open);
+    rtfThickness.setEditable(open);
+    rtfBinnedThickness.setEditable(open);
+    rbDeriveThickness.setEditable(open);
+    if (btnOk != null) {
+      btnOk.setEditable(open);
+    }
+    if (btnRevertToGlobal != null) {
+      btnRevertToGlobal.setEditable(open);
+    }
+    ftfDistort.setEditable(open);
+    ftfGradient.setEditable(open);
+    ftfModelFile.setEditable(open);
+    btnModelFile.setEditable(open);
+    cbEnableStretching.setEditable(open);
+    cbLocalAlignments.setEditable(open);
+    ltfGold.setEditable(open);
+    ltfTargetNumberOfBeads.setEditable(open);
+    ltfSizeOfPatchesXandY.setEditable(open);
+    cbLengthOfPieces.setEditable(open);
+    ltfDefocus.setEditable(open);
+    rtfAutoFitRangeAndStep.setEditable(open);
+    rbFitEveryImage.setEditable(open);
+    ltfAutoFitStep.setEditable(open);
+    ltfLeaveIterations.setEditable(open);
+    cbScaleToInteger.setEditable(open);
+    ltfExtraThickness.setEditable(open);
+    ltfFallbackThickness.setEditable(open);
   }
 
   /**
@@ -644,8 +699,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     cbScaleToInteger.setSelected(metaData.isScaleToInteger());
     rtfThickness.setText(metaData.getThickness());
     rtfBinnedThickness.setText(metaData.getBinnedThickness());
-    tfExtraThickness.setText(metaData.getExtraThickness());
+    ltfExtraThickness.setText(metaData.getExtraThickness());
     ltfFallbackThickness.setText(metaData.getFallbackThickness());
+    statusChanged(status);
   }
 
   public void getParameters(final BatchRunTomoDatasetMetaData metaData) {
@@ -668,7 +724,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     metaData.setScaleToInteger(cbScaleToInteger.isSelected());
     metaData.setThickness(rtfThickness.getText());
     metaData.setBinnedThickness(rtfBinnedThickness.getText());
-    metaData.setExtraThickness(tfExtraThickness.getText());
+    metaData.setExtraThickness(ltfExtraThickness.getText());
     metaData.setFallbackThickness(ltfFallbackThickness.getText());
   }
 
@@ -703,8 +759,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
           && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
           autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(
             null, null), TrackingMethod.SEED.getValue().toString());
-          autodoc.addNameValuePairAttribute(DirectiveDef.SEEDING_METHOD.getDirective(
-            null, null), SeedingMethod.BOTH.getValue());
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.SEEDING_METHOD.getDirective(null, null),
+            SeedingMethod.BOTH.getValue());
         }
       }
       else if (rbTrackingMethodRaptor.isSelected()) {
@@ -717,8 +774,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       else if (rbTrackingMethodPatchTracking.isEnabled()
         && rbTrackingMethodPatchTracking.isSelected()) {
         if (BatchTool.needInAutodoc(rbTrackingMethodPatchTracking)) {
-          autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(
-            null, null), TrackingMethod.PATCH_TRACKING.getValue().toString());
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+            TrackingMethod.PATCH_TRACKING.getValue().toString());
         }
       }
       BatchTool.saveFieldToAutodoc(rbFiducialless, autodoc);
@@ -766,22 +824,22 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
           if (step != null && !step.matches("\\s*")) {
             separator = ",";
           }
-          autodoc.addNameValuePairAttribute(DirectiveDef.AUTO_FIT_RANGE_AND_STEP
-            .getDirective(null, null), rtfAutoFitRangeAndStep.getText(doValidation,
-            fieldDisplayer)
-            + separator + step);
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null),
+            rtfAutoFitRangeAndStep.getText(doValidation, fieldDisplayer) + separator
+              + step);
         }
       }
       else if (rbFitEveryImage.isSelected()) {
         if (rbFitEveryImage.isEnabled() && BatchTool.needInAutodoc(rbFitEveryImage)) {
-          autodoc.addNameValuePairAttribute(DirectiveDef.AUTO_FIT_RANGE_AND_STEP
-            .getDirective(null, null), "0,0");
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null), "0,0");
         }
       }
       if (rbUseSirtFalse.isSelected()) {
         if (rbUseSirtFalse.isEnabled() && BatchTool.needInAutodoc(rbUseSirtFalse)) {
-          autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT
-            .getDirective(null, null), "0");
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.USE_SIRT.getDirective(null, null), "0");
         }
       }
       else if (!BatchTool.saveFieldToAutodoc(rbUseSirtTrue, autodoc)) {
@@ -789,15 +847,17 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
           // Don't add useSirt if it is the default or in the templates
           if (!rbUseSirtTrue.equalsFieldHighlight(true)
             && !rbUseSirtTrue.equalsDefaultValue(true)) {
-            autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null,
-              null), "1");
+            autodoc.addNameValuePairAttribute(
+              DirectiveDef.USE_SIRT.getDirective(null, null), "1");
           }
         }
       }
       BatchTool.saveFieldToAutodoc(ltfLeaveIterations, autodoc, doValidation,
         fieldDisplayer);
-      BatchTool.saveFieldToAutodoc(cbScaleToInteger, autodoc);
-      BatchTool.saveFieldToAutodoc(tfExtraThickness, autodoc, doValidation,
+      if (cbScaleToInteger.isEnabled() && cbScaleToInteger.isSelected()) {
+        BatchTool.saveFieldToAutodoc(cbScaleToInteger, "-20000,20000", autodoc);
+      }
+      BatchTool.saveFieldToAutodoc(ltfExtraThickness, autodoc, doValidation,
         fieldDisplayer);
       BatchTool.saveFieldToAutodoc(ltfFallbackThickness, autodoc, doValidation,
         fieldDisplayer);
@@ -902,7 +962,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       EtomoNumber nDefocus = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       nDefocus.set(directiveFiles.getValue(DirectiveDef.DEFOCUS, setFieldHighlightValue));
       if (!nDefocus.isNull()) {
-        double dDefocus = nDefocus.getDouble()/1000.;
+        double dDefocus = nDefocus.getDouble() / 1000.;
         if (!setFieldHighlightValue) {
           ltfDefocus.setValue(String.valueOf(dDefocus));
         }
@@ -911,7 +971,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
         }
       }
     }
-   // setValue(ltfDefocus, directiveFiles, setFieldHighlightValue);
+    // setValue(ltfDefocus, directiveFiles, setFieldHighlightValue);
     if (directiveFiles.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
       setFieldHighlightValue)) {
       EtomoNumber step = new EtomoNumber(EtomoNumber.Type.DOUBLE);
@@ -981,9 +1041,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     else if (containsUseSirt) {
       rbUseSirtTrue.setFieldHighlight(false);
     }
-
     setValue(ltfLeaveIterations, directiveFiles, setFieldHighlightValue);
-    setValue(cbScaleToInteger, directiveFiles, setFieldHighlightValue);
+    if (directiveFiles.contains(cbScaleToInteger.getDirectiveDef(),
+      setFieldHighlightValue)) {
+      if (!setFieldHighlightValue) {
+        cbScaleToInteger.setSelected(true);
+      }
+      else {
+        cbScaleToInteger.setFieldHighlight(true);
+      }
+    }
     // Derive thickness from log when thickness is not specified.
     // Priority of directives
     // 1. THICKNESS
@@ -992,7 +1059,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     boolean fallbackThickness =
       setValue(ltfFallbackThickness, directiveFiles, setFieldHighlightValue);
     boolean extraThickness =
-      setValue(tfExtraThickness, directiveFiles, setFieldHighlightValue);
+      setValue(ltfExtraThickness, directiveFiles, setFieldHighlightValue);
     boolean binnedThickness =
       setValue(rtfBinnedThickness, directiveFiles, setFieldHighlightValue);
     boolean thickness = setValue(rtfThickness, directiveFiles, setFieldHighlightValue);
@@ -1066,10 +1133,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
         ftfModelFile.setFile(row.imod(FileType.MANUAL_REPLACEMENT_MODEL));
       }
     }
-    else if (actionCommand.equals(btnOk.getActionCommand())) {
+    else if (btnOk != null && actionCommand.equals(btnOk.getActionCommand())) {
       dialog.setVisible(false);
     }
-    else if (actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
+    else if (btnRevertToGlobal != null
+      && actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
       if (UIHarness.INSTANCE.openYesNoDialog(manager, this,
         "Data in this window will be lost.  Revert to global dataset data for this "
           + "stack?")) {
@@ -1106,5 +1174,45 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       row = parent.getFirstRow();
     }
     updateDisplay();
+  }
+
+  private void setTooltips() {
+    int len = fieldList.size();
+    for (int i = 0; i < len; i++) {
+      Field field = fieldList.get(i);
+      if (dialog == null || GLOBAL_INSTANCE == null) {
+        field.setToolTipText(AutodocAttributeRetriever.INSTANCE.getTooltip(field
+          .getDirectiveDef()));
+      }
+      else {
+        // Get tooltips from the global instance.
+        field.setTooltip(GLOBAL_INSTANCE.fieldList.get(i));
+      }
+    }
+    if (dialog == null || GLOBAL_INSTANCE == null) {
+      btnModelFile.setToolTipText(AutodocAttributeRetriever.INSTANCE
+        .getTooltip(ftfModelFile.getDirectiveDef()));
+      rbUseSirtFalse.setToolTipText("Do back projection rather then SIRT ("
+        + rbUseSirtFalse.getDirectiveDef().toString() + ")");
+      // Add extra tooltip
+      rbTrackingMethodSeed.addTooltip(AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.SEEDING_METHOD));
+      rbDoBackprojAlso.addTooltip("(" + DirectiveDef.USE_SIRT.toString() + ")");
+      // DeriveThickness
+      rbDeriveThickness
+        .setToolTipText("Derive thickness from fiducial alignment or positioning");
+    }
+    else {
+      // Get tooltip from the global instance.
+      btnModelFile.setTooltip(GLOBAL_INSTANCE.btnModelFile);
+      rbUseSirtFalse.setTooltip(GLOBAL_INSTANCE.rbUseSirtFalse);
+    }
+    // constant tooltips
+    if (btnOk != null) {
+      btnOk.setToolTipText("Exit dialog, keeping the dataset-specific values.");
+    }
+    if (btnRevertToGlobal != null) {
+      btnRevertToGlobal.setToolTipText("Do not keep the dataset-specfic values.");
+    }
   }
 }

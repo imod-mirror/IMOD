@@ -251,6 +251,8 @@ class MultiLineButton implements ProcessResultDisplay {
   private boolean debug = false;
   private String unformattedLabel = null;
   private FontMetrics fontMetrics = null;
+  private boolean enabled = true;
+  private boolean editable = true;
 
   public void dumpState() {
     System.err.print("[toggleButton:" + toggleButton + ",stateKey:" + stateKey
@@ -277,7 +279,7 @@ class MultiLineButton implements ProcessResultDisplay {
     }
     return UIUtilities.getPreferredWidth(button, unformattedLabel, fontMetrics);
   }
-  
+
   public void setDebug(final boolean input) {
     debug = input;
   }
@@ -442,9 +444,25 @@ class MultiLineButton implements ProcessResultDisplay {
     this.stateKey = stateKey;
   }
 
-  final void setEnabled(boolean isEnabled) {
-    button.setEnabled(isEnabled);
-    button.setForeground(isEnabled ? enabledTextColor : disabledTextColor);
+  public void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    // Only visually enabled if both enabled and editable
+    button.setEnabled(enabled && editable);
+    // For uneditable only, keep the enabled text color
+    button.setForeground(enabled ? enabledTextColor : disabledTextColor);
+  }
+
+  public void setEditable(final boolean editable) {
+    this.editable = editable;
+    // Editable has no visible effect if the button is disabled.
+    if (enabled) {
+      button.setEnabled(editable);
+      // For uneditable only, keep the enabled text color
+    }
+  }
+
+  public boolean isEnabled() {
+    return enabled;
   }
 
   final boolean isToggleButton() {
@@ -519,6 +537,10 @@ class MultiLineButton implements ProcessResultDisplay {
 
   final void setToolTipText(String text) {
     button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  final void setTooltip(MultiLineButton multiLineButton) {
+    button.setToolTipText(multiLineButton.button.getToolTipText());
   }
 
   final Dimension getPreferredSize() {
@@ -627,10 +649,6 @@ class MultiLineButton implements ProcessResultDisplay {
 
   final boolean isVisible() {
     return button.isVisible();
-  }
-
-  public final boolean isEnabled() {
-    return button.isEnabled();
   }
 
   final boolean isDisplayable() {
