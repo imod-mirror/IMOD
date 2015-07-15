@@ -1,5 +1,15 @@
 package etomo.process;
 
+/**
+* <p>Description: Class to hold all strings that etomo needs to recognize that come from
+* the output of IMOD applications.</p>
+* 
+* <p>Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
+*/
 final class ProcessOutputStrings {
   //batchruntomo
   public static final String BRT_DATASET_TAG = "Starting data set";
