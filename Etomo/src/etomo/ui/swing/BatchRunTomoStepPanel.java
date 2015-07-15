@@ -22,6 +22,7 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.Status;
+import etomo.type.StatusChangeEvent;
 import etomo.type.StatusChangeListener;
 import etomo.type.StatusChanger;
 
@@ -140,6 +141,10 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
     for (int i = 0; i < rbStartingStep.length; i++) {
       rbEndingStep[i].setEditable(editable);
     }
+  }
+
+  public void statusChanged(final StatusChangeEvent statusChangeEvent) {
+    //No response to dataset-level events
   }
 
   private void updateDisplay() {
