@@ -29,6 +29,7 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.BatchRunTomoDatasetStatus;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
 import etomo.type.BatchRunTomoStatus;
@@ -104,8 +105,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   private int imodIndexB = -1;
   private BatchRunTomoDatasetDialog datasetDialog = null;
   private BatchRunTomoRowMetaData metaData = null;
-  private Status status = null;
+  private BatchRunTomoStatus status = null;
   private Vector<StatusChanger> statusChangers = null;
+  private boolean debug = false;
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
@@ -119,7 +121,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     this.stackID = stackID;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
-    fcStack = FieldCell.getExpandableInstance(null);
+    fcStack = FieldCell.getExpandableIneditableInstance(null);
     fcStack.setValue(stack);
     // icons
     if (IMOD_DISABLED_ICON_URL != null) {
@@ -406,23 +408,27 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   }
 
   public void statusChanged(final Status status) {
-    this.status = status;
-    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
-    cbcBoundaryModel.setEditable(open);
-    cbcMontage.setEditable(open);
-    fcSkip.setEditable(open);
-    fcbskip.setEditable(open);
-    mbc3dmodB.setEditable(open);
-    cbcSurfacesToAnalyze.setEditable(open);
-    mbcEtomo.setEditable(open);
-    mbc3dmodA.setEditable(open);
-    mbc3dmodB.setEditable(open);
-    bcEditDataset.setEditable(open);
-    if (open) {
-      cbcRun.setEditable(true);
+    if (status instanceof BatchRunTomoStatus) {
+      this.status = (BatchRunTomoStatus) status;
+      boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+      cbcBoundaryModel.setEditable(open);
+      cbcMontage.setEditable(open);
+      fcSkip.setEditable(open);
+      fcbskip.setEditable(open);
+      cbcSurfacesToAnalyze.setEditable(open);
+      mbcEtomo.setEditable(open);
+      mbc3dmodA.setEditable(open);
+      mbc3dmodB.setEditable(open);
+      bcEditDataset.setEditable(open);
+      if (open) {
+        cbcRun.setEditable(true);
+      }
+      else {
+        cbcRun.setEditable(false);
+      }
     }
-    else {
-      cbcRun.setEditable(false);
+    else if (status instanceof BatchRunTomoDatasetStatus) {
+      fcStatus.setValue(status.toString());
     }
   }
 
