@@ -35,7 +35,7 @@ bk--*
 man
 html/man
 html/libhelp
-html/plughelp
+html/3dmodHelp/plughelp
 html/IMOD.qhp
 html/IMOD.qch
 html/IMOD.qhc
