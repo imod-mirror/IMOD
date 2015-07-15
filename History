@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/15: Added stronger high frequency filtering for patch tracking to the
+cryoSample template.
+
 7/7/15: In eTomo - Fiducial Tracking - fixed a bug where track.com was not
 being updated when autofidseed was called.(Bug# 1894)
 
