@@ -108,7 +108,7 @@ final class TemplatePanel {
     }
     else {
       cmbScopeTemplate.addItem(EMPTY_OPTION);
-      cmbScopeTemplate.setComboBoxEnabled(false);
+      cmbScopeTemplate.setEnabledPolicy(false);
     }
     cmbScopeTemplate.setSelectedIndex(0);
     systemTemplateFileList = ConfigTool.getSystemTemplateFiles();
@@ -121,7 +121,7 @@ final class TemplatePanel {
     }
     else {
       cmbSystemTemplate.addItem(EMPTY_OPTION);
-      cmbSystemTemplate.setComboBoxEnabled(false);
+      cmbSystemTemplate.setEnabledPolicy(false);
     }
     cmbSystemTemplate.setSelectedIndex(0);
     loadUserTemplate();
@@ -213,7 +213,7 @@ final class TemplatePanel {
     }
     else {
       cmbUserTemplate.addItem(EMPTY_OPTION);
-      cmbUserTemplate.setComboBoxEnabled(false);
+      cmbUserTemplate.setEnabledPolicy(false);
     }
     cmbUserTemplate.setSelectedIndex(0);
   }
