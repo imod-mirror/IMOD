@@ -37,6 +37,7 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
   private final Run3dmodButtonContainer container;
 
   private boolean enabled = true;
+  private boolean debug = false;
 
   private MinibuttonCell(final Icon icon, final boolean run3dmod,
     final Run3dmodButtonContainer container) {
@@ -100,13 +101,18 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
     button.addActionListener(listener);
   }
 
-   void setEnabled(boolean enabled) {
+  void setDebug(final boolean input) {
+    super.setDebug(input);
+    debug = input;
+  }
+
+  void setEnabled(boolean enabled) {
     this.enabled = enabled;
-    button.setEnabled(enabled);
+    button.setEnabled(enabled && isEditable());
   }
 
   public boolean isEnabled() {
-    return button.isEnabled();
+    return enabled;
   }
 
   public void setDisabledIcon(final Icon icon) {
