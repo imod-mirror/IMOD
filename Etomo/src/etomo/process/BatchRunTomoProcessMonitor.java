@@ -28,29 +28,13 @@ import etomo.type.StatusChanger;
 public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   StatusChanger {
   private static final String TITLE = "Batchruntomo";
-  private static final String DATASET_TAG = "Starting data set";
-  private static final String ETOMO_TAG = "starting eTomo with log in";
-  private static final String STEP_TAG = "(running ";
-  private static final String COM_TAG = ".com";
-  private static final String STEP_SUCCESS_TAG = "Successfully finished";
-  private static final String DATASET_SUCCESS_TAG = "Completed dataset";
-  private static final String TIME_STAMP_TAG = " at ";
-  static final String SUCCESS_TAG = "SUCCESSFULLY COMPLETED";
   private static final String ENDING_STEP_SET_TAG = "EndingStepSet";
   private static final String NUMBER_DATASETS_TAG = "NumberDatasets";
-  private static final String BATCH_RUN_TOMO_ERROR_TAG = "ERROR: batchruntomo -";
-  private static final String ALT_ERROR_TAG = "ABORT SET:";
-  private static final String[] LOG_TAGS = new String[] { "Final align -",
-    "Starting axis B", "AUTOPATCHFIT - Refinematch found a good ",
-    "AUTOPATCHFIT - Findwarp found a good " };
-  private static final String KILLING_TAG = "RECEIVED SIGNAL TO QUIT, JUST EXITING";
-  private static final String PAUSED_TAG = "Exiting after finishing dataset as requested";
 
   private final EtomoNumber nDatasets = new EtomoNumber();
   private final EtomoNumber endingStepSet = new EtomoNumber(EtomoNumber.Type.BOOLEAN);
 
   private final ProcessMessages messages;
-
   private final BaseManager manager;
   private final AxisID axisID;
   private final boolean multiLineMessages;
@@ -92,7 +76,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.nDatasets.set(nDatasets);
     messages =
       ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
+        ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
   }
 
   private BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
@@ -104,7 +88,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.nDatasets.set(nDatasets);
     messages =
       ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
+        ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
   }
 
   public static BatchRunTomoProcessMonitor getReconnectInstance(
@@ -367,25 +351,35 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       line = line.trim();
       // Send all output to the ProcessMessages blocking queue, so each line can be
       // processed immediately.
-      index = line.indexOf(DATASET_TAG);
+      index = line.indexOf(ProcessOutputStrings.BRT_DATASET_TAG);
       if (index != -1) {
         // Send a linefeed and the dataset start message to the project log. Use the
         // ProcessMessages string feed so that messages get to the project log in the
         // right order.
         messages.feedNewline(ProcessMessages.MessageType.LOG);
         messages.feedMessage(line);
-        int index2 = line.indexOf(TIME_STAMP_TAG, index);
-        currentDataset = line.substring(index + DATASET_TAG.length(), index2).trim();
+        int index2 = line.indexOf(ProcessOutputStrings.BRT_TIME_STAMP_TAG, index);
+        if (index2 != -1) {
+          currentDataset =
+            line
+              .substring(index + ProcessOutputStrings.BRT_DATASET_TAG.length(), index2);
+        }
+        else {
+          currentDataset =
+            line.substring(index + ProcessOutputStrings.BRT_DATASET_TAG.length());
+        }
+        currentDataset = currentDataset.trim();
         currentStep = null;
         return true;
       }
       else {
         boolean lineFed = false;
-        for (int i = 0; i < LOG_TAGS.length; i++) {
-          if (line.indexOf(LOG_TAGS[i]) != -1) {
+        for (int i = 0; i < ProcessOutputStrings.BRT_LOG_TAGS.length; i++) {
+          if (line.indexOf(ProcessOutputStrings.BRT_LOG_TAGS[i]) != -1) {
             lineFed = true;
             // Send output that users want to see to the project log.
             messages.feedMessage(ProcessMessages.MessageType.LOG, line);
+            break;
           }
         }
         if (!lineFed) {
@@ -393,38 +387,40 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
         }
       }
       // check for the real batchruntomo error message. Everything else will be logged.
-      if (line.indexOf(BATCH_RUN_TOMO_ERROR_TAG) != -1) {
+      if (line.indexOf(ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG) != -1) {
         endMonitor(ProcessEndState.FAILED);
         return true;
       }
-      if (line.equals(SUCCESS_TAG)) {
+      if (line.equals(ProcessOutputStrings.BRT_SUCCESS_TAG)) {
         endMonitor(ProcessEndState.DONE);
         return true;
       }
-      if (line.equals(KILLING_TAG)) {
+      if (line.equals(ProcessOutputStrings.BRT_KILLING_TAG)) {
         setProcessEndState(ProcessEndState.KILLED);
       }
-      if (line.equals(PAUSED_TAG)) {
+      if (line.equals(ProcessOutputStrings.BRT_PAUSED_TAG)) {
         endMonitor(ProcessEndState.PAUSED);
       }
-      if (line.startsWith(ETOMO_TAG)) {
+      if (line.startsWith(ProcessOutputStrings.BRT_ETOMO_TAG)) {
         currentStep = "eTomo setup";
         return true;
       }
-      if (line.startsWith(STEP_SUCCESS_TAG)) {
+      if (line.startsWith(ProcessOutputStrings.BRT_STEP_SUCCESS_TAG)) {
         currentStep += " - done";
         return true;
       }
-      if (line.startsWith(DATASET_SUCCESS_TAG)) {
+      if (line.startsWith(ProcessOutputStrings.BRT_DATASET_SUCCESS_TAG)) {
         currentStep = "done";
         datasetsFinished++;
         return true;
       }
-      index = line.indexOf(STEP_TAG);
+      index = line.indexOf(ProcessOutputStrings.BRT_STEP_TAG);
       if (index != -1) {
-        int index2 = line.indexOf(COM_TAG, index);
+        int index2 = line.indexOf(ProcessOutputStrings.BRT_COM_TAG, index);
         if (index2 != -1) {
-          currentStep = line.substring(index + STEP_TAG.length(), index2).trim();
+          currentStep =
+            line.substring(index + ProcessOutputStrings.BRT_STEP_TAG.length(), index2)
+              .trim();
           return true;
         }
       }
