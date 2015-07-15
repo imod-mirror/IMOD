@@ -1,7 +1,7 @@
 package etomo.type;
 
 /**
-* <p>Description: </p>
+* <p>Description: Listens for status changes.</p>
 * 
 * <p>Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
 * <p/>
@@ -10,5 +10,7 @@ package etomo.type;
 * @version $Id$
 */
 public interface StatusChangeListener {
-  public void statusChanged(final Status status);
+  public void statusChanged(Status status);
+
+  public void statusChanged(StatusChangeEvent statusChangeEvent);
 }
