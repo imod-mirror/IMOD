@@ -1,5 +1,6 @@
 package etomo.type;
 
+
 /**
 * <p>Description: </p>
 * 
@@ -9,9 +10,9 @@ package etomo.type;
 *
 * @version $Id$
 */
-public class BatchRunTomoStatus implements Status{
+public final class BatchRunTomoStatus implements Status {
   public static final BatchRunTomoStatus OPEN = new BatchRunTomoStatus();
   public static final BatchRunTomoStatus RUNNING = new BatchRunTomoStatus();
-  public static final BatchRunTomoStatus KILLED_PAUSED= new BatchRunTomoStatus();
+  public static final BatchRunTomoStatus KILLED_PAUSED = new BatchRunTomoStatus();
   public static final BatchRunTomoStatus STOPPED = new BatchRunTomoStatus();
 }
