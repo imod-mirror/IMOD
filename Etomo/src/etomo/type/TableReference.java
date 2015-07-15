@@ -53,7 +53,7 @@ public final class TableReference {
   public String getID(final String uniqueString) {
     return idMap.get(uniqueString);
   }
-  
+
   public String getUniqueString(final String id) {
     return uniqueStringMap.get(id);
   }
@@ -67,13 +67,13 @@ public final class TableReference {
    * @throws NotLoadedException if this instance has not been loaded from properties
    */
   public String put(final String uniqueString) throws DuplicateException,
-      NotLoadedException {
+    NotLoadedException {
     if (uniqueString == null) {
       throw new NullPointerException("unique string cannot be null");
     }
     if (idMap.containsKey(uniqueString)) {
       throw new DuplicateException("String is already associated with an ID:  "
-          + uniqueString);
+        + uniqueString);
     }
     String id = nextID();
     idMap.put(uniqueString, id);
@@ -133,7 +133,7 @@ public final class TableReference {
    * @return
    */
   private boolean loadLastIDNum(final String lastID, final boolean repairDone,
-      final String prepend) {
+    final String prepend) {
     loaded = false;
     lastIDNum.reset();
     if (lastID != null) {
@@ -148,12 +148,12 @@ public final class TableReference {
     if (lastIDNum.isNull() || !lastIDNum.isValid() || lastIDNum.lt(BASE_ID_NUM)) {
       if (!repairDone) {
         System.err.println("WARNING: property " + getLastIDKey(prepend)
-            + " is invalid in the dataset file: " + lastIDNum
-            + "\\nAttempting to repair...");
+          + " is invalid in the dataset file: " + lastIDNum
+          + "\\nAttempting to repair...");
       }
       else {
         System.err.println("ERROR: property " + getLastIDKey(prepend)
-            + " is invalid in the dataset file: " + lastIDNum + ".  Unable to load.");
+          + " is invalid in the dataset file: " + lastIDNum + ".  Unable to load.");
       }
       return false;
     }
@@ -206,8 +206,8 @@ public final class TableReference {
       }
     }
     System.err.println("Loading  " + prepend + "."
-        + "properties.  All properties with IDs greater then " + lastID
-        + " will not be loaded, and may be overwritten.");
+      + "properties.  All properties with IDs greater then " + lastID
+      + " will not be loaded, and may be overwritten.");
     // loading prepend.ID = uniqueString
     for (long idNum = 1; idNum <= lastIDNum.getLong(); idNum++) {
       String id = idPrefix + idNum;
@@ -215,14 +215,19 @@ public final class TableReference {
       // Since put prevents a null uniqueString from being saved, assume that a null
       // uniqueString here mean that this ID was deleted - not an error.
       if (uniqueString != null) {
+        if (uniqueString.indexOf("/dual/") != -1) {
+          //Looking for mystery bug:
+          //meta.ref.ebt4=/home/NOBACKUP/sueh/test datasets/Development/linux/UITests/dual/dual/BBa.st
+          System.err.println("loaded ref " + uniqueString);
+        }
         if (!idMap.containsKey(uniqueString)) {
           idMap.put(uniqueString, id);
           uniqueStringMap.put(id, uniqueString);
         }
         else {
           System.err.println("ERROR: duplicate string, " + uniqueString + ", under "
-              + prepend + "." + id
-              + " in the dataset file.  This property will not be loaded.");
+            + prepend + "." + id
+            + " in the dataset file.  This property will not be loaded.");
         }
       }
     }
@@ -244,7 +249,13 @@ public final class TableReference {
     // saving prepend.ID = uniqueString
     while (iterator.hasNext()) {
       Entry<String, String> entry = iterator.next();
-      props.setProperty(prepend + "." + entry.getValue(), entry.getKey());
+      String uniqueString = entry.getKey();
+      if (uniqueString.indexOf("/dual/") != -1) {
+        //Looking for mystery bug:
+        //meta.ref.ebt4=/home/NOBACKUP/sueh/test datasets/Development/linux/UITests/dual/dual/BBa.st
+        System.err.println("stored ref " + uniqueString);
+      }
+      props.setProperty(prepend + "." + entry.getValue(), uniqueString);
     }
   }
 }
