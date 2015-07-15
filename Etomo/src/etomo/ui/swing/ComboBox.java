@@ -48,7 +48,8 @@ import etomo.util.Utilities;
 */
 
 final class ComboBox {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final JComboBox comboBox;
   private final JLabel label;
@@ -58,6 +59,8 @@ final class ComboBox {
   private boolean checkpointed = false;
   private int checkpointIndex = -1;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private boolean textEntryPolicy = false;
+  private boolean enabledPolicy = true;
 
   private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
     this.addEmptyChoice = addEmptyChoice;
@@ -163,11 +166,53 @@ final class ComboBox {
     if (label != null) {
       label.setEnabled(enabled);
     }
+    if (enabled && !enabledPolicy) {
+      return;
+    }
     comboBox.setEnabled(enabled);
   }
 
   void setComboBoxEnabled(final boolean enabled) {
+    if (enabled && !enabledPolicy) {
+      return;
+    }
     comboBox.setEnabled(enabled);
+  }
+
+  void setEditable(final boolean editable) {
+    if (!textEntryPolicy) {
+      if (editable && !enabledPolicy) {
+        return;
+      }
+      comboBox.setEnabled(editable);
+    }
+    else {
+      comboBox.setEditable(editable);
+    }
+  }
+
+  /**
+   * Sets the text entry policy.  Text entry policy default is false.  This function calls
+   * the combobox setEditable function.
+   * @param input
+   */
+  void setTextEntryPolicy(final boolean input) {
+    textEntryPolicy = input;
+    // Combobox text field is normally not editable, so this function should always change
+    //editing.
+    comboBox.setEditable(input);
+  }
+
+  /**
+   * Sets the enabled policy.  The enabled policy default is true.  Makes sure that
+   * combobox is not in an illegal state.
+   * @param input
+   */
+  void setEnabledPolicy(final boolean input) {
+    enabledPolicy = input;
+    if (!input) {
+      comboBox.setEnabled(false);
+    }
   }
 
   String getLabel() {
@@ -178,17 +223,13 @@ final class ComboBox {
     debug = input;
   }
 
-  void setEditable(final boolean editable) {
-    comboBox.setEditable(editable);
-  }
-
   void setName(String text) {
     String name = Utilities.convertLabelToName(text);
     comboBox.setName(UITestFieldType.COMBO_BOX.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(comboBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+        + ' ');
     }
   }
 
