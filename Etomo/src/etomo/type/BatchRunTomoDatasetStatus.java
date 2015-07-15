@@ -10,5 +10,5 @@ package etomo.type;
 * @version $Id$
 */
 public final class BatchRunTomoDatasetStatus implements Status {
-
+  private BatchRunTomoDatasetStatus() {}
 }
