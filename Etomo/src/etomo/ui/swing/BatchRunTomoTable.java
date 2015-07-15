@@ -34,6 +34,7 @@ import etomo.type.DuplicateException;
 import etomo.type.NotLoadedException;
 import etomo.type.OrderedHashMap;
 import etomo.type.Status;
+import etomo.type.StatusChangeEvent;
 import etomo.type.StatusChangeListener;
 import etomo.type.StatusChanger;
 import etomo.type.TableReference;
@@ -311,7 +312,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   void msgStatusChangerAvailable(final StatusChanger changer) {
     changer.addStatusChangeListener(this);
-    rowList.msgStatusChangerAvailable(changer);
   }
 
   Component getComponent() {
@@ -392,6 +392,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     boolean open = status == null || status == BatchRunTomoStatus.OPEN;
     btnAdd.setEditable(open);
     btnStack.setEditable(open);
+    rowList.statusChanged(status);
+  }
+
+  public void statusChanged(final StatusChangeEvent statusChangeEvent) {
+    rowList.statusChanged(statusChangeEvent);
   }
 
   void msgTabChanged(final BatchRunTomoTab tab) {
@@ -441,7 +446,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       }
     }
     else if (actionCommand.equals(btnDelete.getActionCommand())) {
-      if (rowList.delete()) {
+      if (rowList.removeHighlighted()) {
         rebuildTable();
         updateDisplay();
         UIHarness.INSTANCE.pack(manager);
@@ -497,22 +502,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     for (int i = 0; i < NUM_DATASET_HEADER_ROWS; i++) {
       hcBoundaryModel[i].setToolTipText(SharedStrings.EDIT_DATASET_TOOLTIP);
     }
-    /*
-
-    private final HeaderCell[] hcStatus = new HeaderCell[NUM_RUN_HEADER_ROWS];
-    private final HeaderCell[] hcStep = new HeaderCell[NUM_RUN_HEADER_ROWS];
-    private final HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS];
-    private final HeaderCell[] hcEtomo = new HeaderCell[NUM_RUN_HEADER_ROWS];
-    private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
-    private final MultiLineButton btnCopyDown = new MultiLineButton("Copy Down");
-    private final MultiLineButton btnDelete = new MultiLineButton("Delete");
-    private final JPanel pnlStackButtons = new JPanel();
-
-    private final RowList rowList;
-    private final BatchRunTomoManager manager;
-    private final Viewport viewport;
-    private final ExpandButton btnStack
-     */
+    /* private final HeaderCell[] hcStatus = new HeaderCell[NUM_RUN_HEADER_ROWS]; private
+     * final HeaderCell[] hcStep = new HeaderCell[NUM_RUN_HEADER_ROWS]; private final
+     * HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS]; private final
+     * HeaderCell[] hcEtomo = new HeaderCell[NUM_RUN_HEADER_ROWS]; private final
+     * MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)"); private final
+     * MultiLineButton btnCopyDown = new MultiLineButton("Copy Down"); private final
+     * MultiLineButton btnDelete = new MultiLineButton("Delete"); private final JPanel
+     * pnlStackButtons = new JPanel(); private final RowList rowList; private final
+     * BatchRunTomoManager manager; private final Viewport viewport; private final
+     * ExpandButton btnStack */
   }
 
   static final class DatasetColumn {
@@ -686,15 +685,19 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       }
     }
 
-    void msgStatusChangerAvailable(final StatusChanger changer) {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).msgStatusChangerAvailable(changer);
-      }
-    }
-
     private BatchRunTomoRow getFirstRow() {
       if (!list.isEmpty()) {
         return list.get(0);
+      }
+      return null;
+    }
+    
+    private BatchRunTomoRow getRow(final String stackID) {
+      for (int i = 0; i < list.size(); i++) {
+        BatchRunTomoRow row = list.get(i);
+        if (row.equalsStackID(stackID)) {
+          return row;
+        }
       }
       return null;
     }
@@ -711,7 +714,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     /**
      * @return true if a row was deleted
      */
-    private boolean delete() {
+    private boolean removeHighlighted() {
       int index = getHighlightedIndex();
       if (index != -1) {
         BatchRunTomoRow row = list.get(index);
@@ -770,6 +773,22 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
     private int size() {
       return list.size();
+    }
+
+    private void statusChanged(final Status status) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).statusChanged(status);
+      }
+    }
+
+    private void statusChanged(final StatusChangeEvent statusChangeEvent) {
+      BatchRunTomoRow row = null;
+      if (statusChangeEvent != null) {
+        row = getRow(tableReference.getID(statusChangeEvent.getIdentifier()));//TODO
+      }
+      if (row != null) {
+        row.statusChanged(statusChangeEvent);
+      }
     }
 
     private boolean isHighlighted() {
