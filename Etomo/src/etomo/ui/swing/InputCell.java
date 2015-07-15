@@ -35,6 +35,7 @@ abstract class InputCell extends Cell {
   private boolean initialized = false;
   private String tableHeader = null;
   private HeaderCell rowHeader = null, columnHeader = null;
+  private boolean debug = false;
 
   abstract Component getComponent();
 
@@ -59,6 +60,14 @@ abstract class InputCell extends Cell {
       jpanelContainer.remove(getComponent());
       jpanelContainer = null;
     }
+  }
+
+  void setDebug(final boolean input) {
+    debug = input;
+  }
+
+  boolean isDebug() {
+    return debug;
   }
 
   void setEditable(boolean editable) {
