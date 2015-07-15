@@ -29,12 +29,12 @@ abstract class Cell {
   private TableField tableField = null;
   private TableState tableState = null;
 
-  abstract public void setEnabled(boolean enable);
+  abstract void setEnabled(boolean enable);
 
   /**
    * Message from row header or column header that their label has changed.
    */
-  abstract public void msgLabelChanged();
+  abstract void msgLabelChanged();
 
   abstract void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints);
 

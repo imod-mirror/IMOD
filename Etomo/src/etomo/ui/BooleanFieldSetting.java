@@ -18,7 +18,10 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
   private boolean value = false;
   private TextFieldSetting textSetting = null;
 
-  public BooleanFieldSetting() {
+  public BooleanFieldSetting() {}
+
+  public String toString() {
+    return "[set:" + set + ",value:" + value + "]";
   }
 
   public boolean isBoolean() {
@@ -158,12 +161,10 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
         return false;
       }
     }
-    catch (NumberFormatException e) {
-    }
-    if (string.compareToIgnoreCase("f") == 0 ||
-        string.compareToIgnoreCase("false") == 0 ||
-        string.compareToIgnoreCase("n") == 0 || string.compareToIgnoreCase("na") == 0 ||
-        string.compareToIgnoreCase("no") == 0 || string.compareToIgnoreCase("off") == 0) {
+    catch (NumberFormatException e) {}
+    if (string.compareToIgnoreCase("f") == 0 || string.compareToIgnoreCase("false") == 0
+      || string.compareToIgnoreCase("n") == 0 || string.compareToIgnoreCase("na") == 0
+      || string.compareToIgnoreCase("no") == 0 || string.compareToIgnoreCase("off") == 0) {
       return false;
     }
     return true;

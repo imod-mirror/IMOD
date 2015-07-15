@@ -33,7 +33,7 @@ import etomo.util.UniqueKey;
  * @version $Id$
  */
 public final class UIHarness implements UIComponent {
-  private static final String LOG_TAG = "LOG";
+  public static final String LOG_TAG = "LOG";
 
   public static final UIHarness INSTANCE = new UIHarness();
 
@@ -131,8 +131,6 @@ public final class UIHarness implements UIComponent {
     return false;
   }
 
-
-
   public void openProblemValueMessageDialog(final BaseManager manager,
     final UIComponent uiComponent, final String problem, final String paramName,
     final String paramDescr, final String fieldLabel, final String problemValue,
@@ -153,7 +151,7 @@ public final class UIHarness implements UIComponent {
         + (fieldLabel != null ? "  See the '" + fieldLabel + "' field." : ""), problem
         + " Value");
   }
-  
+
   public void openPopup(final Popup popup) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       popup.open();
@@ -783,14 +781,14 @@ public final class UIHarness implements UIComponent {
 
   private void logError(ProcessMessages processMessages, String title, AxisID axisID) {
     logHeader(title, axisID);
-    processMessages.printError();
+    processMessages.print(ProcessMessages.MessageType.ERROR);
     System.err.println();
     System.err.flush();
   }
 
   private void logWarning(ProcessMessages processMessages, String title, AxisID axisID) {
     logHeader(title, axisID);
-    processMessages.printWarning();
+    processMessages.print(ProcessMessages.MessageType.WARNING);
     System.err.println();
     System.err.flush();
   }

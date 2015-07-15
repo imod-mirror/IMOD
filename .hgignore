@@ -35,6 +35,7 @@ bk--*
 man
 html/man
 html/libhelp
+html/3dmodHelp/plughelp
 html/plughelp
 html/IMOD.qhp
 html/IMOD.qch
@@ -278,6 +279,7 @@ mrc/mrctaper
 mrc/mrcx
 mrc/nad_eed_3d
 mrc/preNAD
+mrc/preNID
 mrc/raw2mrc
 mrc/tif2mrc
 mrc2tif/mrc2tif

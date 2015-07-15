@@ -33,11 +33,11 @@ public final class SettingsDialog extends JDialog {
   private final FontFamilies fontFamilies = new FontFamilies();
   private final JList listFontFamily = new JList(fontFamilies.getFontFamilies());
   private final LabeledTextField ltfFontSize = new LabeledTextField(FieldType.INTEGER,
-      "Size: ");
+    "Size: ");
   private final LabeledTextField ltfTooltipsInitialDelay = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Tooltips initial delay: ");
+    FieldType.FLOATING_POINT, "Tooltips initial delay: ");
   private final LabeledTextField ltfTooltipsDismissDelay = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Tooltips dismiss delay: ");
+    FieldType.FLOATING_POINT, "Tooltips dismiss delay: ");
   private final CheckBox cbNativeLAF = new CheckBox("Native look & feel");
   private final CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
   private final CheckBox cbAutoFit = new CheckBox("Auto-fit");
@@ -46,46 +46,49 @@ public final class SettingsDialog extends JDialog {
   private final JButton buttonApply = new JButton("Apply");
   private final JButton buttonDone = new JButton("Done");
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
-      + ParallelPanel.FIELD_LABEL);
+    + ParallelPanel.FIELD_LABEL);
   private final CheckBox cbGpuProcessing = new CheckBox("Enable graphics processing");
   private final LabeledTextField ltfCpus = new LabeledTextField(FieldType.INTEGER,
-      "# CPUs: ");
+    "# CPUs: ");
   private final CheckBox cbSingleAxis = new CheckBox(SetupDialog.AXIS_TYPE_LABEL + ":  "
-      + SetupDialog.SINGLE_AXIS_LABEL);
+    + SetupDialog.SINGLE_AXIS_LABEL);
   private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL + ":  "
-      + SetupDialog.MONTAGE_LABEL);
+    + SetupDialog.MONTAGE_LABEL);
   private final CheckBox cbNoParallelProcessing = new CheckBox("Start with "
-      + ParallelPanel.FIELD_LABEL + " off");
+    + ParallelPanel.FIELD_LABEL + " off");
   private final CheckBox cbGpuProcessingDefault = new CheckBox(
-      "Start with graphics card processing on");
+    "Start with graphics card processing on");
   private final CheckBox cbTiltAnglesRawtltFile = new CheckBox("Angle Source:  "
-      + TiltAnglePanel.EXISTING_RAWTILT_FILE);
+    + TiltAnglePanel.EXISTING_RAWTILT_FILE);
   private final CheckBox cbSwapYAndZ = new CheckBox(
-      TrimvolPanel.REORIENTATION_GROUP_LABEL + "  " + TrimvolPanel.SWAP_YZ_LABEL);
+    TrimvolPanel.REORIENTATION_GROUP_LABEL + "  " + TrimvolPanel.SWAP_YZ_LABEL);
   private final LabeledTextField ltfParallelTableSize = new LabeledTextField(
-      FieldType.INTEGER, "Parallel table size: ");
+    FieldType.INTEGER, "Parallel table size: ");
   private final LabeledTextField ltfJoinTableSize = new LabeledTextField(
-      FieldType.INTEGER, "Join tables size: ");
+    FieldType.INTEGER, "Join tables size: ");
   private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
-      FieldType.INTEGER, "PEET table size: ");
+    FieldType.INTEGER, "PEET table size: ");
   private final CheckBox cbSetFEIPixelSize = new CheckBox(
-      "Set pixel size in files from FEI");
+    "Set pixel size in files from FEI");
   private final FileTextField2 ftfUserTemplateDir = FileTextField2.getInstance(null,
-      "User templates directory: ");
+    "User templates directory: ");
   private final SettingsDialogListener listener = new SettingsDialogListener(this);
+  private final LabeledTextField ltfSmtpServer = new LabeledTextField(FieldType.STRING,
+    "Outgoing mail server: ");
 
   private final TemplatePanel templatePanel;
   private final String propertyUserDir;
 
   private SettingsDialog(final BaseManager manager, final String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
-    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,
-        "Default Templates", this);
+    templatePanel =
+      TemplatePanel
+        .getInstance(manager, AxisID.ONLY, listener, "Default Templates", this);
 
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
-      final String propertyUserDir) {
+    final String propertyUserDir) {
     SettingsDialog instance = new SettingsDialog(manager, propertyUserDir);
     instance.buildDialog();
     instance.loadData(manager, propertyUserDir);
@@ -118,6 +121,9 @@ public final class SettingsDialog extends JDialog {
     pnlMain.add(panelFontSelect);
     pnlMain.add(ltfTooltipsInitialDelay.getContainer());
     pnlMain.add(ltfTooltipsDismissDelay.getContainer());
+    pnlMain.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlMain.add(ltfSmtpServer);
+    pnlMain.add(Box.createRigidArea(FixedDim.x0_y5));
     // Settings
     SpacedPanel pnlSettings = SpacedPanel.getInstance();
     pnlSettings.setBoxLayout(BoxLayout.X_AXIS);
@@ -136,13 +142,13 @@ public final class SettingsDialog extends JDialog {
     // enhanced processing settings
     EtomoPanel pnlEnhancedProcessing = new EtomoPanel();
     pnlEnhancedProcessing
-        .setLayout(new BoxLayout(pnlEnhancedProcessing, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(pnlEnhancedProcessing, BoxLayout.Y_AXIS));
     pnlEnhancedProcessing.setBorder(new EtchedBorder("User Level Enhanced Processing")
-        .getBorder());
+      .getBorder());
     pnlSettings.add(pnlEnhancedProcessing);
     JPanel pnlCheckBoxParallelProcessing = new JPanel();
     pnlCheckBoxParallelProcessing.setLayout(new BoxLayout(pnlCheckBoxParallelProcessing,
-        BoxLayout.X_AXIS));
+      BoxLayout.X_AXIS));
     pnlCheckBoxParallelProcessing.add(Box.createHorizontalGlue());
     pnlCheckBoxParallelProcessing.add(cbParallelProcessing);
     pnlEnhancedProcessing.add(pnlCheckBoxParallelProcessing);
@@ -194,7 +200,7 @@ public final class SettingsDialog extends JDialog {
     // Disable parallel processing checkbox if it was enabled by a method that
     // takes precidence over this one (cpu.adoc or IMOD_PROCESSORS).
     cbParallelProcessing.setEnabled(!Network.isParallelProcessingSetExternally(manager,
-        AxisID.ONLY, propertyUserDir));
+      AxisID.ONLY, propertyUserDir));
     // Disable GPU processing checkbox if it was enabled by a method that takes
     // precidence over this one (cpu.adoc).
     cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally());
@@ -202,7 +208,7 @@ public final class SettingsDialog extends JDialog {
 
   private void updateDisplay() {
     ltfCpus.setEnabled(cbParallelProcessing.isEnabled()
-        && cbParallelProcessing.isSelected());
+      && cbParallelProcessing.isSelected());
   }
 
   private void addListeners() {
@@ -233,6 +239,7 @@ public final class SettingsDialog extends JDialog {
     ltfParallelTableSize.setText(userConfig.getParallelTableSize());
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
     ltfPeetTableSize.setText(userConfig.getPeetTableSize());
+    ltfSmtpServer.setText(userConfig.getSmtpServer());
     String dir = userConfig.getUserTemplateDir();
     if (dir != null && !dir.matches("\\s*")) {
       ftfUserTemplateDir.setText(userConfig.getUserTemplateDir());
@@ -302,6 +309,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setJoinTableSize(ltfJoinTableSize.getText());
     userConfig.setPeetTableSize(ltfPeetTableSize.getText());
     userConfig.setUserTemplateDir(ftfUserTemplateDir.getFile());
+    userConfig.setSmtpServer(ltfSmtpServer.getText());
     templatePanel.getParameters(userConfig);
   }
 
@@ -310,24 +318,25 @@ public final class SettingsDialog extends JDialog {
       return true;
     }
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
-        || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
-        || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
-        || userConfig.getMontage() != cbMontage.isSelected()
-        || userConfig.getNoParallelProcessing() != cbNoParallelProcessing.isSelected()
-        || userConfig.getGpuProcessingDefault() != cbGpuProcessingDefault.isSelected()
-        || userConfig.isTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
-        || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
-        || userConfig.isSetFEIPixelSize() != cbSetFEIPixelSize.isSelected()
-        || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
-        || !userConfig.getFontFamily().equals(
-            fontFamilies.getName(listFontFamily.getSelectedIndex()))
-        || userConfig.isParallelProcessing() != cbParallelProcessing.isSelected()
-        || userConfig.isGpuProcessing() != cbGpuProcessing.isSelected()
-        || !userConfig.getCpus().toString().equals(ltfCpus.getText())
-        || !userConfig.getParallelTableSize().toString()
-            .equals(ltfParallelTableSize.getText())
-        || !userConfig.getJoinTableSize().toString().equals(ltfJoinTableSize.getText())
-        || !userConfig.getPeetTableSize().toString().equals(ltfPeetTableSize.getText())) {
+      || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
+      || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
+      || userConfig.getMontage() != cbMontage.isSelected()
+      || userConfig.getNoParallelProcessing() != cbNoParallelProcessing.isSelected()
+      || userConfig.getGpuProcessingDefault() != cbGpuProcessingDefault.isSelected()
+      || userConfig.isTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
+      || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
+      || userConfig.isSetFEIPixelSize() != cbSetFEIPixelSize.isSelected()
+      || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
+      || !userConfig.getFontFamily().equals(
+        fontFamilies.getName(listFontFamily.getSelectedIndex()))
+      || userConfig.isParallelProcessing() != cbParallelProcessing.isSelected()
+      || userConfig.isGpuProcessing() != cbGpuProcessing.isSelected()
+      || !userConfig.getCpus().toString().equals(ltfCpus.getText())
+      || !userConfig.getParallelTableSize().toString()
+        .equals(ltfParallelTableSize.getText())
+      || !userConfig.getJoinTableSize().toString().equals(ltfJoinTableSize.getText())
+      || !userConfig.getPeetTableSize().toString().equals(ltfPeetTableSize.getText())
+      || !userConfig.getSmtpServer().toString().equals(ltfSmtpServer.getText())) {
       return true;
     }
     return false;
@@ -352,8 +361,8 @@ public final class SettingsDialog extends JDialog {
 
   void setTooltips() {
     cbSetFEIPixelSize.setToolTipText(TooltipFormatter.INSTANCE
-        .format("During tomogram setup, transfer pixel size from extended header to "
-            + "pixel."));
+      .format("During tomogram setup, transfer pixel size from extended header to "
+        + "pixel."));
   }
 
   private static final class SettingsDialogListener implements TemplateActionListener {
@@ -386,8 +395,8 @@ public final class SettingsDialog extends JDialog {
      * to "Dialog".
      */
     private FontFamilies() {
-      String[] available = GraphicsEnvironment.getLocalGraphicsEnvironment()
-          .getAvailableFontFamilyNames();
+      String[] available =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
       for (int i = 0; i < available.length; i++) {
         if (available[i].indexOf("'") == -1) {
           usable.add(available[i]);

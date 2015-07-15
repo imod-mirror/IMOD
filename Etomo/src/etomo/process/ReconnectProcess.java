@@ -21,19 +21,13 @@ import etomo.ui.swing.UIHarness;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
- * 
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  */
 public final class ReconnectProcess implements SystemProcessInterface, Runnable {
-  public static final String rcsid = "$Id$";
-
   private final BaseManager manager;
 
   private final BaseProcessManager processManager;
@@ -231,7 +225,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       e.printStackTrace();
     }
     int exitValue = 0;
-    if (messages.isError() || !messages.isSuccess()) {
+    if (!messages.isEmpty(ProcessMessages.MessageType.ERROR) || !messages.isSuccess()) {
       exitValue = 1;
     }
     processManager.msgReconnectDone(this, exitValue, popupChunkWarnings);

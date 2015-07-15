@@ -42,25 +42,20 @@ import etomo.type.Time;
  * process series with non-droppable processes that where saved to the process list, then
  * add functionality to handle processList.</p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public final class ProcessData implements Storable {
-  public static final String rcsid = "$Id$";
-
   private static final String PID_KEY = "PID";
   private static final String GROUP_PID_KEY = "GroupPID";
   private static final String START_TIME_KEY = "StartTime";
   private static final String PROCESS_NAME_KEY = "ProcessName";
   private static final String OS_TYPE_KEY = "OS";
   private static final String COMPUTER_KEY = "Computer";
+  private static final String DATA_PAIRS_KEY = "DataPairs";
 
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
   private final StringProperty subProcessName = new StringProperty("SubProcessName");
@@ -88,11 +83,12 @@ public final class ProcessData implements Storable {
   private ProcessingMethod processingMethod = null;
   private DialogType dialogType = null;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private Map<String, String> dataPairs = null;
 
   public void dumpState() {
     System.err.println("[processDataPrepend:" + processDataPrepend + ",pid:" + pid
-        + ",\ngroupPid:" + groupPid + ",doNotLoad:" + doNotLoad + ",sshFailed:"
-        + sshFailed + ",computerMap:");
+      + ",\ngroupPid:" + groupPid + ",doNotLoad:" + doNotLoad + ",sshFailed:" + sshFailed
+      + ",computerMap:");
     if (computerMap != null) {
       System.err.println(computerMap.toString());
     }
@@ -109,11 +105,11 @@ public final class ProcessData implements Storable {
    * @return
    */
   static ProcessData getManagedInstance(AxisID axisID, BaseManager manager,
-      ProcessName processName) {
+    ProcessName processName) {
     ProcessData processData = new ProcessData(axisID, manager);
     processData.processName = processName;
     processData.hostName.set(Network.getLocalHostName(manager, axisID,
-        manager.getPropertyUserDir()));
+      manager.getPropertyUserDir()));
     processData.osType = OSType.getInstance();
     processData.doNotLoad = true;
     return processData;
@@ -139,10 +135,10 @@ public final class ProcessData implements Storable {
    */
   public String toString() {
     return "ProcessData values:" + "\nprocessName=" + processName + "\npid=" + pid
-        + "\ngroupPid=" + groupPid + "\nstartTime=" + startTime + "\nsubProcessName="
-        + subProcessName + "\nsubDirName=" + subDirName + "\nhostName=" + hostName
-        + "\nosType=" + osType + "\ndisplayKey=" + displayKey + "\ndialogType="
-        + dialogType + "\nlastProcess=" + lastProcess + "\n";
+      + "\ngroupPid=" + groupPid + "\nstartTime=" + startTime + "\nsubProcessName="
+      + subProcessName + "\nsubDirName=" + subDirName + "\nhostName=" + hostName
+      + "\nosType=" + osType + "\ndisplayKey=" + displayKey + "\ndialogType="
+      + dialogType + "\nlastProcess=" + lastProcess + "\n";
   }
 
   public void setDisplayKey(ProcessResultDisplay processResultDisplay) {
@@ -160,7 +156,7 @@ public final class ProcessData implements Storable {
   }
 
   public void setLastProcess(final ConstProcessSeries processSeries,
-      final boolean resumable) {
+    final boolean resumable) {
     if (processSeries.willProcessListBeDropped() && resumable) {
       System.err.println("WARNING:  Not compatible with ProcessSeries.processList.");
     }
@@ -207,7 +203,7 @@ public final class ProcessData implements Storable {
   public boolean isOnDifferentHost() {
     if (!hostName.isEmpty()) {
       return !hostName.equals(Network.getLocalHostName(manager, axisID,
-          manager.getPropertyUserDir()));
+        manager.getPropertyUserDir()));
     }
     return false;
   }
@@ -254,8 +250,9 @@ public final class ProcessData implements Storable {
       System.err.println("ProcessData.runPs");
     }
     PsParam param = new PsParam(manager, axisID, pid, osType, hostName.toString(), false);
-    SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(),
-        param.getCommandArray(), axisID);
+    SystemProgram ps =
+      new SystemProgram(manager, manager.getPropertyUserDir(), param.getCommandArray(),
+        axisID);
     ps.run();
     String[] stdout = ps.getStdOutput();
     // Ps should always return something - usually as header, but on Mac it will
@@ -303,6 +300,13 @@ public final class ProcessData implements Storable {
 
   public Map<String, String> getComputerMap() {
     return computerMap;
+  }
+  
+  public String getDataPair(final String key) {
+    if (dataPairs==null) {
+      return null;
+    }
+    return dataPairs.get(key);
   }
 
   public ProcessingMethod getProcessingMethod() {
@@ -385,14 +389,20 @@ public final class ProcessData implements Storable {
       }
       lastProcess.store(props, prepend);
       // Store everything in computerMap in props.
-      if (computerMap != null && !computerMap.isEmpty()) {
-        Set<Map.Entry<String, String>> computerSet = computerMap.entrySet();
-        Iterator entryIterator = computerSet.iterator();
-        while (entryIterator.hasNext()) {
-          Entry entry = (Entry) entryIterator.next();
-          props.setProperty(group + COMPUTER_KEY + "." + (String) entry.getKey(),
-              (String) entry.getValue());
-        }
+      storeMap(props, group, computerMap, COMPUTER_KEY);
+      storeMap(props, group, dataPairs, DATA_PAIRS_KEY);
+    }
+  }
+
+  private void storeMap(final Properties props, final String group,
+    final Map<String, String> map, final String key) {
+    if (map != null && !map.isEmpty()) {
+      Set<Map.Entry<String, String>> set = map.entrySet();
+      Iterator entryIterator = set.iterator();
+      while (entryIterator.hasNext()) {
+        Entry entry = (Entry) entryIterator.next();
+        props.setProperty(group + key + "." + (String) entry.getKey(),
+          (String) entry.getValue());
       }
     }
   }
@@ -422,7 +432,7 @@ public final class ProcessData implements Storable {
   private void load(Properties props, String prepend) {
     if (doNotLoad) {
       throw new IllegalStateException(
-          "Trying to load into into thread data that belongs to a managed process.");
+        "Trying to load into into thread data that belongs to a managed process.");
     }
     reset();
     // load
@@ -449,22 +459,29 @@ public final class ProcessData implements Storable {
     osType = OSType.getInstance(props, prepend);
     dialogType = DialogType.load(props, prepend);
     lastProcess.load(props, prepend);
-    // Load from props to computerMap
+    computerMap = loadMap(props, group, computerMap, COMPUTER_KEY, "0");
+    dataPairs = loadMap(props, group, dataPairs, DATA_PAIRS_KEY, null);
+  }
+
+  private Map<String, String> loadMap(final Properties props, final String group,
+    Map<String, String> map, final String key, final String defaultString) {
+    // Load from props to the map
     Enumeration keyEnumeration = props.keys();
-    // Load anything that starts with group.COMPUTER_KEY.
-    String computerKey = group + COMPUTER_KEY + ".";
+    // Load anything that starts with group.key.
+    String groupKey = group + key + ".";
     while (keyEnumeration.hasMoreElements()) {
-      String key = (String) keyEnumeration.nextElement();
-      if (key.trim().startsWith(computerKey)) {
-        if (computerMap == null) {
-          computerMap = new HashMap<String, String>();
+      String enumKey = (String) keyEnumeration.nextElement();
+      if (enumKey.trim().startsWith(groupKey)) {
+        if (map == null) {
+          map = new HashMap<String, String>();
         }
         // Strip the generic part of the key from props to get the key for
-        // computerMap.
-        computerMap.put(key.substring(key.indexOf(computerKey) + computerKey.length()),
-            props.getProperty(key, "0"));
+        // the map.
+        map.put(enumKey.substring(enumKey.indexOf(groupKey) + groupKey.length()),
+          props.getProperty(enumKey, defaultString));
       }
     }
+    return map;
   }
 }
 /**

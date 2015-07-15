@@ -20,21 +20,28 @@ import javax.swing.border.LineBorder;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.comscript.BatchruntomoParam;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
+import etomo.type.BatchRunTomoStatus;
 import etomo.type.DuplicateException;
 import etomo.type.NotLoadedException;
 import etomo.type.OrderedHashMap;
+import etomo.type.Status;
+import etomo.type.StatusChangeListener;
+import etomo.type.StatusChanger;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldDisplayer;
 import etomo.ui.PreferredTableSize;
+import etomo.ui.SharedStrings;
 import etomo.ui.TableListener;
 
 /**
@@ -47,9 +54,7 @@ import etomo.ui.TableListener;
  * @version $Id$
  */
 final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
-  ActionListener {
-  public static final String rcsid = "$Id:$";
-
+  ActionListener, StatusChangeListener {
   private static final String STACK_TITLE = "Stack";
   private static final int MAX_HEADER_ROWS = 3;
   private static final int NUM_STACKS_HEADER_ROWS = MAX_HEADER_ROWS;
@@ -66,8 +71,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   // stacks tab
   private final HeaderCell[] hcDual = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcMontage = new HeaderCell[NUM_STACKS_HEADER_ROWS];
-  private final HeaderCell[] hcExcludeViews = new HeaderCell[NUM_STACKS_HEADER_ROWS];
-  private final HeaderCell hcExcludeViewsB = new HeaderCell("from B");
+  private final HeaderCell[] hcSkip = new HeaderCell[NUM_STACKS_HEADER_ROWS];
+  private final HeaderCell hcSkipB = new HeaderCell("from B");
   private final HeaderCell[] hcBoundaryModel = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcSurfacesToAnalyze = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hc3dmod = new HeaderCell[NUM_STACKS_HEADER_ROWS];
@@ -76,6 +81,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final HeaderCell[] hcEditDataset = new HeaderCell[NUM_DATASET_HEADER_ROWS];
   // run tab
   private final HeaderCell[] hcStatus = new HeaderCell[NUM_RUN_HEADER_ROWS];
+  private final HeaderCell[] hcStep = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final HeaderCell[] hcEtomo = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
@@ -92,6 +98,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
+  private Status status = null;
 
   private BatchRunTomoTable(final BatchRunTomoManager manager,
     final Expandable expandable, final TableReference tableReference) {
@@ -130,9 +137,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     hcMontage[0] = new HeaderCell();
     hcMontage[1] = new HeaderCell();
     hcMontage[2] = new HeaderCell("Montage");
-    hcExcludeViews[0] = new HeaderCell("Exclude");
-    hcExcludeViews[1] = new HeaderCell("Views");
-    hcExcludeViews[2] = new HeaderCell("from A");
+    hcSkip[0] = new HeaderCell("Exclude");
+    hcSkip[1] = new HeaderCell("Views");
+    hcSkip[2] = new HeaderCell("from A");
     hcBoundaryModel[0] = new HeaderCell();
     hcBoundaryModel[1] = new HeaderCell("Boundary");
     hcBoundaryModel[2] = new HeaderCell("Model");
@@ -147,6 +154,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     // run tab
     hcStatus[0] = new HeaderCell();
     hcStatus[1] = new HeaderCell("Status");
+    hcStep[0] = new HeaderCell("Stopped");
+    hcStep[1] = new HeaderCell("After");
     hcRun[0] = new HeaderCell();
     hcRun[1] = new HeaderCell("Run");
     hcEtomo[0] = new HeaderCell("Open");
@@ -186,6 +195,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     // update
     viewport.adjustViewport(-1);
     updateDisplay();
+    statusChanged(status);
   }
 
   int getPreferredWidth() {
@@ -210,10 +220,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         if (i < numRows - 1) {
           constraints.gridwidth = 2;
         }
-        hcExcludeViews[i].add(pnlTable, layout, constraints);
+        hcSkip[i].add(pnlTable, layout, constraints);
         constraints.gridwidth = 1;
         if (i == numRows - 1) {
-          hcExcludeViewsB.add(pnlTable, layout, constraints);
+          hcSkipB.add(pnlTable, layout, constraints);
         }
         hcBoundaryModel[i].add(pnlTable, layout, constraints);
         hcSurfacesToAnalyze[i].add(pnlTable, layout, constraints);
@@ -243,6 +253,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         addStandardHeaders(i, numRows);
         constraints.gridwidth = 1;
         hcStatus[i].add(pnlTable, layout, constraints);
+        hcStep[i].add(pnlTable, layout, constraints);
         hcRun[i].add(pnlTable, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         hcEtomo[i].add(pnlTable, layout, constraints);
@@ -296,6 +307,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     btnAdd.addActionListener(this);
     btnCopyDown.addActionListener(this);
     btnDelete.addActionListener(this);
+  }
+
+  void msgStatusChangerAvailable(final StatusChanger changer) {
+    changer.addStatusChangeListener(this);
+    rowList.msgStatusChangerAvailable(changer);
   }
 
   Component getComponent() {
@@ -371,6 +387,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     btnCopyDown.setEnabled(index != -1 && index < size - 1);
   }
 
+  public void statusChanged(final Status status) {
+    this.status = status;
+    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+    btnAdd.setEditable(open);
+    btnStack.setEditable(open);
+  }
+
   void msgTabChanged(final BatchRunTomoTab tab) {
     if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET
       || tab == BatchRunTomoTab.RUN) {
@@ -440,6 +463,56 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   public int size() {
     return rowList.size();
+  }
+
+  private void setTooltips() {
+    String dualTooltip = AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.DUAL);
+    String montageTooltip =
+      AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.MONTAGE);
+    String skipTooltip = AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.SKIP);
+    String boundaryModelTooltip =
+      AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING);
+    String boundaryModelTooltip2 =
+      AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING);
+    String surfacesToAnalyzeTooltip =
+      AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.SURFACES_TO_ANALYZE);
+    String imodTooltip = "Opens the stacks";
+    for (int i = 0; i < NUM_STACKS_HEADER_ROWS; i++) {
+      hcStack[i].setToolTipText(SharedStrings.STACK_TOOLTIP);
+      hcDual[i].setToolTipText(dualTooltip);
+      hcMontage[i].setToolTipText(montageTooltip);
+      hcSkip[i].setToolTipText(skipTooltip);
+      hcBoundaryModel[i].setToolTipText(boundaryModelTooltip);
+      hcBoundaryModel[i].addTooltip(boundaryModelTooltip2);
+      hcSurfacesToAnalyze[i].addTooltip(surfacesToAnalyzeTooltip);
+      if (i < NUM_STACKS_HEADER_ROWS - 1) {
+        hc3dmod[i].setToolTipText(imodTooltip);
+      }
+    }
+    hcSkipB.setToolTipText(skipTooltip);
+    hc3dmod[NUM_STACKS_HEADER_ROWS - 1].setToolTipText(SharedStrings.IMOD_A_TOOLTIP);
+    hc3dmodB.setToolTipText(SharedStrings.IMOD_B_TOOLTIP);
+    for (int i = 0; i < NUM_DATASET_HEADER_ROWS; i++) {
+      hcBoundaryModel[i].setToolTipText(SharedStrings.EDIT_DATASET_TOOLTIP);
+    }
+    /*
+
+    private final HeaderCell[] hcStatus = new HeaderCell[NUM_RUN_HEADER_ROWS];
+    private final HeaderCell[] hcStep = new HeaderCell[NUM_RUN_HEADER_ROWS];
+    private final HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS];
+    private final HeaderCell[] hcEtomo = new HeaderCell[NUM_RUN_HEADER_ROWS];
+    private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
+    private final MultiLineButton btnCopyDown = new MultiLineButton("Copy Down");
+    private final MultiLineButton btnDelete = new MultiLineButton("Delete");
+    private final JPanel pnlStackButtons = new JPanel();
+
+    private final RowList rowList;
+    private final BatchRunTomoManager manager;
+    private final Viewport viewport;
+    private final ExpandButton btnStack
+     */
   }
 
   static final class DatasetColumn {
@@ -610,6 +683,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         rowList.display(viewport);
         UIHarness.INSTANCE.pack(manager);
         updateDisplay();
+      }
+    }
+
+    void msgStatusChangerAvailable(final StatusChanger changer) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).msgStatusChangerAvailable(changer);
       }
     }
 
