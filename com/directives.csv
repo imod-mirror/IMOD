@@ -144,7 +144,7 @@ comparam.ctfplotter.ctfplotter.VaryExponentInFit,Vary exponent of CTF function w
 comparam.ctfplotter.ctfplotter.BaselineFittingOrder,Order for polynomial fit to flatten baseline,Bool,Y,Y,SO,,Order for baseline fitting polynomial,
 comparam.ctfcorrection.ctfphaseflip.InvertTiltAngles,Invert the sign of the tilt angles,Bool,Y,Y,SD,,Invert sign of tilt angles for correction,
 comparam.mtffilter.mtffilter.LowPassRadiusSigma,Radius and sigma for 2D filtering,2 Float,Y,Y,SO,,Low pass cutoff & sigma for 2D filter,
-runtime.GoldErasing.any.binning,Binning to use in finding gold,Int,Y,Y,SO,,Binning to use when finding gold in 3D,
+runtime.GoldErasing.any.binning,Binning to use in finding gold,Int,Y,Y,SO,BRT default: bead size / 5 rounded to integer,Binning to use when finding gold in 3D,
 runtime.GoldErasing.any.extraDiameter,Extra pixels of diameter to erase,Float,Y,Y,NE,,Extra pixels of diameter to erase,
 runtime.GoldErasing.any.thickness,Reconstruction thickness if patch or fidless alignment,Int,Y,Y,SO,,Thickness of tomogram to find gold in,
 comparam.golderaser.ccderaser.ExpandCircleIterations,Iterations for expanding patches around circles,Int,Y,Y,SD,BRT default 2,Iterations to grow circular areas,
