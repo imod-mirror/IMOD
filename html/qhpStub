@@ -16,6 +16,7 @@
                 <section title="Joining Serial Tomograms" ref="./tomojoin.html#TOP"></section>
                 <section title="Guide to CTF Plotter" ref="./ctfHelp/ctfguide.html#TOP"></section>
                 <section title="Aligning Serial Sections" ref="./serialalign.html#TOP"></section>
+                <section title="Example of Cryotomography with Fiducials" ref="./cryoExample.html#TOP"></section>
                 <section title="Program Listing" ref="./program_listing.html#TOP"></section>
                 <section title="PEET Guide" ref="./PEETmanual.html#TOP"></section>
                 <section title="Batch/Template Directives" ref="./directives.html#TOP"></section>
@@ -103,6 +104,7 @@ INSERT LIBRARY PAGES
             <file>batchGuide.html</file>
             <file>binspec.html</file>
             <file>etomoTutorial.html</file>
+            <file>cryoExample.html</file>
             <file>guide.html</file>
             <file>index.html</file>
             <file>JoinTutorial.html</file>
