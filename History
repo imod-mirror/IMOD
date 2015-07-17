@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/15: Made Batchruntomo pick a good binning for 3d bead finding if no
+binning directive is supplied.
+
 7/15/15: Added stronger high frequency filtering for patch tracking to the
 cryoSample template.
 
