@@ -47,13 +47,15 @@ needTitle = True
 needHeader = True
 needTableHead = True
 lastBlank = False
+headlines = []
+toclines = []
 outlines = []
 
 if insertLines:
    for insertInd in range(len(insertLines)):
       if insertTag in insertLines[insertInd].strip():
          break
-      outlines.append(insertLines[insertInd])
+      headlines.append(insertLines[insertInd])
    else:   # ELSE ON FOR
       prnstr('ERROR: Could not find a line with ' + insertTag + ' in ' + \
                 sys.argv[argInd + 2])
@@ -62,7 +64,7 @@ if insertLines:
    insertInd += 1
    
 else:
-   outlines = ['<HTML>',
+   headlines = ['<HTML>',
                '<HEAD>']
 
 inrows = []
@@ -83,7 +85,7 @@ for row in inrows:
          continue;
       if lastNonEmpty < 0:
          continue
-      outlines += ['<TITLE>' + row[0] + '</TITLE>',
+      headlines += ['<TITLE>' + row[0] + '</TITLE>',
                    '</HEAD>',
                    '<BODY>',
                    '<A NAME = "TOP">']
@@ -93,8 +95,8 @@ for row in inrows:
    elif needHeader:
       if lastNonEmpty < 0:
          continue
-      outlines += ['<H2 ALIGN=center>' + row[0] + '</H2>',
-                   '<TABLE BORDER COLS=2>',
+      headlines += ['<H2 ALIGN=center>' + row[0] + '</H2>']
+      outlines =['<TABLE BORDER COLS=2>',
                    '<THEAD>']
       needHeader = False
       continue
@@ -113,7 +115,9 @@ for row in inrows:
       if cell == '':
          cell = '&nbsp;'
       if lastBlank and lastNonEmpty == 0 and ind == 0:
-         line += fmtstr('<{}><B>{}</B></{}>', tdtag, cell, tdtag)
+         sectag = cell.replace(' ', '_')
+         line += fmtstr('<{}><A name="{}"><B>{}</B></A></{}>', tdtag, sectag, cell, tdtag)
+         toclines.append(fmtstr('<A HREF="#{}">{}</A><BR>', sectag, cell))
       else:
          line += fmtstr('<{}>{}</{}>', tdtag, cell, tdtag)
    line += '</TR>'
@@ -132,6 +136,7 @@ if insertLines:
 else:
    outlines += ['</BODY>',
                 '</HTML>']
+toclines.append('<P></P>')
 
-writeTextFile(sys.argv[argInd + 1], outlines)
+writeTextFile(sys.argv[argInd + 1], headlines + toclines + outlines)
 sys.exit(0)
