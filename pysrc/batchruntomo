@@ -1088,6 +1088,14 @@ def needStep(step):
    return step >= startingStep - 0.005 and step <= endingStep + 0.005
 
 
+# Report a step was reached if it is in the range to run and in the list to report
+def reportReachedStep(step):
+   reachPoints = (6, 7, detect3DstepNum)
+   if step in reachPoints and needStep(step):
+      prnstr('Reached step ' + str(step))
+      prnstr('', flush = True)
+
+
 # SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
 
 # Read in a validation file as a csv and store the directives in dictionaries
@@ -2284,10 +2292,14 @@ def detectGoldIn3D():
       abortSet('Error converting eraseGold entry to integer')
       return 1
 
+   # Get the binning or use the binning that etomo would assign, bead size / 5 rounded
+   # to an integer with a minimum binned size of 4
    if eraseGold > 1 and needStep(detect3DstepNum):
       binning = lookupDirective(runtimePrefix + 'GoldErasing', 'binning', 0, INT_VALUE)
       if not binning:
-         binning = aliBinning
+         binning = int(round(fidSizePix / fb3dOptimalBinnedSize))
+         if binning > 1 and fidSizePix / binning < fb3dMinBinnedSize:
+            binning -= 1
 
       # Get the aligned stack if binning differs
       if binning != aliBinning:
@@ -3437,10 +3449,12 @@ def runOneAxis():
             return 1
 
    # Positioning
+   reportReachedStep(6)
    if needStep(7) and positionTomogram():
       return 1
    
    # Make aligned stack
+   reportReachedStep(7)
    if makeAlignedStack(0):
       return 1
          
@@ -3457,6 +3471,7 @@ def runOneAxis():
       return 1
    
    # Optionally CTF correct the stack
+   reportReachedStep(detect3DstepNum)
    if needStep(ctfCorrStepNum) and correctCTF and CTFCorrectAlignedStack():
       return 1
 
@@ -3579,6 +3594,8 @@ solvematchMinEachSide = 3
 solvematchMinSideRatio = 0.2
 useFallbackRatio = 0.4
 useVolMatch = -1
+fb3dOptimalBinnedSize = 5.
+fb3dMinBinnedSize = 4.
 
 logFile = None
 finalRetVal = 0
