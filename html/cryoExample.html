@@ -346,17 +346,34 @@
       <li>
         The <b>Expected defocus</b> of <i>8.0</i> happens to be correct.</li>
       <li>
-        Press <b>Run CTF Plotter</b>.</li>
+        Press <b>Run CTF Plotter</b>. Ctfplotter loads the noise files and
+        then displays the power spectrum.  The features of Ctfplotter are
+        explained in detail in the <a href="ctfHelp/ctfguide.html#TOP">Guide
+        to Ctfplotter</a>.  In brief, the X axis is spatial frequency in
+        cycles per pixel, thus running from 0 to 0.5.  The Y axis is the
+        logarithm of a rotationally averaged power spectrum, summed from
+        overlapping subareas referred to as tiles.  The red or magenta curve
+        is the actual power spectrum; the green curve is a curve fit to it
+        based on equation that behaves like the CTF.  The defocus value that
+        results from this fitting is shown in the top line after <b>D:</b>.
+        </li>
       <li>
-        Draw a rubber band to zoom up on part of the curve, such as frequency from 0.1 
-        to 0.5, log power from -0.2 to 0.4</li>
+        The low frequencies always dominate these power spectra, so the curve
+        has to be zoomed up to see the regions of interest properly.  Draw a
+        rubber band to zoom up on part of the curve, such as frequency from
+        0.1 to 0.5, log power from -0.2 to 0.4.</li>
       <li>
-        Switch to <b>All tiles</b></li>
+        The power spectrum originally has just the tiles in each image that
+        are within 0.2 &mu;m of the center of the image in Z height.  Switch
+        to <b>All tiles</b> to include all of the tiles in the images.</li>
       <li>
-        Press Fitting to open the Fitting Range &amp; Method dialog.&nbsp; The <b>X1 Starts</b> 
-        value of <i>0.13</i> is reasonable, the <b>X2 Ends</b> value of <i>0.275</i> is 
-        based on the expected position of the second zero and can be set to <i>0.33</i> 
-        to fit out to the third zero.</li>
+        Press <b>Fitting</b> to open the Fitting Range &amp; Method dialog and
+        adjust the range of points that will be fit.&nbsp; The <b>X1 Starts</b> 
+        value of <i>0.13</i> is reasonable; the <b>X2 Ends</b> value of <i>0.275</i> is 
+        based on the expected position of the second zero.  Since there is
+        clearly good information out to at least the third zero, the end of
+        the second hump after the first minimum in the curve), this limit
+        can be set to <i>0.33</i>.</li>
       <li>
         Set <b>Baseline fitting order</b> to <i>2</i> make the baseline flatter out to 
         0.4 and make it easier to fit to the peaks.</li>
