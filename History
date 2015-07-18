@@ -7,7 +7,8 @@ binning directive is supplied.
 cryoSample template.
 
 7/7/15: In eTomo - Fiducial Tracking - fixed a bug where track.com was not
-being updated when autofidseed was called.(Bug# 1894)
+being updated for automatic seeding, which made it work poorly for binned 
+data.(Bug# 1894)
 
 7/7/15: In uitest created a test against BB that uses automatic patch fitting
 exclusively.(Bug# 1896)
@@ -44,7 +45,7 @@ non-functional hardware stereo.
 6/13/15: Changed fortran program model reading to open read-only.
 
 6/8/15: IMOD_4-8-36
-6/8/15: Added preNID to program list so it will be built and distibuted.
+6/8/15: Added preNID to program list so it will be built and distributed.
 
 6/3/15: Changed patch tracking size from 700x700 to 680x680 in system
 template cryoSample.adoc to give 4x4 patches in 2Kx2K data, also added
