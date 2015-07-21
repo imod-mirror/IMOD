@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/20/15: IMOD_4-8-39
 7/16/15: Made Batchruntomo pick a good binning for 3d bead finding if no
 binning directive is supplied.
 
