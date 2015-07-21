@@ -44,9 +44,6 @@ unsigned int maxMarkersPrevFrame, maxMarkersNextFrame;
 
 int main(int argc, char* argv[])
 {
-    /* initialize random seed: */
-    srand ( time(NULL) );
-
     int error;
     string cmd;
     int dmax,maxPWtable,minPWtable;
@@ -54,7 +51,7 @@ int main(int argc, char* argv[])
 
 
     int numOptArgs, numNonOptArgs;
-    int numOptions = 17;
+    int numOptions = 18;
     const char* options[] = {"execPath:RaptorExecPath:CH:",
                        "path:InputPath:CH:",
                        "input:InputFile:FN:",
@@ -72,6 +69,7 @@ int main(int argc, char* argv[])
                        "white:WhiteMarkers:B:",
                        "tracking:TrackingOnly:B:",
                        "xray:xRay:B:",
+                       "seed:Seed:I:",
                       };
     PipReadOrParseOptions(argc, argv, options, numOptions, "raptor", 1, 0, 0, &numOptArgs, &numNonOptArgs, NULL);
     char* input_;
@@ -87,6 +85,13 @@ int main(int argc, char* argv[])
                 2->Debug mode: lots of information recorded to debug code
     */
     int anglesHeader_,binning,thickness,rec,xRay_;
+
+    /* initialize random seed: */
+    int seed;
+    if (PipGetInteger("Seed", &seed))
+        srand ( time(NULL) );
+    else
+        srand ( seed );
 
     if (PipGetString("RaptorExecPath",&binPath_))
         exitError("No binary path specified to execute RAPTOR. Please specify where RAPTOR binary is located\n");
@@ -409,10 +414,10 @@ int main(int argc, char* argv[])
             break;
         }
         correspondences.push_back(ith_correspondence);
-		if(maxJumps<=correspondences.size())
-			prevPair = &correspondences[correspondences.size()-maxJumps];
-		else
-			prevPair = NULL;
+        if(maxJumps<=correspondences.size())
+            prevPair = &correspondences[correspondences.size()-maxJumps];
+        else
+            prevPair = NULL;
     }
     //prevPair = &correspondences.front();
     prevPair=NULL;
@@ -434,10 +439,10 @@ int main(int argc, char* argv[])
             break;
         }
         correspondences.push_back(ith_correspondence);
-		if(maxJumps<=correspondences.size())
-			prevPair = &correspondences[correspondences.size()-maxJumps];
-		else
-			prevPair = NULL;
+        if(maxJumps<=correspondences.size())
+            prevPair = &correspondences[correspondences.size()-maxJumps];
+        else
+            prevPair = NULL;
     }
 
     cout<<"Building trajectories using pairwise correspondence at "<<getDate()<<endl;
