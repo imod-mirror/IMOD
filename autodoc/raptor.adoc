@@ -166,3 +166,10 @@ tooltip =
 manpage = Coefficient of the exponential decay to penalize markers that are
 far away when establishing correspondences between projections 
 
+[Field = Seed]
+short = seed
+type = I
+usage = Pseudo-random generator seed
+tooltip =
+manpage = Seed for Pseudo-random generator; supplying this allows RAPTOR to generate
+identical results when run on the same data.
