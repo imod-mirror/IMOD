@@ -233,7 +233,7 @@ def checkRenameStack(stack):
          return 1
       try:
          os.rename(stack + altExtension, stack + 'st')
-         prnLog('Renamed stack from ' + stack + altExtension + ' to ' + stack + 'st')
+         prnLog('Renamed stack from ' + stack + altExtension + ' to: ' + stack + 'st')
       except OSError:
          abortSet('Error renaming stack from ' + stack + altExtension + ' to ' + stack +\
                      'st')
@@ -261,6 +261,10 @@ def deliverStack(axis):
    destRoot = os.path.join(datasetDir, stackRoot + '.')
    dest = destRoot + 'st'
 
+   # Etomo may change the current dir after delivery, so if they match, skip
+   if deliverFromDir == datasetDir:
+      return 0
+
    # Look for either extension and change it during the move
    renaming = False
    skipIt = False
@@ -282,8 +286,9 @@ def deliverStack(axis):
       return 1
    try:
       os.rename(source, dest)
+      prnLog('Delivered stack ' + source + ' to: ' + dest)
       if renaming:
-         prnLog('Renamed stack from ' + stackRoot + '.' + altExtension + ' to ' + \
+         prnLog('Renamed stack from ' + stackRoot + '.' + altExtension + ' to: ' + \
                    stackRoot + '.st')
    except OSError:
       abortSet('Error moving/renaming stack file from ' + source + ' to ' + dest)
@@ -2756,11 +2761,11 @@ def setupCombine():
             if recExists and doBoth:
                if useFileAsReplacement(recName, bpName, False, True):
                   return 1
-               prnLog('Renamed back-projection reconstruction ' + recName + ' to ' + \
+               prnLog('Renamed back-projection reconstruction ' + recName + ' to: ' + \
                          bpName)
             if useFileAsReplacement(SIRTname, recName, False, True):
                return 1
-            prnLog('Renamed SIRT reconstruction ' + SIRTname + ' to ' + recName)
+            prnLog('Renamed SIRT reconstruction ' + SIRTname + ' to: ' + recName)
 
       recRoot = setName + 'b'
 
@@ -3827,7 +3832,7 @@ for dfileInd in range(numSets):
    if readDirectiveOrTemplate(dfile, BatInd):
       continue
 
-   prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
+   prnstr(fmtstr('Beginning to process {} file # {} : {}', fileType, dfileInd + 1, dfile))
    startTime = time.time()
 
    # If validating a single template file, do not process it, just run the checks
