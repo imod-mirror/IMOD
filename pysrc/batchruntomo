@@ -1095,7 +1095,7 @@ def needStep(step):
 
 # Report a step was reached if it is in the range to run and in the list to report
 def reportReachedStep(step):
-   reachPoints = (6, 7, detect3DstepNum)
+   reachPoints = (0, 6, 7, detect3DstepNum)
    if step in reachPoints and needStep(step):
       prnstr('Reached step ' + str(step))
       prnstr('', flush = True)
@@ -3982,6 +3982,7 @@ for dfileInd in range(numSets):
          reportImodError('etomo setup failed, cannot proceed with this data set')
          continue
 
+   reportReachedStep(0)
    fidSizePix = fidSizeNm / pixelSize
    haveAaxisAFSbound = False
    
