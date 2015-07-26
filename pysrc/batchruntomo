@@ -61,7 +61,7 @@ def abortSet(errString):
    global summaryMessage, finalRetVal
    if suppressAbort:
       return
-   abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS AND SET: ']
+   abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS: ']
    prnLog(abortStr[axisNum] + errString)
    prnLog('', flush = True)
    if dualAxis and axisNum:
@@ -73,7 +73,8 @@ def abortSet(errString):
    message += ' dataset ' + setName + ' after error:\n' + errString + '\n'
    sendEmail('Batchruntomo error on ' + setName, message)
    summaryMessage += message
-   finalRetVal += 1
+   if not axisNum:
+      finalRetVal += 1
    if exitOnError:
       sys.exit(1)
 
@@ -3507,20 +3508,20 @@ def runOneAxis():
 # Or run the steps for combine, return on error or when done
 def runCombine():
    if needStep(15) and setupCombine():
-      return
+      return 1
 
    if needStep(16) and initialCombineMatch():
-      return
+      return 1
 
    if alignAndCombineAxes():
-      return
+      return 1
 
    if needStep(trimStepNum) and trimVolume():
-      return
+      return 1
 
    if needStep(nadStepNum):
-      runNAD()
-
+      return runNAD()
+   return 0
    
 #### MAIN PROGRAM  ####
 #
@@ -3852,6 +3853,10 @@ for dfileInd in range(numSets):
          prnstr('Directives all seem OK in that file')
          continue
 
+   prnstr('Starting data set ' + setName + '   at ' + \
+             datetime.datetime.now().strftime('%H:%M:%S'))
+   prnstr('', flush = True)
+      
    # Deliver stacks to dataset directory, from the source current dir or the one for this
    # data set
    if deliverDir:
@@ -3920,10 +3925,6 @@ for dfileInd in range(numSets):
          reportImodError('Error getting pixel size from ' + stack)
          continue
 
-   prnLog('Starting data set ' + setName + '   at ' + \
-             datetime.datetime.now().strftime('%H:%M:%S'))
-   prnLog('', flush = True)
-
    if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
 
       # Run etomo for setup and try to report errors
@@ -3985,6 +3986,7 @@ for dfileInd in range(numSets):
    reportReachedStep(0)
    fidSizePix = fidSizeNm / pixelSize
    haveAaxisAFSbound = False
+   axisFailed = False
    
    # Loop on the axes.  axisInd is 0 or 1, axisNum is 0 for single, 1/2 for a/b
    for axisInd in range(numAxes):
@@ -4003,6 +4005,7 @@ for dfileInd in range(numSets):
          if runOneProcess(setupBname, message =
                           'Doing setup tasks now that second axis is present'):
             startingStep = 0
+            axisFailed = True
             continue
             
       dataName = setName + axisLet
@@ -4011,6 +4014,9 @@ for dfileInd in range(numSets):
          startingStep -= 100.
          continue
       if runOneAxis():
+
+         # When an axis fails, mark failure to prevent going on to combine
+         axisFailed = True
          if firstStart:
             startingStep = 0
             skipTiltalign = 0
@@ -4039,10 +4045,12 @@ for dfileInd in range(numSets):
       axisLet = 'a'
       axisInd = 2
       dataName = setName
-      runCombine()
-      (minutes, seconds, frac) = elapsedComponents(startTime);
-      prnLog(fmtstr('Completed dataset {}  in {:02d}:{:02d}.{}', setName, minutes,
-                    seconds, frac))
+      if axisFailed:
+         abortSet('One of the axes failed')
+      elif not runCombine():
+         (minutes, seconds, frac) = elapsedComponents(startTime);
+         prnLog(fmtstr('Completed dataset {}  in {:02d}:{:02d}.{}', setName, minutes,
+                       seconds, frac))
       
    closeLogFile()
    prnLog('', flush = True);
