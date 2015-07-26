@@ -19,6 +19,8 @@
                 <section title="Tutorial on Processing a Cryo-Tilt Series with Fiducials" ref="./cryoExample.html#TOP"></section>
                 <section title="Tutorial on Reconstructing a Cryo-sample with
                 Patch Tracking" ref="./patchTrackExample.html#TOP"></section>
+                <section title="Tutorial on Filtering with Nonlinear
+                Anisotropic Diffusion (NAD)" ref="./NADexample.html#TOP"></section>
                 <section title="Program Listing" ref="./program_listing.html#TOP"></section>
                 <section title="PEET Guide" ref="./PEETmanual.html#TOP"></section>
                 <section title="Batch/Template Directives" ref="./directives.html#TOP"></section>
@@ -108,6 +110,7 @@ INSERT LIBRARY PAGES
             <file>etomoTutorial.html</file>
             <file>cryoExample.html</file>
             <file>patchTrackExample.html</file>
+            <file>NADexample.html</file>
             <file>guide.html</file>
             <file>index.html</file>
             <file>JoinTutorial.html</file>
