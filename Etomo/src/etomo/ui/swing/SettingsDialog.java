@@ -132,13 +132,13 @@ public final class SettingsDialog extends JDialog {
     JPanel pnlGeneralSettings = new JPanel();
     pnlGeneralSettings.setLayout(new BoxLayout(pnlGeneralSettings, BoxLayout.Y_AXIS));
     pnlSettings.add(pnlGeneralSettings);
-    pnlGeneralSettings.add(cbAutoFit);
+    pnlGeneralSettings.add(cbAutoFit.getComponent());
     // TEMP bug# 614
     cbAutoFit.setEnabled(false);
     // TEMP
-    pnlGeneralSettings.add(cbNativeLAF);
-    pnlGeneralSettings.add(cbAdvancedDialogs);
-    pnlGeneralSettings.add(cbCompactDisplay);
+    pnlGeneralSettings.add(cbNativeLAF.getComponent());
+    pnlGeneralSettings.add(cbAdvancedDialogs.getComponent());
+    pnlGeneralSettings.add(cbCompactDisplay.getComponent());
     // enhanced processing settings
     EtomoPanel pnlEnhancedProcessing = new EtomoPanel();
     pnlEnhancedProcessing
@@ -150,12 +150,12 @@ public final class SettingsDialog extends JDialog {
     pnlCheckBoxParallelProcessing.setLayout(new BoxLayout(pnlCheckBoxParallelProcessing,
       BoxLayout.X_AXIS));
     pnlCheckBoxParallelProcessing.add(Box.createHorizontalGlue());
-    pnlCheckBoxParallelProcessing.add(cbParallelProcessing);
+    pnlCheckBoxParallelProcessing.add(cbParallelProcessing.getComponent());
     pnlEnhancedProcessing.add(pnlCheckBoxParallelProcessing);
     pnlEnhancedProcessing.add(ltfCpus.getContainer());
     JPanel pnlGpuProcessing = new JPanel();
     pnlGpuProcessing.setLayout(new BoxLayout(pnlGpuProcessing, BoxLayout.X_AXIS));
-    pnlGpuProcessing.add(cbGpuProcessing);
+    pnlGpuProcessing.add(cbGpuProcessing.getComponent());
     pnlGpuProcessing.add(Box.createHorizontalGlue());
     pnlEnhancedProcessing.add(pnlGpuProcessing);
     // default settings
