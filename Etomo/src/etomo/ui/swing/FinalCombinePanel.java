@@ -673,7 +673,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlMatchorwarpBody.add(ltfZUpperExclude.getContainer());
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlMatchorwarpBody.add(cbUseLinearInterpolation);
+    pnlMatchorwarpBody.add(cbUseLinearInterpolation.getComponent());
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlMatchorwarpButtons
@@ -703,13 +703,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     JPanel pnlParallelProcess = new JPanel();
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(cbParallelProcess.getComponent());
     pnlParallelProcess.add(Box.createHorizontalGlue());
     pnlVolcombineBody.add(pnlParallelProcess);
     JPanel pnlNoVolcombine = new JPanel();
     pnlNoVolcombine.setLayout(new BoxLayout(pnlNoVolcombine, BoxLayout.X_AXIS));
     pnlNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlNoVolcombine.add(cbNoVolcombine);
+    pnlNoVolcombine.add(cbNoVolcombine.getComponent());
     pnlNoVolcombine.add(Box.createHorizontalGlue());
     pnlVolcombineBody.add(pnlNoVolcombine);
     pnlVolcombineBody.add(ltfReductionFactor.getContainer());
