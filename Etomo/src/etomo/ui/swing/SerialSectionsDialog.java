@@ -217,7 +217,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     // very sloppy blend
     pnlVerySloppyBlend.setLayout(new BoxLayout(pnlVerySloppyBlend, BoxLayout.X_AXIS));
-    pnlVerySloppyBlend.add(cbVerySloppyMontage);
+    pnlVerySloppyBlend.add(cbVerySloppyMontage.getComponent());
     pnlVerySloppyBlend.add(Box.createHorizontalGlue());
     // RobustFitCriterion
     pnlRobustFitCriterion
@@ -313,7 +313,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlMakeStackA.setLayout(new BoxLayout(pnlMakeStackA, BoxLayout.X_AXIS));
     pnlMakeStackA.add(spBinByFactor.getContainer());
     pnlMakeStackA.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlMakeStackA.add(cbFillWithZero);
+    pnlMakeStackA.add(cbFillWithZero.getComponent());
     // make stack buttons
     pnlMakeStackButtons.setLayout(new BoxLayout(pnlMakeStackButtons, BoxLayout.X_AXIS));
     pnlMakeStackButtons.add(btnAlign.getComponent());
