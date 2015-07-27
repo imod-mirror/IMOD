@@ -467,7 +467,7 @@ final class IterationTable implements Highlightable {
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.add(pnlTable);
     // checkbox
-    pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates);
+    pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates.getComponent());
     // table and checkbox
     pnlTableAndCheckbox.setLayout(new BoxLayout(pnlTableAndCheckbox, BoxLayout.Y_AXIS));
     pnlTableAndCheckbox.add(pnlBorder.getContainer());
