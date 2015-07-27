@@ -1,7 +1,9 @@
 package etomo.type;
 
 /**
-* <p>Description: </p>
+* <p>Description: The states of the BatchRunTomo interface.  This status is passed by
+* BatchRunTomoMonitor and BatchRunTomoDialog.  BatchRunTomoDialog, BatchRunTomoStepPanel,
+* BatchRunTomoTable, BatchRunTomoTable.RowList, and BatchRunTomoRow respond to it.</p>
 * 
 * <p>Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
 * <p/>
@@ -10,10 +12,23 @@ package etomo.type;
 * @version $Id$
 */
 public final class BatchRunTomoStatus implements Status {
-  public static final BatchRunTomoStatus OPEN = new BatchRunTomoStatus();
-  public static final BatchRunTomoStatus RUNNING = new BatchRunTomoStatus();
-  public static final BatchRunTomoStatus KILLED_PAUSED = new BatchRunTomoStatus();
-  public static final BatchRunTomoStatus STOPPED = new BatchRunTomoStatus();
+  public static final BatchRunTomoStatus OPEN = new BatchRunTomoStatus("Open");
+  public static final BatchRunTomoStatus RUNNING = new BatchRunTomoStatus("Running");
+  public static final BatchRunTomoStatus KILLED_PAUSED = new BatchRunTomoStatus(
+    "Killed/Paused");
+  public static final BatchRunTomoStatus STOPPED = new BatchRunTomoStatus("Stopped");
 
-  private BatchRunTomoStatus() {}
+  private final String text;
+
+  private BatchRunTomoStatus(final String text) {
+    this.text = text;
+  }
+
+  public String getText() {
+    return text;
+  }
+
+  public String toString() {
+    return text;
+  }
 }
