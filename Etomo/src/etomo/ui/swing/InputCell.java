@@ -36,6 +36,7 @@ abstract class InputCell extends Cell {
   private String tableHeader = null;
   private HeaderCell rowHeader = null, columnHeader = null;
   private boolean debug = false;
+  private boolean runHighlight = false;
 
   abstract Component getComponent();
 
@@ -118,13 +119,25 @@ abstract class InputCell extends Cell {
     setBackground();
   }
 
+  final void setRunHighlight(boolean runHighlight) {
+    this.runHighlight = runHighlight;
+    setBackground();
+  }
+
+  /**
+   * Order of precedence:
+   * 1. error
+   * 2. warning
+   * 3. runHighlight
+   * 4. highlight
+   */
   void setBackground() {
-    if (highlight) {
+    if (error) {
       if (isEnabled()) {
-        setBackground(Colors.HIGHLIGHT_BACKGROUND);
+        setBackground(Colors.CELL_ERROR_BACKGROUND);
       }
       else {
-        setBackground(Colors.HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
+        setBackground(Colors.CELL_ERROR_BACKGROUND_NOT_EDITABLE);
       }
     }
     else if (warning) {
@@ -135,12 +148,20 @@ abstract class InputCell extends Cell {
         setBackground(Colors.WARNING_BACKGROUND_NOT_EDITABLE);
       }
     }
-    else if (error) {
+    else if (runHighlight) {
       if (isEnabled()) {
-        setBackground(Colors.CELL_ERROR_BACKGROUND);
+        setBackground(Colors.RUN_HIGHLIGHT_BACKGROUND);
       }
       else {
-        setBackground(Colors.CELL_ERROR_BACKGROUND_NOT_EDITABLE);
+        setBackground(Colors.RUN_HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
+      }
+    }
+    else if (highlight) {
+      if (isEnabled()) {
+        setBackground(Colors.HIGHLIGHT_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
       }
     }
     else if (isEnabled()) {
