@@ -343,7 +343,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlFiducialess, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlFiducialess, cbFiducialess.getComponent());
     UIUtilities.addWithYSpace(pnlFiducialess, ltfRotation.getContainer());
     UIUtilities.alignComponentsX(pnlFiducialess, Component.LEFT_ALIGNMENT);
 
