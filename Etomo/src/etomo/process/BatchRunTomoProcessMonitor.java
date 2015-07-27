@@ -2,19 +2,26 @@ package etomo.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
 
-import etomo.BaseManager;
+import etomo.BatchRunTomoManager;
 import etomo.process.ProcessMessages;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.BatchRunTomoCommand;
+import etomo.type.BatchRunTomoDatasetStatus;
 import etomo.type.BatchRunTomoStatus;
-import etomo.type.EtomoNumber;
+import etomo.type.CurrentArrayList;
+import etomo.type.EndingStep;
 import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.Status;
+import etomo.type.StatusChangeEvent;
 import etomo.type.StatusChangeListener;
+import etomo.type.StatusChangeTaggedEvent;
 import etomo.type.StatusChanger;
+import etomo.type.Step;
 
 /**
 * <p>Description: Monitor for batchruntomo in BATCH mode.</p>
@@ -28,16 +35,14 @@ import etomo.type.StatusChanger;
 public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   StatusChanger {
   private static final String TITLE = "Batchruntomo";
-  private static final String ENDING_STEP_SET_TAG = "EndingStepSet";
-  private static final String NUMBER_DATASETS_TAG = "NumberDatasets";
-
-  private final EtomoNumber nDatasets = new EtomoNumber();
-  private final EtomoNumber endingStepSet = new EtomoNumber(EtomoNumber.Type.BOOLEAN);
 
   private final ProcessMessages messages;
-  private final BaseManager manager;
+  private final BatchRunTomoManager manager;
   private final AxisID axisID;
   private final boolean multiLineMessages;
+  private final CurrentArrayList<String> runKeys;
+
+  private final ArrayList<String> stacks = new ArrayList<String>();
 
   private boolean updateProgressBar = false;// turn on to changed the progress bar title
   private ProcessEndState endState = null;
@@ -56,9 +61,17 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private Vector<StatusChangeListener> listeners = null;
   private String currentStep = null;
   private String currentDataset = null;
-  private int datasetsFinished = 0;
+  private int nDatasetsSucceeded = 0;
   private boolean willResume = false;
   private boolean interrupted = false;
+  private boolean datasetRunning = false;
+  private int datasetIndex = -1;
+  private boolean endingStepSet = false;
+  private boolean startingStepSet = false;
+  private int nDatasets = 0;
+  private boolean datasetFailed = false;
+  private boolean datasetDelivered = false;
+  private boolean datasetRenamed = false;
 
   public void dumpState() {
     System.err.print("[updateProgressBar:" + updateProgressBar + ",useCommandsPipe:"
@@ -67,37 +80,29 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages + "]");
   }
 
-  BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
-    final boolean multiLineMessages, final int nDatasets, final boolean endingStepSet) {
+  BatchRunTomoProcessMonitor(final BatchRunTomoManager manager, final AxisID axisID,
+    final boolean multiLineMessages, final CurrentArrayList<String> runKeys) {
     this.manager = manager;
     this.axisID = axisID;
     this.multiLineMessages = multiLineMessages;
-    this.endingStepSet.set(endingStepSet);
-    this.nDatasets.set(nDatasets);
     messages =
       ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
-  }
-
-  private BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
-    final boolean multiLineMessages, final String nDatasets, final String endingStepSet) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.multiLineMessages = multiLineMessages;
-    this.endingStepSet.set(endingStepSet);
-    this.nDatasets.set(nDatasets);
-    messages =
-      ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
+        ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG,
+        ProcessOutputStrings.BRT_ABORT_TAG, false);
+    this.runKeys = runKeys;
+    if (runKeys != null) {
+      nDatasets = runKeys.size();
+      datasetIndex = runKeys.getCurrentIndex();
+      nDatasetsSucceeded = runKeys.getStateInt();
+    }
   }
 
   public static BatchRunTomoProcessMonitor getReconnectInstance(
-    final BaseManager manager, final AxisID axisID, final ProcessData processData,
-    final boolean multiLineMessages) {
+    final BatchRunTomoManager manager, final AxisID axisID,
+    final ProcessData processData, final boolean multiLineMessages) {
     BatchRunTomoProcessMonitor instance =
       new BatchRunTomoProcessMonitor(manager, axisID, multiLineMessages,
-        processData.getDataPair(NUMBER_DATASETS_TAG),
-        processData.getDataPair(ENDING_STEP_SET_TAG));
+        processData.getKeyArray());
     instance.reconnect = true;
     return instance;
   }
@@ -107,6 +112,9 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
    */
   public void setProcess(final SystemProcessInterface process) {
     this.process = process;
+    if (process != null) {
+      process.setKeyArray(runKeys);
+    }
   }
 
   public boolean isRunning() {
@@ -121,35 +129,27 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     if (listener == null) {
       return;
     }
-    boolean newElement = false;
+    boolean newCollection = false;
     if (listeners == null) {
       synchronized (this) {
         if (listeners == null) {
           listeners = new Vector<StatusChangeListener>();
-          newElement = true;
+          newCollection = true;
         }
       }
     }
-    if (!newElement && listeners.contains(listener)) {
+    if (!newCollection && listeners.contains(listener)) {
       return;
     }
     listeners.add(listener);
   }
 
-  public void removeStatusChangeListener(final StatusChangeListener listener) {
-    if (listener == null) {
-      return;
-    }
-    if (listeners != null) {
-      listeners.remove(listener);
-    }
-  }
-
   public void run() {
+    manager.msgStatusChangerStarted(this);
     manager.logMessage("Running batchruntomo");
     messages.startStringFeed();
     running = true;
-    datasetsFinished = 0;
+    nDatasetsSucceeded = 0;
     try {
       /* Wait for processchunks or prochunks to delete .cmds file before enabling the Kill
        * Process button and Pause button. The main loop uses a sleep of 2000 millisecs.
@@ -166,11 +166,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     useCommandsPipe = true;
     // Turn on the Kill Process button and Pause button.
     initializeProgressBar();
-    if (listeners != null) {
-      for (int i = 0; i < listeners.size(); i++) {
-        listeners.get(i).statusChanged(BatchRunTomoStatus.RUNNING);
-      }
-    }
+    sendStatusChanged(BatchRunTomoStatus.RUNNING);
     try {
       try {
         Thread.sleep(1000);
@@ -206,18 +202,54 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     useCommandsPipe = false;
     running = false;
     if (listeners != null) {
-      Status status;
+      BatchRunTomoStatus status;
       if (pausing || killing) {
         status = BatchRunTomoStatus.KILLED_PAUSED;
       }
-      else if (endingStepSet.is()) {
+      else if (endingStepSet) {
         status = BatchRunTomoStatus.STOPPED;
       }
       else {
         status = BatchRunTomoStatus.OPEN;
       }
+      sendStatusChanged(status);
+    }
+  }
+
+  private void sendStatusChanged(final BatchRunTomoStatus status) {
+    if (listeners != null) {
       for (int i = 0; i < listeners.size(); i++) {
         listeners.get(i).statusChanged(status);
+      }
+    }
+  }
+
+  private void sendStatusChanged(final BatchRunTomoDatasetStatus status) {
+    if (listeners != null) {
+      StatusChangeEvent event =
+        new StatusChangeTaggedEvent(runKeys.get(datasetIndex), status);
+      for (int i = 0; i < listeners.size(); i++) {
+        listeners.get(i).statusChanged(event);
+      }
+    }
+  }
+
+  private void sendStatusChanged(final Status status) {
+    if (listeners != null) {
+      StatusChangeEvent event =
+        new StatusChangeTaggedEvent(runKeys.get(datasetIndex), status);
+      for (int i = 0; i < listeners.size(); i++) {
+        listeners.get(i).statusChanged(event);
+      }
+    }
+  }
+
+  private void sendStatusChanged(final BatchRunTomoCommand status, final String string) {
+    if (listeners != null) {
+      StatusChangeEvent event =
+        new StatusChangeTaggedEvent(runKeys.get(datasetIndex), string, status);
+      for (int i = 0; i < listeners.size(); i++) {
+        listeners.get(i).statusChanged(event);
       }
     }
   }
@@ -312,7 +344,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   }
 
   public String getStatusString() {
-    return datasetsFinished + " of " + nDatasets + " completed";
+    return nDatasetsSucceeded + " of " + nDatasets + " completed";
   }
 
   public boolean isProcessRunning() {
@@ -335,6 +367,29 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
+  String readParameters(String line) throws LogFile.LockException, FileNotFoundException,
+    IOException {
+    while (processOutput != null
+      && (line = processOutput.readLine(processOutputReaderId)) != null) {
+      line = line.trim();
+      messages.feedString(line);
+      if (line.indexOf(ProcessOutputStrings.END_PARAMETERS_TAG) != -1) {
+        break;
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_ENDING_STEP_PARAM_TAG) != -1) {
+        endingStepSet = true;
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_STARTING_STEP_PARAM_TAG) != -1) {
+        startingStepSet = true;
+      }
+    }
+    line = processOutput.readLine(processOutputReaderId);
+    if (line != null) {
+      line = line.trim();
+    }
+    return line;
+  }
+
   boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
     createProcessOutput();
     if (processRunning
@@ -346,49 +401,84 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     }
     String line = null;
     int index;
+    int index2;
     while (processOutput != null
       && (line = processOutput.readLine(processOutputReaderId)) != null) {
       line = line.trim();
+      // Handle parameter list at the top of the log
+      if (line.indexOf(ProcessOutputStrings.START_PARAMETERS_TAG) != -1) {
+        line = readParameters(line);
+      }
       // Send all output to the ProcessMessages blocking queue, so each line can be
       // processed immediately.
+      // Handle messages that need to be logged, and send other lines to ProcessMessages.
+      boolean recognized = false;
       index = line.indexOf(ProcessOutputStrings.BRT_DATASET_TAG);
       if (index != -1) {
-        // Send a linefeed and the dataset start message to the project log. Use the
-        // ProcessMessages string feed so that messages get to the project log in the
-        // right order.
-        messages.feedNewline(ProcessMessages.MessageType.LOG);
-        messages.feedMessage(line);
-        int index2 = line.indexOf(ProcessOutputStrings.BRT_TIME_STAMP_TAG, index);
+        recognized = true;
+        index2 = line.indexOf(ProcessOutputStrings.BRT_TIME_STAMP_TAG, index);
         if (index2 != -1) {
           currentDataset =
-            line
-              .substring(index + ProcessOutputStrings.BRT_DATASET_TAG.length(), index2);
+            line.substring(index + ProcessOutputStrings.BRT_DATASET_TAG.length(), index2);
         }
         else {
           currentDataset =
             line.substring(index + ProcessOutputStrings.BRT_DATASET_TAG.length());
         }
         currentDataset = currentDataset.trim();
-        currentStep = null;
+        // Send a linefeed and the dataset start message to the project log. Use the
+        // ProcessMessages string feed so that messages get to the project log in the
+        // right order.
+        messages.feedNewline(ProcessMessages.MessageType.LOG);
+        messages.feedMessage(line);
         return true;
       }
       else {
-        boolean lineFed = false;
         for (int i = 0; i < ProcessOutputStrings.BRT_LOG_TAGS.length; i++) {
           if (line.indexOf(ProcessOutputStrings.BRT_LOG_TAGS[i]) != -1) {
-            lineFed = true;
+            recognized = true;
             // Send output that users want to see to the project log.
             messages.feedMessage(ProcessMessages.MessageType.LOG, line);
             break;
           }
         }
-        if (!lineFed) {
-          messages.feedString(line);
+        if (!recognized) {
+          if (line.indexOf(ProcessOutputStrings.BRT_AXIS_B) != -1) {
+            recognized = true;
+            messages.feedMessage(ProcessMessages.MessageType.LOG, line);
+          }
         }
+      }
+      if (recognized) {
+        continue;
+      }
+      // Handle lines that don't automatically go to the project log.
+      messages.feedString(line);
+      if (line.indexOf(ProcessOutputStrings.BRT_STARTING_DATASET_TAG) != -1) {
+        recognized = true;
+        datasetIndex++;
+        datasetRunning = true;
+        datasetFailed = false;
+        datasetDelivered = false;
+        datasetRenamed = false;
+        if (startingStepSet) {
+          sendStatusChanged(BatchRunTomoDatasetStatus.STARTING);
+        }
+        else {
+          sendStatusChanged(BatchRunTomoDatasetStatus.RUNNING);
+        }
+        currentStep = null;
+        return true;
       }
       // check for the real batchruntomo error message. Everything else will be logged.
       if (line.indexOf(ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG) != -1) {
-        endMonitor(ProcessEndState.FAILED);
+        if (nDatasetsSucceeded == 0) {
+          endMonitor(ProcessEndState.FAILED);
+        }
+        else {
+          endMonitor(ProcessEndState.DONE);
+
+        }
         return true;
       }
       if (line.equals(ProcessOutputStrings.BRT_SUCCESS_TAG)) {
@@ -396,10 +486,17 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
         return true;
       }
       if (line.equals(ProcessOutputStrings.BRT_KILLING_TAG)) {
+        // A kill is asynchronous, so it could happen just after a dataset is completed.
+        // In that case no dataset was killed.
+        if (endState == null && datasetRunning) {
+          sendStatusChanged(BatchRunTomoDatasetStatus.KILLED);
+        }
         setProcessEndState(ProcessEndState.KILLED);
+        return true;
       }
       if (line.equals(ProcessOutputStrings.BRT_PAUSED_TAG)) {
         endMonitor(ProcessEndState.PAUSED);
+        return true;
       }
       if (line.startsWith(ProcessOutputStrings.BRT_ETOMO_TAG)) {
         currentStep = "eTomo setup";
@@ -410,18 +507,90 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
         return true;
       }
       if (line.startsWith(ProcessOutputStrings.BRT_DATASET_SUCCESS_TAG)) {
+        // Dataset succeeded
         currentStep = "done";
-        datasetsFinished++;
+        datasetRunning = false;
+        BatchRunTomoDatasetStatus status;
+        if (datasetFailed) {
+          status = BatchRunTomoDatasetStatus.FAILED;
+        }
+        else {
+          nDatasetsSucceeded++;
+          if (endingStepSet) {
+            status = BatchRunTomoDatasetStatus.STOPPED;
+          }
+          else {
+            status = BatchRunTomoDatasetStatus.DONE;
+          }
+        }
+        sendStatusChanged(status);
+        return true;
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_ABORT_SET_TAG) != -1) {
+        // Dataset failed
+        currentStep = "failed";
+        datasetRunning = false;
+        datasetFailed = true;
+        sendStatusChanged(BatchRunTomoDatasetStatus.FAILED);
+        return true;
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_ABORT_AXIS_TAG) != -1) {
+        datasetFailed = true;
+        currentStep = "axis failed";
+        sendStatusChanged(BatchRunTomoDatasetStatus.FAILING);
         return true;
       }
       index = line.indexOf(ProcessOutputStrings.BRT_STEP_TAG);
       if (index != -1) {
-        int index2 = line.indexOf(ProcessOutputStrings.BRT_COM_TAG, index);
+        index2 = line.indexOf(ProcessOutputStrings.BRT_COM_TAG, index);
         if (index2 != -1) {
           currentStep =
             line.substring(index + ProcessOutputStrings.BRT_STEP_TAG.length(), index2)
               .trim();
           return true;
+        }
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_REACHED_STEP_TAG) != -1) {
+        String stepValue = line.substring(line.lastIndexOf(" ")).trim();
+        EndingStep endingStep = EndingStep.getInstance(stepValue);
+        if (endingStep != null) {
+          sendStatusChanged(endingStep);
+          continue;
+        }
+        Step step = Step.getInstance(stepValue);
+        if (step != null) {
+          sendStatusChanged(step);
+          continue;
+        }
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_DELIVERED_TAG) != -1) {
+        index2 = line.indexOf(ProcessOutputStrings.BRT_FILE_TAG);
+        if (index2 != -1) {
+          String file =
+            line.substring(index2 + ProcessOutputStrings.BRT_FILE_TAG.length());
+          if (file != null && !file.matches("\\s*")) {
+            // Only use the first delivered message
+            if (!datasetDelivered) {
+              datasetDelivered = true;
+              sendStatusChanged(BatchRunTomoCommand.DELIVERED, file.trim());
+            }
+            continue;
+          }
+        }
+      }
+      if (line.indexOf(ProcessOutputStrings.BRT_RENAMED_TAG) != -1) {
+        index2 = line.indexOf(ProcessOutputStrings.BRT_FILE_TAG);
+        if (index2 != -1) {
+          String file =
+            line.substring(index2 + ProcessOutputStrings.BRT_FILE_TAG.length());
+          if (file != null && !file.matches("\\s*")) {
+            // Only use the first delivered message
+            if (!datasetRenamed) {
+              datasetRenamed = true;
+              sendStatusChanged(BatchRunTomoCommand.RENAMED, file.trim());
+            }
+            continue;
+          }
         }
       }
     }
@@ -436,18 +605,19 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   void updateProgressBar() {
     updateProgressBar = false;
     setProgressBarTitle();
-    manager.getMainPanel().setProgressBarValue(datasetsFinished, getStatusString(),
+    manager.getMainPanel().setProgressBarValue(nDatasetsSucceeded, getStatusString(),
       axisID);
   }
 
   private void initializeProgressBar() {
     setProgressBarTitle();
     if (reconnect) {
-      manager.getMainPanel().setProgressBarValue(datasetsFinished, "Reconnecting...",
+      manager.getMainPanel().setProgressBarValue(nDatasetsSucceeded, "Reconnecting...",
         axisID);
     }
     else {
-      manager.getMainPanel().setProgressBarValue(datasetsFinished, "Starting...", axisID);
+      manager.getMainPanel().setProgressBarValue(nDatasetsSucceeded, "Starting...",
+        axisID);
     }
   }
 
@@ -482,8 +652,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     if (currentStep != null) {
       title.append(": " + currentStep);
     }
-    manager.getMainPanel().setProgressBar(title.toString(), nDatasets.getInt(), axisID,
-      !killing);
+    manager.getMainPanel().setProgressBar(title.toString(), nDatasets, axisID, !killing);
   }
 
   /**
