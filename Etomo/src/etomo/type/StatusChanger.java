@@ -11,6 +11,4 @@ package etomo.type;
  */
 public interface StatusChanger {
   public void addStatusChangeListener(StatusChangeListener listener);
-
-  public void removeStatusChangeListener(StatusChangeListener listener);
 }
