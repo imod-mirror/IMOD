@@ -4,6 +4,7 @@ import java.util.Map;
 
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
+import etomo.type.CurrentArrayList;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
@@ -11,20 +12,14 @@ import etomo.type.ProcessingMethod;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002 - 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 */
 
 public interface SystemProcessInterface {
-  public static final String rcsid = "$Id$";
-
   public String toString();
 
   public String[] getStdOutput();
@@ -55,9 +50,11 @@ public interface SystemProcessInterface {
 
   public ConstProcessSeries getProcessSeries();
 
-  public void setComputerMap(Map<String,String> computerMap);
+  public void setComputerMap(Map<String, String> computerMap);
 
   public void setProcessingMethod(ProcessingMethod processingMethod);
+
+  public void setKeyArray(CurrentArrayList<String> keyArray);
 }
 /**
 * <p> $Log$
