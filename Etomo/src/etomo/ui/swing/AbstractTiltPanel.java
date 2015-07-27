@@ -266,8 +266,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     // Body panel
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlBody.add(cbParallelProcess);
-    pnlBody.add(cbUseGpu);
+    pnlBody.add(cbParallelProcess.getComponent());
+    pnlBody.add(cbUseGpu.getComponent());
     pnlBody.add(ctfLog.getRootComponent());
     pnlBody.add(pnlLogDensity);
     pnlBody.add(pnlLinearDensity);
@@ -313,8 +313,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlZ.add(ltfZShift.getContainer());
     // Check box panel
     pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.Y_AXIS));
-    pnlCheckBox.add(cbUseLocalAlignment);
-    pnlCheckBox.add(cbUseZFactors);
+    pnlCheckBox.add(cbUseLocalAlignment.getComponent());
+    pnlCheckBox.add(cbUseZFactors.getComponent());
     UIUtilities.alignComponentsX(pnlCheckBox, Component.LEFT_ALIGNMENT);
     // Trial panel
     trialPanel.setBoxLayout(BoxLayout.X_AXIS);
@@ -345,11 +345,11 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   final Component getParallelProcessCheckBox() {
-    return cbParallelProcess;
+    return cbParallelProcess.getComponent();
   }
 
   final Component getUseGpuCheckBox() {
-    return cbUseGpu;
+    return cbUseGpu.getComponent();
   }
 
   final void setTiltButtonTooltip(String tooltip) {
