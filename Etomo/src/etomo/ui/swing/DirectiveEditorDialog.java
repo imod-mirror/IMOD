@@ -216,8 +216,8 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     pnlIncludeCheckboxes.add(new JLabel("Exclude"));
     pnlIncludeCheckboxes.add(new JLabel("File"));
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
-      pnlIncludeCheckboxes.add(cbInclude[i]);
-      pnlIncludeCheckboxes.add(cbExclude[i]);
+      pnlIncludeCheckboxes.add(cbInclude[i].getComponent());
+      pnlIncludeCheckboxes.add(cbExclude[i].getComponent());
       pnlIncludeCheckboxes.add(lInclude[i]);
     }
     // show glue panel
@@ -230,10 +230,10 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     // show panel
     pnlShowCheckboxes.setLayout(new BoxLayout(pnlShowCheckboxes, BoxLayout.Y_AXIS));
     pnlShowCheckboxes.setBorder(new EtchedBorder("Show Directives").getBorder());
-    pnlShowCheckboxes.add(cbShowUnchanged);
-    pnlShowCheckboxes.add(cbShowHidden);
+    pnlShowCheckboxes.add(cbShowUnchanged.getComponent());
+    pnlShowCheckboxes.add(cbShowHidden.getComponent());
     pnlShowCheckboxes.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlShowCheckboxes.add(cbShowOnlyIncluded);
+    pnlShowCheckboxes.add(cbShowOnlyIncluded.getComponent());
     pnlShowCheckboxes.add(Box.createRigidArea(FixedDim.x0_y2));
     // Buttons panel
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.Y_AXIS));
