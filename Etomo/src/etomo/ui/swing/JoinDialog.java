@@ -1305,7 +1305,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     JPanel pnlLocalFits = new JPanel();
     pnlLocalFits.setLayout(new BoxLayout(pnlLocalFits, BoxLayout.X_AXIS));
     pnlLocalFits.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLocalFits.add(cbLocalFits);
+    pnlLocalFits.add(cbLocalFits.getComponent());
     pnlLocalFits.add(Box.createHorizontalGlue());
     pnlFinishJoin.add(pnlLocalFits);
     // fifth component
@@ -1322,7 +1322,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     JPanel pnlRefineWithTrial = new JPanel();
     pnlRefineWithTrial.setLayout(new BoxLayout(pnlRefineWithTrial, BoxLayout.X_AXIS));
     pnlRefineWithTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlRefineWithTrial.add(cbRefineWithTrial);
+    pnlRefineWithTrial.add(cbRefineWithTrial.getComponent());
     pnlRefineWithTrial.add(Box.createHorizontalGlue());
     pnlFinishJoin.add(pnlRefineWithTrial);
     btnRefineJoin.setSize();
