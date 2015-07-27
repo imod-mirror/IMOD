@@ -58,6 +58,14 @@ public final class TableReference {
     return uniqueStringMap.get(id);
   }
 
+  public void setUniqueString(final String id, final String newUniqueString) {
+    String uniqueString = getUniqueString(id);
+    uniqueStringMap.remove(id);
+    idMap.remove(uniqueString);
+    uniqueStringMap.put(id, newUniqueString);
+    idMap.put(newUniqueString, id);
+  }
+
   /**
    * Generates an ID and adds it as the value to idMap, with uniqueString as the key.
    * Add the uniqueString to unqueStringMap, with the ID as the key.
@@ -216,8 +224,9 @@ public final class TableReference {
       // uniqueString here mean that this ID was deleted - not an error.
       if (uniqueString != null) {
         if (uniqueString.indexOf("/dual/") != -1) {
-          //Looking for mystery bug:
-          //meta.ref.ebt4=/home/NOBACKUP/sueh/test datasets/Development/linux/UITests/dual/dual/BBa.st
+          // Looking for mystery bug:
+          // meta.ref.ebt4=/home/NOBACKUP/sueh/test
+          // datasets/Development/linux/UITests/dual/dual/BBa.st
           System.err.println("loaded ref " + uniqueString);
         }
         if (!idMap.containsKey(uniqueString)) {
@@ -251,8 +260,9 @@ public final class TableReference {
       Entry<String, String> entry = iterator.next();
       String uniqueString = entry.getKey();
       if (uniqueString.indexOf("/dual/") != -1) {
-        //Looking for mystery bug:
-        //meta.ref.ebt4=/home/NOBACKUP/sueh/test datasets/Development/linux/UITests/dual/dual/BBa.st
+        // Looking for mystery bug:
+        // meta.ref.ebt4=/home/NOBACKUP/sueh/test
+        // datasets/Development/linux/UITests/dual/dual/BBa.st
         System.err.println("stored ref " + uniqueString);
       }
       props.setProperty(prepend + "." + entry.getValue(), uniqueString);
