@@ -447,6 +447,7 @@ import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.CurrentArrayList;
 import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -860,6 +861,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public final void setProcessingMethod(final ProcessingMethod processingMethod) {
     if (processData != null) {
       processData.setProcessingMethod(processingMethod);
+    }
+  }
+  
+  public final void setKeyArray(CurrentArrayList<String> keyArray) {
+    if (processData != null && keyArray != null) {
+      processData.setKeyArray(keyArray);
     }
   }
 
@@ -1348,6 +1355,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   final ProcessEndState getProcessEndState() {
     if (processMonitor == null) {
+      System.out.println("A:endState:"+endState);
       return endState;
     }
     return processMonitor.getProcessEndState();
