@@ -17,14 +17,12 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoStatus;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.EnumeratedType;
+import etomo.type.EndingStep;
 import etomo.type.EtomoAutodoc;
-import etomo.type.EtomoNumber;
+import etomo.type.StartingStep;
 import etomo.type.Status;
 import etomo.type.StatusChangeEvent;
 import etomo.type.StatusChangeListener;
-import etomo.type.StatusChanger;
 
 /**
  * <p>Description: Batchruntomo StartingStep and EndingStep. </p>
@@ -36,7 +34,7 @@ import etomo.type.StatusChanger;
  * @version $Id$
  */
 final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListener {
-  private static final int STEP_PAIRS = 3;
+  static final int STEP_PAIRS = 3;
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbEndingStep = new CheckBox("Stop after");
   private final ButtonGroup bgEndingStep = new ButtonGroup();
@@ -44,12 +42,14 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
   private final CheckBox cbStartingStep = new CheckBox("Start from");
   private final ButtonGroup bgStartingStep = new ButtonGroup();
   private final RadioButton rbStartingStep[] = new RadioButton[STEP_PAIRS];
+  private final CheckBox cbDoNotUseExistingAlignment = new CheckBox(
+    "Recompute fine alignment on restart");
 
   private final BaseManager manager;
   private final AxisID axisID;
 
-  private final Step earliestEndingStep = null;
-  private Status status = null;
+  private EndingStep earliestRunEndingStep = null;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
 
   private BatchRunTomoStepPanel(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -66,44 +66,56 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
   }
 
   private void createPanel() {
+    // init
+    cbDoNotUseExistingAlignment.setSelected(true);
     // panels
     JPanel pnlEndingStep = new JPanel();
     JPanel pnlStartingStep = new JPanel();
+    JPanel pnlStep = new JPanel();
     // Root
-    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Subset of steps to run").getBorder());
-    pnlRoot.add(pnlEndingStep);
-    pnlRoot.add(pnlStartingStep);
+    pnlRoot.add(pnlStep);
+    pnlRoot.add(cbDoNotUseExistingAlignment.getComponent());
+    // Step
+    pnlStep.setLayout(new BoxLayout(pnlStep, BoxLayout.X_AXIS));
+    pnlStep.add(pnlEndingStep);
+    pnlStep.add(pnlStartingStep);
     // EndingStep
     pnlEndingStep.setLayout(new BoxLayout(pnlEndingStep, BoxLayout.Y_AXIS));
-    pnlEndingStep.add(cbEndingStep);
+    pnlEndingStep.add(cbEndingStep.getComponent());
     // StartingStep
     pnlStartingStep.setLayout(new BoxLayout(pnlStartingStep, BoxLayout.Y_AXIS));
-    pnlStartingStep.add(cbStartingStep);
+    pnlStartingStep.add(cbStartingStep.getComponent());
     // Step
-    Step step;
+    EndingStep endingStep;
+    StartingStep startingStep;
     for (int i = 0; i < STEP_PAIRS; i++) {
-      step = Step.getEndingInstance(i);
-      if (step != null) {
+      endingStep = EndingStep.getInstance(i);
+      if (endingStep != null) {
         // init
-        rbEndingStep[i] = new RadioButton(step.getLabel(), step, bgEndingStep);
-        if (step.isDefaultEndingInstance()) {
+        rbEndingStep[i] =
+          new RadioButton(endingStep.getLabel(), endingStep, bgEndingStep);
+        if (endingStep.isDefault()) {
           rbEndingStep[i].setSelected(true);
+        }
+      }
+      startingStep = StartingStep.getInstance(i);
+      if (startingStep != null) {
+        rbStartingStep[i] =
+          new RadioButton(startingStep.getLabel(), startingStep, bgStartingStep);
+        if (startingStep.isDefault()) {
+          rbStartingStep[i].setSelected(true);
         }
         // EndingStep
         pnlEndingStep.add(rbEndingStep[i].getComponent());
-      }
-      step = Step.getStartingInstance(i);
-      if (step != null) {
-        // init
-        rbStartingStep[i] = new RadioButton(step.getLabel(), step, bgStartingStep);
-        if (step.isDefaultStartingInstance()) {
-          rbStartingStep[i].setSelected(true);
-        }
         // StartingStep
         pnlStartingStep.add(rbStartingStep[i].getComponent());
       }
     }
+    // align
+    UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
+    // update
     updateDisplay();
   }
 
@@ -116,10 +128,6 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
     }
   }
 
-  void msgStatusChangerAvailable(final StatusChanger changer) {
-    changer.addStatusChangeListener(this);
-  }
-
   Component getComponent() {
     return pnlRoot;
   }
@@ -129,29 +137,41 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
   }
 
   public void statusChanged(final Status status) {
-    this.status = status;
-    boolean editable =
-      status == null || status == BatchRunTomoStatus.OPEN
-        || status == BatchRunTomoStatus.STOPPED;
-    cbStartingStep.setEditable(editable);
-    for (int i = 0; i < rbStartingStep.length; i++) {
-      rbStartingStep[i].setEditable(editable);
+    if (status instanceof BatchRunTomoStatus) {
+      this.status = (BatchRunTomoStatus) status;
+      boolean editable =
+        status == null || status == BatchRunTomoStatus.OPEN
+          || status == BatchRunTomoStatus.STOPPED;
+      cbStartingStep.setEditable(editable);
+      for (int i = 0; i < rbStartingStep.length; i++) {
+        rbStartingStep[i].setEditable(editable);
+      }
+      cbEndingStep.setEditable(editable);
+      for (int i = 0; i < rbStartingStep.length; i++) {
+        rbEndingStep[i].setEditable(editable);
+      }
+      cbDoNotUseExistingAlignment.setEditable(editable);
     }
-    cbEndingStep.setEditable(editable);
-    for (int i = 0; i < rbStartingStep.length; i++) {
-      rbEndingStep[i].setEditable(editable);
+    else if (status == null || status instanceof EndingStep) {
+      earliestRunEndingStep = (EndingStep) status;
+      updateDisplay();
     }
   }
 
   public void statusChanged(final StatusChangeEvent statusChangeEvent) {
-    //No response to dataset-level events
+    // No response to dataset-level events
   }
 
   private void updateDisplay() {
+    // Don't update the display while it is ineditable during the run.
+    if (!cbStartingStep.isEditable()) {
+      return;
+    }
     // Starting Step - dependent on defined stop point
     boolean startingStepSelectionChanged = false;
     RadioButton.RadioButtonModel startingStepModel = null;
     boolean enableStartingStep = cbStartingStep.isSelected();
+    cbDoNotUseExistingAlignment.setEnabled(enableStartingStep);
     if (!enableStartingStep) {
       // Checkbox is not checked - yeay - just disable everything
       for (int i = 0; i < STEP_PAIRS; i++) {
@@ -165,9 +185,9 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
       // defined stop point:
       // earliest completion status of all run checked datasets (disabled or enabled)
       int maxEnabled = STEP_PAIRS;
-      // earliestEndingStep is the defined stop point
-      if (earliestEndingStep != null && earliestEndingStep.isEndingStep()) {
-        maxEnabled = earliestEndingStep.endingStepIndex + 1;
+      // earliestRunStep is the defined stop point
+      if (earliestRunEndingStep != null) {
+        maxEnabled = earliestRunEndingStep.getIndex() + 1;
       }
       for (int i = 0; i < maxEnabled; i++) {
         rbStartingStep[i].setEnabled(true);
@@ -209,7 +229,7 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
         }
         if (startingStepModel != null && startingStepModel.isEnabled()) {
           enabledStartIndex =
-            ((Step) startingStepModel.getEnumeratedType()).startingStepIndex + 1;
+            ((StartingStep) startingStepModel.getEnumeratedType()).getIndex() + 1;
         }
       }
       for (int i = 0; i <= enabledStartIndex - 1; i++) {
@@ -234,20 +254,21 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
   }
 
   void setParameters(final BatchruntomoParam param) {
-    Step step = Step.getInstance(param.getEndingStep());
-    if (step != null && step.isEndingStep()) {
-      rbEndingStep[step.endingStepIndex].setSelected(true);
+    EndingStep endingStep = EndingStep.getInstance(param.getEndingStep());
+    if (endingStep != null) {
+      rbEndingStep[endingStep.getIndex()].setSelected(true);
     }
     else {
       cbEndingStep.setSelected(false);
     }
-    step = Step.getInstance(param.getStartingStep());
-    if (step != null && step.isStartingStep()) {
-      rbStartingStep[step.startingStepIndex].setSelected(true);
+    StartingStep startingStep = StartingStep.getInstance(param.getStartingStep());
+    if (startingStep != null) {
+      rbStartingStep[startingStep.getIndex()].setSelected(true);
     }
     else {
       cbStartingStep.setSelected(false);
     }
+    cbDoNotUseExistingAlignment.setSelected(!param.isUseExistingAlignment());
     updateDisplay();
   }
 
@@ -267,6 +288,7 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
         param.setStartingStep(radioButtonModel.getEnumeratedType().getValue());
       }
     }
+    param.setUseExistingAlignment(!cbDoNotUseExistingAlignment.isSelected());
   }
 
   private void setTooltips() {
@@ -294,131 +316,8 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
       rbEndingStep[i].setToolTipText(endingStepTooltip);
       rbStartingStep[i].setToolTipText(startingStepToolip);
     }
-  }
-
-  private static final class Step implements EnumeratedType {
-    private static final Step FINE_ALIGNMENT = new Step("6", "Fine alignment", 0, 0);
-    private static final Step POSITIONING = new Step("7", "Positioning", 1, -1);
-    private static final Step ALIGNED_STACK_GENERATION = new Step("8", "Aligned stack",
-      -1, 1);
-    private static final Step GOLD_DETECTION_3D = new Step("10", "Ctf/gold detection", 2,
-      -1);
-    private static final Step CTF_CORRECTION = new Step("11", "Ctf correction", -1, 2);
-
-    private final EtomoNumber value;
-    private final String label;
-    private final int endingStepIndex, startingStepIndex;
-
-    private Step(final String value, final String label, final int endingStepIndex,
-      final int startingStepIndex) {
-      this.label = label;
-      this.endingStepIndex = endingStepIndex;
-      this.startingStepIndex = startingStepIndex;
-      if (value.indexOf('.') == -1) {
-        this.value = new EtomoNumber();
-      }
-      else {
-        this.value = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-      }
-      this.value.set(value);
-    }
-
-    private static Step getInstance(final String value) {
-      if (value == null) {
-        return null;
-      }
-      if (FINE_ALIGNMENT.value.equals(value)) {
-        return FINE_ALIGNMENT;
-      }
-      if (POSITIONING.value.equals(value)) {
-        return POSITIONING;
-      }
-      if (ALIGNED_STACK_GENERATION.value.equals(value)) {
-        return ALIGNED_STACK_GENERATION;
-      }
-      if (GOLD_DETECTION_3D.value.equals(value)) {
-        return GOLD_DETECTION_3D;
-      }
-      if (CTF_CORRECTION.value.equals(value)) {
-        return CTF_CORRECTION;
-      }
-      return null;
-    }
-
-    private static Step getEndingInstance(final int index) {
-      if (index == -1) {
-        return null;
-      }
-      if (FINE_ALIGNMENT.endingStepIndex == index) {
-        return FINE_ALIGNMENT;
-      }
-      if (POSITIONING.endingStepIndex == index) {
-        return POSITIONING;
-      }
-      if (ALIGNED_STACK_GENERATION.endingStepIndex == index) {
-        return ALIGNED_STACK_GENERATION;
-      }
-      if (GOLD_DETECTION_3D.endingStepIndex == index) {
-        return GOLD_DETECTION_3D;
-      }
-      if (CTF_CORRECTION.endingStepIndex == index) {
-        return CTF_CORRECTION;
-      }
-      return null;
-    }
-
-    private static Step getStartingInstance(final int index) {
-      if (index == -1) {
-        return null;
-      }
-      if (FINE_ALIGNMENT.startingStepIndex == index) {
-        return FINE_ALIGNMENT;
-      }
-      if (POSITIONING.startingStepIndex == index) {
-        return POSITIONING;
-      }
-      if (ALIGNED_STACK_GENERATION.startingStepIndex == index) {
-        return ALIGNED_STACK_GENERATION;
-      }
-      if (GOLD_DETECTION_3D.startingStepIndex == index) {
-        return GOLD_DETECTION_3D;
-      }
-      if (CTF_CORRECTION.startingStepIndex == index) {
-        return CTF_CORRECTION;
-      }
-      return null;
-    }
-
-    private boolean isDefaultEndingInstance() {
-      return this == GOLD_DETECTION_3D;
-    }
-
-    private boolean isDefaultStartingInstance() {
-      return this == CTF_CORRECTION;
-    }
-
-    private boolean isEndingStep() {
-      return endingStepIndex != -1;
-    }
-
-    private boolean isStartingStep() {
-      return startingStepIndex != -1;
-    }
-
-    public ConstEtomoNumber getValue() {
-      return value;
-    }
-
-    public String toString() {
-      return getLabel();
-    }
-
-    public String getLabel() {
-      return label;
-    }
-
-    public boolean isDefault() {
-      return false;
-    }
+    cbDoNotUseExistingAlignment
+      .setToolTipText("Unchecking this checkbox causes this affect:  "
+        + EtomoAutodoc.getTooltip(autodoc, BatchruntomoParam.USE_EXISTING_ALIGNMENT_TAG));
   }
 }
