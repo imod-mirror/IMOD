@@ -425,6 +425,10 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   void expand(final boolean expand) {
     textField.setText(state.expandFieldText(expand, textField.getText()));
   }
+  
+  void setHorizontalAlignment(final int alignment) {
+    textField.setHorizontalAlignment(JTextField.CENTER);
+  }
 
   void setExpanded() {
     textField.setText(state.applyExpandedToFieldText(textField.getText()));
