@@ -9,4 +9,6 @@ package etomo.type;
 *
 * @version $Id$
 */
-public interface Status {}
+public interface Status {
+  public String getText();
+}
