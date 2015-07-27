@@ -56,24 +56,24 @@ public final class DummyPlugin implements Plugin, ActionListener {
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
     // 1
     pnl1.setLayout(new BoxLayout(pnl1, BoxLayout.X_AXIS));
-    pnl1.add(cbBrillig);
-    pnl1.add(cbSlithy);
-    pnl1.add(cbToves);
+    pnl1.add(cbBrillig.getComponent());
+    pnl1.add(cbSlithy.getComponent());
+    pnl1.add(cbToves.getComponent());
     // 2
     pnl2.setLayout(new BoxLayout(pnl2, BoxLayout.X_AXIS));
     pnl2.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnl2.add(cbGyre);
-    pnl2.add(cbGimble);
-    pnl2.add(cbWabe);
+    pnl2.add(cbGyre.getComponent());
+    pnl2.add(cbGimble.getComponent());
+    pnl2.add(cbWabe.getComponent());
     // 3
     pnl3.setLayout(new BoxLayout(pnl3, BoxLayout.X_AXIS));
-    pnl3.add(cbMimsy);
-    pnl3.add(cbBorogoves);
+    pnl3.add(cbMimsy.getComponent());
+    pnl3.add(cbBorogoves.getComponent());
     // 4
     pnl4.setLayout(new BoxLayout(pnl4, BoxLayout.X_AXIS));
     pnl4.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnl4.add(cbMomeRaths);
-    pnl4.add(cbOutgrabe);
+    pnl4.add(cbMomeRaths.getComponent());
+    pnl4.add(cbOutgrabe.getComponent());
   }
 
   private void addListeners() {
