@@ -10,6 +10,7 @@ import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
+import etomo.type.CurrentArrayList;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -591,6 +592,12 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   public final void setProcessingMethod(final ProcessingMethod processingMethod) {
     if (processData != null) {
       processData.setProcessingMethod(processingMethod);
+    }
+  }
+
+  public final void setKeyArray(CurrentArrayList<String> keyArray) {
+    if (processData != null && keyArray != null) {
+      processData.setKeyArray(keyArray);
     }
   }
 
