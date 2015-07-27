@@ -443,7 +443,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
           }
         }
         if (!recognized) {
-          if (line.indexOf(ProcessOutputStrings.BRT_AXIS_B) != -1) {
+          if (line.indexOf(ProcessOutputStrings.BRT_AXIS_B_TAG) != -1) {
             recognized = true;
             messages.feedMessage(ProcessMessages.MessageType.LOG, line);
           }
