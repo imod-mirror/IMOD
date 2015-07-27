@@ -206,7 +206,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
   private void createPanel() {
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
-    pnlRoot.add(checkBox);
+    pnlRoot.add(checkBox.getComponent());
     pnlRoot.add(textField);
   }
 
