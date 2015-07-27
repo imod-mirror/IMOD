@@ -40,7 +40,8 @@ public final class DirectiveSectionPanel {
 
   private final JPanel pnlRoot = new JPanel();
   private final JPanel pnlBody = new JPanel();
-  private final List<DirectivePanel> directivePanelArray = new ArrayList<DirectivePanel>();
+  private final List<DirectivePanel> directivePanelArray =
+    new ArrayList<DirectivePanel>();
   private final JPanel pnlDirectives = new JPanel();
 
   private final CheckBox cbShow;
@@ -53,8 +54,8 @@ public final class DirectiveSectionPanel {
   private boolean debug = false;
 
   private DirectiveSectionPanel(BaseManager manager, final AxisType sourceAxisType,
-      final DirectiveTool tool, final DirectiveDescrSection descrSection,
-      final DirectiveMap directiveMap) {
+    final DirectiveTool tool, final DirectiveDescrSection descrSection,
+    final DirectiveMap directiveMap) {
     this.manager = manager;
     this.sourceAxisType = sourceAxisType;
     this.tool = tool;
@@ -64,10 +65,10 @@ public final class DirectiveSectionPanel {
   }
 
   static DirectiveSectionPanel getInstance(final BaseManager manager,
-      final DirectiveDescrSection descrSection, final DirectiveMap directiveMap,
-      final AxisType sourceAxisType, final DirectiveTool tool) {
-    DirectiveSectionPanel instance = new DirectiveSectionPanel(manager, sourceAxisType,
-        tool, descrSection, directiveMap);
+    final DirectiveDescrSection descrSection, final DirectiveMap directiveMap,
+    final AxisType sourceAxisType, final DirectiveTool tool) {
+    DirectiveSectionPanel instance =
+      new DirectiveSectionPanel(manager, sourceAxisType, tool, descrSection, directiveMap);
     instance.createPanel();
     instance.addListeners();
     instance.setTooltips();
@@ -97,8 +98,8 @@ public final class DirectiveSectionPanel {
         continue;
       }
       // directive set panels
-      DirectivePanel directivePanel = DirectivePanel.getInstance(manager, directive,
-          tool, sourceAxisType);
+      DirectivePanel directivePanel =
+        DirectivePanel.getInstance(manager, directive, tool, sourceAxisType);
       directivePanelArray.add(directivePanel);
       pnlDirectives.add(directivePanel.getComponent());
     }
@@ -106,14 +107,14 @@ public final class DirectiveSectionPanel {
   }
 
   void msgControlChanged(final boolean includeChange, final boolean showChange,
-      final boolean expandChange) {
+    final boolean expandChange) {
     Iterator<DirectivePanel> iterator = directivePanelArray.iterator();
     boolean visibleDirectives = false;
     boolean include = false;
     while (iterator.hasNext()) {
       DirectivePanel directivePanel = iterator.next();
       if (directivePanel.msgControlChanged(includeChange, expandChange)
-          && !visibleDirectives) {
+        && !visibleDirectives) {
         visibleDirectives = true;
       }
       if (showChange && !include && directivePanel.isInclude()) {
@@ -147,7 +148,7 @@ public final class DirectiveSectionPanel {
   }
 
   Component getShowCheckBox() {
-    return cbShow;
+    return cbShow.getComponent();
   }
 
   void addListeners() {
