@@ -31,17 +31,15 @@ import etomo.type.UserConfiguration;
  * @version $Id$
  */
 final class TemplatePanel {
-  private static String EMPTY_OPTION = "None available";
-  private static String SELECT_OPTION1 = "No selection (";
-  private static final String SELECT_OPTION2 = " available)";
+  private static final String EMPTY_OPTION = "None available";
+  private static final String NO_SELECTION1 = "No selection (";
+  private static final String NO_SELECTION2 = " available)";
   private static final int NUM_TEMPLATES = 3;
 
   private final JPanel pnlRoot = new JPanel();
-  private final ComboBox cmbScopeTemplate = ComboBox
-    .getInstance("Scope template:", false);
-  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System template:",
-    false);
-  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User template:", false);
+  private final ComboBox cmbScopeTemplate = ComboBox.getInstance("Scope template:");
+  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System template:");
+  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User template:");
 
   private final TemplateActionListener listener;
   private final BaseManager manager;
@@ -96,34 +94,26 @@ final class TemplatePanel {
     return instance;
   }
 
+  private void fillComboBox(final ComboBox comboBox, final File[] fileList) {
+    if (comboBox == null) {
+      return;
+    }
+    int len = fileList != null ? fileList.length : 0;
+    comboBox.setPlaceholder(EMPTY_OPTION, NO_SELECTION1 + len + NO_SELECTION2);
+    if (len > 0) {
+      for (int i = 0; i < len; i++) {
+        comboBox.addItem(fileList[i].getName());
+      }
+    }
+    comboBox.unselect();
+  }
+
   private void createPanel(final String title) {
     // init
     scopeTemplateFileList = ConfigTool.getScopeTemplateFiles();
-    if (scopeTemplateFileList != null && scopeTemplateFileList.length > 0) {
-      cmbScopeTemplate.addItem(SELECT_OPTION1 + scopeTemplateFileList.length
-        + SELECT_OPTION2);
-      for (int i = 0; i < scopeTemplateFileList.length; i++) {
-        cmbScopeTemplate.addItem(scopeTemplateFileList[i].getName());
-      }
-    }
-    else {
-      cmbScopeTemplate.addItem(EMPTY_OPTION);
-      cmbScopeTemplate.setEnabledPolicy(false);
-    }
-    cmbScopeTemplate.setSelectedIndex(0);
+    fillComboBox(cmbScopeTemplate, scopeTemplateFileList);
     systemTemplateFileList = ConfigTool.getSystemTemplateFiles();
-    if (systemTemplateFileList != null && systemTemplateFileList.length > 0) {
-      cmbSystemTemplate.addItem(SELECT_OPTION1 + systemTemplateFileList.length
-        + SELECT_OPTION2);
-      for (int i = 0; i < systemTemplateFileList.length; i++) {
-        cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
-      }
-    }
-    else {
-      cmbSystemTemplate.addItem(EMPTY_OPTION);
-      cmbSystemTemplate.setEnabledPolicy(false);
-    }
-    cmbSystemTemplate.setSelectedIndex(0);
+    fillComboBox(cmbSystemTemplate, systemTemplateFileList);
     loadUserTemplate();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     if (drawBorder) {
@@ -164,10 +154,10 @@ final class TemplatePanel {
     cmbUserTemplate.setEnabled(enabled);
   }
 
-  void setEditable(final boolean enabled) {
-    cmbScopeTemplate.setEditable(enabled);
-    cmbSystemTemplate.setEditable(enabled);
-    cmbUserTemplate.setEditable(enabled);
+  void setEditable(final boolean editable) {
+    cmbScopeTemplate.setEditable(editable);
+    cmbSystemTemplate.setEditable(editable);
+    cmbUserTemplate.setEditable(editable);
   }
 
   void saveAutodoc(final WritableAutodoc autodoc) {
@@ -203,24 +193,12 @@ final class TemplatePanel {
     // If the user template directory is in a different directory from the location of the
     // default user template, the user template will not be loaded.
     userTemplateFileList = ConfigTool.getUserTemplateFiles(newUserTemplateDir);
-    if (userTemplateFileList != null && userTemplateFileList.length > 0) {
-      cmbUserTemplate.addItem(SELECT_OPTION1 + userTemplateFileList.length
-        + SELECT_OPTION2);
-      cmbUserTemplate.setComboBoxEnabled(true);
-      for (int i = 0; i < userTemplateFileList.length; i++) {
-        cmbUserTemplate.addItem(userTemplateFileList[i].getName());
-      }
-    }
-    else {
-      cmbUserTemplate.addItem(EMPTY_OPTION);
-      cmbUserTemplate.setEnabledPolicy(false);
-    }
-    cmbUserTemplate.setSelectedIndex(0);
+    fillComboBox(cmbUserTemplate, userTemplateFileList);
   }
 
   private File getTemplateFile(final ComboBox cmbTemplate, final File[] templateFileList) {
     if (cmbTemplate.isEnabled()) {
-      int i = cmbTemplate.getSelectedIndex() - 1;
+      int i = cmbTemplate.getSelectedIndex();
       if (i != -1 && templateFileList != null) {
         return templateFileList[i];
       }
@@ -250,16 +228,16 @@ final class TemplatePanel {
     for (int i = 0; i < templateFileList.length; i++) {
       if ((absPath && templateFileList[i].getAbsolutePath().equals(template))
         || (!absPath && templateFileList[i].getName().equals(template))) {
-        cmbTemplate.setSelectedIndex(i + 1);
+        cmbTemplate.setSelectedIndex(i);
         break;
       }
     }
   }
 
   void clear() {
-    cmbScopeTemplate.setSelectedIndex(0);
-    cmbSystemTemplate.setSelectedIndex(0);
-    cmbUserTemplate.setSelectedIndex(0);
+    cmbScopeTemplate.unselect();
+    cmbSystemTemplate.unselect();
+    cmbUserTemplate.unselect();
   }
 
   /**
