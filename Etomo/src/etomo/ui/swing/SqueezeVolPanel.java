@@ -138,7 +138,7 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
     pnlLinearInterpolation.setLayout(new BoxLayout(pnlLinearInterpolation,
         BoxLayout.X_AXIS));
     pnlLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLinearInterpolation.add(cbLinearInterpolation);
+    pnlLinearInterpolation.add(cbLinearInterpolation.getComponent());
     pnlLinearInterpolation.add(Box.createHorizontalGlue());
     pnlRoot.add(pnlLinearInterpolation);
     // third component
