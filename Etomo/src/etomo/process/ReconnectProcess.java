@@ -12,6 +12,7 @@ import etomo.ProcessingMethodMediator;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstStringProperty;
+import etomo.type.CurrentArrayList;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -238,6 +239,12 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 
   public String getShellProcessID() {
     return processData.getPid();
+  }
+  
+  public final void setKeyArray(CurrentArrayList<String> keyArray) {
+    if (processData != null && keyArray != null) {
+      processData.setKeyArray(keyArray);
+    }
   }
 
   /**
