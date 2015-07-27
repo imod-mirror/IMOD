@@ -338,7 +338,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
 
     pnlLightBeads.setLayout(new BoxLayout(pnlLightBeads, BoxLayout.Y_AXIS));
     pnlLightBeads.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLightBeads.add(cbLightBeads);
+    pnlLightBeads.add(cbLightBeads.getComponent());
     pnlLightBeads.add(Box.createHorizontalGlue());
     panelBeadtrackBody.add(pnlLightBeads);
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y2));
@@ -349,7 +349,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps, BoxLayout.X_AXIS));
     pnlFillGaps.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlFillGaps.add(cbFillGaps);
+    pnlFillGaps.add(cbFillGaps.getComponent());
     pnlFillGaps.add(Box.createHorizontalGlue());
     pnlCheckbox.add(pnlFillGaps);
 
@@ -358,7 +358,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
 
     pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking, BoxLayout.Y_AXIS));
     pnlLocalAreaTracking.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLocalAreaTracking.add(cbLocalAreaTracking);
+    pnlLocalAreaTracking.add(cbLocalAreaTracking.getComponent());
     pnlLocalAreaTracking.add(Box.createHorizontalGlue());
     panelBeadtrackBody.add(pnlLocalAreaTracking);
 
@@ -376,7 +376,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     // SobelFilterCentering
     pnlSobelFilterCentering.setLayout(new BoxLayout(pnlSobelFilterCentering,
         BoxLayout.X_AXIS));
-    pnlSobelFilterCentering.add(cbSobelFilterCentering);
+    pnlSobelFilterCentering.add(cbSobelFilterCentering.getComponent());
     pnlSobelFilterCentering.add(Box.createHorizontalGlue());
 
     pnlExpertParametersBody.setLayout(new BoxLayout(pnlExpertParametersBody,
