@@ -658,16 +658,16 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlInitialBeadFinding.add(pnl3dmodInitialBeadFinding);
     // Boundary model
     pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
-    pnlBoundaryModel.add(cbBoundaryModel);
+    pnlBoundaryModel.add(cbBoundaryModel.getComponent());
     pnlBoundaryModel.add(btnBoundaryModel.getComponent());
     // ExcludeInsideAreas
     pnlExcludeInsideAreas
       .setLayout(new BoxLayout(pnlExcludeInsideAreas, BoxLayout.X_AXIS));
-    pnlExcludeInsideAreas.add(cbExcludeInsideAreas);
+    pnlExcludeInsideAreas.add(cbExcludeInsideAreas.getComponent());
     pnlExcludeInsideAreas.add(Box.createHorizontalGlue());
     // AdjustSizes
     pnlAdjustSizes.setLayout(new BoxLayout(pnlAdjustSizes, BoxLayout.X_AXIS));
-    pnlAdjustSizes.add(cbAdjustSizes);
+    pnlAdjustSizes.add(cbAdjustSizes.getComponent());
     pnlAdjustSizes.add(Box.createHorizontalGlue());
     // 3dmodInitialBeadFinding
     pnl3dmodInitialBeadFinding.setLayout(new BoxLayout(pnl3dmodInitialBeadFinding,
@@ -700,16 +700,16 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlTarget.add(rtfTargetDensityOfBeads.getContainer());
     // TwoSurfaces
     pnlTwoSurfaces.setLayout(new BoxLayout(pnlTwoSurfaces, BoxLayout.X_AXIS));
-    pnlTwoSurfaces.add(cbTwoSurfaces);
+    pnlTwoSurfaces.add(cbTwoSurfaces.getComponent());
     pnlTwoSurfaces.add(Box.createHorizontalGlue());
     // AppendToSeedModel
     pnlAppendToSeedModel.setLayout(new BoxLayout(pnlAppendToSeedModel, BoxLayout.X_AXIS));
-    pnlAppendToSeedModel.add(cbAppendToSeedModel);
+    pnlAppendToSeedModel.add(cbAppendToSeedModel.getComponent());
     pnlAppendToSeedModel.add(Box.createHorizontalGlue());
     // ClusteredPointsAllowed1
     pnlClusteredPointsAllowed1.setLayout(new BoxLayout(pnlClusteredPointsAllowed1,
       BoxLayout.X_AXIS));
-    pnlClusteredPointsAllowed1.add(cbClusteredPointsAllowedClustered);
+    pnlClusteredPointsAllowed1.add(cbClusteredPointsAllowedClustered.getComponent());
     pnlClusteredPointsAllowed1.add(Box.createHorizontalGlue());
     // 3dmodBeadSortingAndSearching
     pnl3dmodBeadSortingAndSearching.setLayout(new BoxLayout(
