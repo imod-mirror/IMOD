@@ -33,7 +33,6 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
-import etomo.type.Status;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldDisplayer;
@@ -107,9 +106,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private final RadioTextField rtfBinnedThickness = RadioTextField.getInstance(
     FieldType.INTEGER, "Thickness total (binned pixels): ", bgThickness);
   private final RadioButton rbDeriveThickness = new RadioButton(
-    "Calculated thuckness (unbinned pixels):", bgThickness);
-  private final LabeledTextField ltfExtraThickness = new LabeledTextField(FieldType.INTEGER,
-    "          Plus (optional): ");
+    "Calculated thickness (unbinned pixels):", bgThickness);
+  private final LabeledTextField ltfExtraThickness = new LabeledTextField(
+    FieldType.INTEGER, "          Plus (optional): ");
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
     FieldType.INTEGER, "          With fallback: ");
   private final List<Field> fieldList = new ArrayList<Field>();
@@ -129,7 +128,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private final MultiLineButton btnRevertToGlobal;
 
   private String lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
-  private Status status = null;// BatchRunTomoStatus.STOPPED;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
 
   private BatchRunTomoRow row;
   private boolean emptyTable;
@@ -377,7 +376,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     }
     // RemoveXrays
     pnlRemoveXrays.setLayout(new BoxLayout(pnlRemoveXrays, BoxLayout.X_AXIS));
-    pnlRemoveXrays.add(cbRemoveXrays);
+    pnlRemoveXrays.add(cbRemoveXrays.getComponent());
     pnlRemoveXrays.add(Box.createHorizontalGlue());
     // ModelFile
     pnlModelFile.setLayout(new BoxLayout(pnlModelFile, BoxLayout.X_AXIS));
@@ -399,14 +398,14 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     // SizeOfPatchesXandY
     pnlSizeOfPatchesXandY.setLayout(new GridLayout(1, 2, 15, 0));
     pnlSizeOfPatchesXandY.add(ltfSizeOfPatchesXandY.getComponent());
-    pnlSizeOfPatchesXandY.add(cbLengthOfPieces);
+    pnlSizeOfPatchesXandY.add(cbLengthOfPieces.getComponent());
     // EnableStretching
     pnlEnableStretching.setLayout(new BoxLayout(pnlEnableStretching, BoxLayout.X_AXIS));
-    pnlEnableStretching.add(cbEnableStretching);
+    pnlEnableStretching.add(cbEnableStretching.getComponent());
     pnlEnableStretching.add(Box.createHorizontalGlue());
     // LocalAlignments
     pnlLocalAlignments.setLayout(new BoxLayout(pnlLocalAlignments, BoxLayout.X_AXIS));
-    pnlLocalAlignments.add(cbLocalAlignments);
+    pnlLocalAlignments.add(cbLocalAlignments.getComponent());
     pnlLocalAlignments.add(Box.createHorizontalGlue());
     // BinByFactor
     pnlBinByFactor.setLayout(new BoxLayout(pnlBinByFactor, BoxLayout.X_AXIS));
@@ -414,7 +413,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     pnlBinByFactor.add(Box.createHorizontalGlue());
     // CorrectCTF
     pnlCorrectCTF.setLayout(new GridLayout(2, 2, 30, 0));
-    pnlCorrectCTF.add(cbCorrectCTF);
+    pnlCorrectCTF.add(cbCorrectCTF.getComponent());
     pnlCorrectCTF.add(pnlAutoFitRangeAndStep);
     pnlCorrectCTF.add(ltfDefocus.getComponent());
     pnlCorrectCTF.add(rbFitEveryImage.getComponent());
@@ -437,7 +436,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     pnlReconstructionType.add(rbDoBackprojAlso.getComponent());
     pnlReconstructionType.add(Box.createRigidArea(FixedDim.x0_y6));
     pnlReconstructionType.add(ltfLeaveIterations.getComponent());
-    pnlReconstructionType.add(cbScaleToInteger);
+    pnlReconstructionType.add(cbScaleToInteger.getComponent());
     // Thickness
     pnlThickness.setLayout(new BoxLayout(pnlThickness, BoxLayout.Y_AXIS));
     pnlThickness.add(rtfThickness.getContainer());
@@ -462,7 +461,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     // align
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlReconstructionType, Component.LEFT_ALIGNMENT);
-    UIUtilities.alignComponentsX(pnlThickness, Component.LEFT_ALIGNMENT); 
+    UIUtilities.alignComponentsX(pnlThickness, Component.LEFT_ALIGNMENT);
     // update
     updateDisplay();
     statusChanged(status);
@@ -554,7 +553,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     ltfFallbackThickness.setEnabled(deriveThickness);
   }
 
-  public void statusChanged(final Status status) {
+  public void statusChanged(final BatchRunTomoStatus status) {
     this.status = status;
     boolean open = status == null || status == BatchRunTomoStatus.OPEN;
     cbRemoveXrays.setEditable(open);
