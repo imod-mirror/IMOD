@@ -48,6 +48,7 @@ import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -113,7 +114,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
 
   private BatchRunTomoTab curTab = null;
   private Vector<StatusChangeListener> listeners = null;
-  private Status status = null;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
 
   private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID,
     final TableReference tableReference) {
@@ -174,8 +175,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // Make sure that the machine lists from the batchruntomo .com file get loaded.
     cbCPUMachineList.setSelected(true);
     rbGPUMachineList.setSelected(true);
-    stepPanel.msgStatusChangerAvailable(this);
-    table.msgStatusChangerAvailable(this);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -252,7 +251,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // ParallelSettings
     pnlParallelSettings.setLayout(new BoxLayout(pnlParallelSettings, BoxLayout.Y_AXIS));
     pnlParallelSettings.setBorder(new EtchedBorder("Run Actions").getBorder());
-    pnlParallelSettings.add(cbCPUMachineList);
+    pnlParallelSettings.add(cbCPUMachineList.getComponent());
     pnlParallelSettings.add(rbGPUMachineListOff.getComponent());
     pnlParallelSettings.add(rbGPUMachineListLocal.getComponent());
     pnlParallelSettings.add(rbGPUMachineList.getComponent());
@@ -269,7 +268,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // DeliverToDirectory
     pnlDeliverToDirectory
       .setLayout(new BoxLayout(pnlDeliverToDirectory, BoxLayout.X_AXIS));
-    pnlDeliverToDirectory.add(cbDeliverToDirectory);
+    pnlDeliverToDirectory.add(cbDeliverToDirectory.getComponent());
     pnlDeliverToDirectory.add(ftfDeliverToDirectory.getRootPanel());
     // align
     UIUtilities.alignComponentsX(pnlBatch, Component.LEFT_ALIGNMENT);
@@ -295,15 +294,18 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     table.setTableListener(datasetDialog);
     btnStartOver.addActionListener(this);
     ctfEmailAddress.addActionListener(this);
+    btnResume.addActionListener(this);
     btnPause.addActionListener(this);
+    // This dialog can set the global status to open.
+    addStatusChangeListener(stepPanel);
+    table.msgStatusChangerStarted(this);
+    // The step panel needs to listen for changes to the earliestRunStep.
+    table.addStatusChangeListenerToRowList(stepPanel);
   }
 
-  public void msgStatusChangerAvailable(final StatusChanger changer) {
-    changer.addStatusChangeListener(this);
-    stepPanel.msgStatusChangerAvailable(changer);
-    table.msgStatusChangerAvailable(changer);
-  }
-
+  /**
+   * Add listeners for StartOver button
+   */
   public void addStatusChangeListener(final StatusChangeListener listener) {
     if (listener == null) {
       return;
@@ -323,13 +325,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     listeners.add(listener);
   }
 
-  public void removeStatusChangeListener(final StatusChangeListener listener) {
-    if (listener == null) {
-      return;
-    }
-    if (listeners != null) {
-      listeners.remove(listener);
-    }
+  public void msgStatusChangerStarted(final StatusChanger changer) {
+    // Listen to the monitor.
+    changer.addStatusChangeListener(this);
+    changer.addStatusChangeListener(stepPanel);
+    table.msgStatusChangerStarted(changer);
   }
 
   public Container getContainer() {
@@ -429,54 +429,65 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     updateDisplay();
   }
 
-  public void getParameters(final BatchruntomoParam param) {
-    if (cbDeliverToDirectory.isSelected()) {
-      param.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
-    }
-    else {
-      param.resetDeliverToDirectory();
-    }
-    if (!cbCPUMachineList.isSelected()) {
-      param.setCPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
-    }
-    if (rbGPUMachineListOff.isSelected()) {
-      param.resetGPUMachineList();
-    }
-    else if (rbGPUMachineListLocal.isSelected()) {
-      param.setGPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
-    }
-    if (ctfEmailAddress.isSelected()) {
-      param.setEmailAddress(ctfEmailAddress.getText());
-    }
-    else {
-      param.resetEmailAddress();
-    }
-    StringBuilder errMsg = new StringBuilder();
-    boolean deliverToDirectory = cbDeliverToDirectory.isSelected();
-    table.getParameters(param, deliverToDirectory, errMsg);
-    if (errMsg.length() > 0) {
-      if (deliverToDirectory) {
-        errMsg
-          .append("\n\nEither change the name of the associated stacks, or go to the "
-            + BatchRunTomoTab.BATCH.getQuotedLabel()
-            + " tab and uncheck the "
-            + ftfDeliverToDirectory.getQuotedLabel()
-            + " check box.  Each dataset will be placed in the current location of its stack "
-            + "file.");
+  public void removeParameters(final BatchruntomoParam param) {
+    table.removeParameters(param);
+  }
+
+  public boolean getParameters(final BatchruntomoParam param, final boolean doValidation) {
+    try {
+      if (cbDeliverToDirectory.isSelected()) {
+        param.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
       }
       else {
-        errMsg
-          .append("\n\nEither move these stacks, or go to the "
-            + BatchRunTomoTab.BATCH.getQuotedLabel()
-            + " tab and select a directory in the "
-            + ftfDeliverToDirectory.getQuotedLabel()
-            + " field.  Each dataset will be placed in its own directory under the directory "
-            + "in this field.");
+        param.resetDeliverToDirectory();
       }
-      UIHarness.INSTANCE.openMessageDialog(manager, errMsg.toString(),
-        "Datasets Cannot Share a Directory");
+      if (!cbCPUMachineList.isSelected()) {
+        param.setCPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+      }
+      if (rbGPUMachineListOff.isSelected()) {
+        param.resetGPUMachineList();
+      }
+      else if (rbGPUMachineListLocal.isSelected()) {
+        param.setGPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+      }
+      if (ctfEmailAddress.isSelected()) {
+        param.setEmailAddress(ctfEmailAddress.getText(doValidation));
+      }
+      else {
+        param.resetEmailAddress();
+      }
+      StringBuilder errMsg = new StringBuilder();
+      boolean deliverToDirectory = cbDeliverToDirectory.isSelected();
+      table.getParameters(param, deliverToDirectory, errMsg);
+      if (errMsg.length() > 0) {
+        if (deliverToDirectory) {
+          errMsg
+            .append("\n\nEither change the name of the associated stacks, or go to the "
+              + BatchRunTomoTab.BATCH.getQuotedLabel()
+              + " tab and uncheck the "
+              + ftfDeliverToDirectory.getQuotedLabel()
+              + " check box.  Each dataset will be placed in the current location of its stack "
+              + "file.");
+        }
+        else {
+          errMsg
+            .append("\n\nEither move these stacks, or go to the "
+              + BatchRunTomoTab.BATCH.getQuotedLabel()
+              + " tab and select a directory in the "
+              + ftfDeliverToDirectory.getQuotedLabel()
+              + " field.  Each dataset will be placed in its own directory under the directory "
+              + "in this field.");
+        }
+        UIHarness.INSTANCE.openMessageDialog(manager, errMsg.toString(),
+          "Datasets Cannot Share a Directory");
+        return false;
+      }
+      stepPanel.getParameters(param);
+      return true;
     }
-    stepPanel.getParameters(param);
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void loadAutodocs() {
@@ -566,7 +577,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       msgDirectivesChanged(false, false);
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
-      manager.batchruntomo();
+      manager.batchruntomo(table.createRunKeys());
+    }
+    else if (actionCommand.equals(btnResume.getActionCommand())) {
+      manager.resumeBatchruntomo(table.updateRunKeys());
     }
     else if (actionCommand.equals(cbCPUMachineList.getActionCommand())
       || actionCommand.equals(rbGPUMachineListOff.getActionCommand())
@@ -761,18 +775,23 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void statusChanged(final Status status) {
-    this.status = status;
-    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+    if (status == null || !(status instanceof BatchRunTomoStatus)) {
+      return;
+    }
+    this.status = (BatchRunTomoStatus) status;
+    boolean open = status == BatchRunTomoStatus.OPEN;
     ctfEmailAddress.setEditable(open);
     cbCPUMachineList.setEditable(open);
     rbGPUMachineListOff.setEditable(open);
     rbGPUMachineListLocal.setEditable(open);
     rbGPUMachineList.setEditable(open);
-    btnRun.setEditable(open);
+    btnRun.setEditable(open || status == BatchRunTomoStatus.STOPPED);
     ftfInputDirectiveFile.setEditable(open);
     cbDeliverToDirectory.setEditable(open);
-    ftfDeliverToDirectory
-      .setEditable(status == null || status == BatchRunTomoStatus.OPEN);
+    if (cbDeliverToDirectory.isEnabled()) {
+      cbDeliverToDirectory.setEnabled(status != BatchRunTomoStatus.RUNNING);
+    }
+    ftfDeliverToDirectory.setEditable(open);
     templatePanel.setEditable(open);
     // Running - enable
     // pause
@@ -785,11 +804,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // Stopped - enable:
     // start over
     btnStartOver.setEditable(killedPaused || status == BatchRunTomoStatus.STOPPED);
-    datasetDialog.statusChanged(status);
+    datasetDialog.statusChanged(this.status);
   }
 
   public void statusChanged(final StatusChangeEvent statusChangeEvent) {
-    // No response to dataset-level events
+    // No response to dataset-level or row-level events
   }
 
   private void setTooltips() {
