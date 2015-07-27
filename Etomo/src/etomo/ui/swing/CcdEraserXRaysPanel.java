@@ -129,7 +129,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlXRayReplacement.setBorder(new EtchedBorder("Automatic X-ray Replacement")
         .getBorder());
 
-    UIUtilities.addWithYSpace(pnlXRayReplacement, cbXrayReplacement);
+    UIUtilities.addWithYSpace(pnlXRayReplacement, cbXrayReplacement.getComponent());
     UIUtilities.addWithYSpace(pnlXRayReplacement, ltfPeakCriterion.getContainer());
     UIUtilities.addWithYSpace(pnlXRayReplacement, ltfDiffCriterion.getContainer());
     UIUtilities.addWithYSpace(pnlXRayReplacement, ltfMaximumRadius.getContainer());
@@ -179,7 +179,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
 
     pnlManualReplacementCheckBox.setLayout(new BoxLayout(pnlManualReplacementCheckBox,
         BoxLayout.X_AXIS));
-    pnlManualReplacementCheckBox.add(cbManualReplacement);
+    pnlManualReplacementCheckBox.add(cbManualReplacement.getComponent());
     pnlManualReplacementCheckBox.add(Box.createHorizontalGlue());
 
     pnlCCDEraser.setLayout(new BoxLayout(pnlCCDEraser, BoxLayout.Y_AXIS));
@@ -187,7 +187,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlManualReplacement);
     UIUtilities.addWithYSpace(pnlCCDEraser, ltfBorderPixels.getContainer());
     UIUtilities.addWithYSpace(pnlCCDEraser, ltfPolynomialOrder.getContainer());
-    UIUtilities.addWithYSpace(pnlCCDEraser, cbIncludeAdjacentPoints);
+    UIUtilities.addWithYSpace(pnlCCDEraser, cbIncludeAdjacentPoints.getComponent());
 
     pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
     btnClipStatsRaw.setSize();
