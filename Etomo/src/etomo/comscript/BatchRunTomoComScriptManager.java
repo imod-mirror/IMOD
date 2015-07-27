@@ -8,7 +8,7 @@ import etomo.type.FileType;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -26,14 +26,16 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
 
   public void loadBatchRunTomo(final AxisID axisID) {
     scriptBatchRunTomo =
-        loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID),
-            axisID, true, true, false, false);
+      loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID),
+        axisID, true, true, false, false);
   }
-  public void loadBatchRunTomo(final AxisID axisID,final String rootName) {
+
+  public void loadBatchRunTomo(final AxisID axisID, final String rootName) {
     scriptBatchRunTomo =
-        loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(rootName, axisID),
-            axisID, true, true, false, false);
+      loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(rootName, axisID),
+        axisID, true, true, false, false);
   }
+
   public boolean isBatchRunTomoLoaded() {
     return scriptBatchRunTomo != null;
   }
@@ -43,9 +45,9 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
   }
 
   public BatchruntomoParam getBatchRunTomoParam(final AxisID axisID,
-      final boolean doValidation) {
+    final boolean doValidation) {
     BatchruntomoParam param =
-        BatchruntomoParam.getInstance(manager, axisID, doValidation);
+      BatchruntomoParam.getInstance(manager, axisID, doValidation);
     initialize(param, scriptBatchRunTomo, "batchruntomo", axisID, false, false);
     return param;
   }
