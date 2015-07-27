@@ -18,6 +18,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ConstStringProperty;
+import etomo.type.CurrentArrayList;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.OSType;
@@ -56,6 +57,7 @@ public final class ProcessData implements Storable {
   private static final String OS_TYPE_KEY = "OS";
   private static final String COMPUTER_KEY = "Computer";
   private static final String DATA_PAIRS_KEY = "DataPairs";
+  private static final String KEY_TAG = "Key.";
 
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
   private final StringProperty subProcessName = new StringProperty("SubProcessName");
@@ -83,7 +85,8 @@ public final class ProcessData implements Storable {
   private ProcessingMethod processingMethod = null;
   private DialogType dialogType = null;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
-  private Map<String, String> dataPairs = null;
+  // Optional array of keys associated with the process.
+  private CurrentArrayList<String> keyArray = null;
 
   public void dumpState() {
     System.err.println("[processDataPrepend:" + processDataPrepend + ",pid:" + pid
@@ -301,13 +304,6 @@ public final class ProcessData implements Storable {
   public Map<String, String> getComputerMap() {
     return computerMap;
   }
-  
-  public String getDataPair(final String key) {
-    if (dataPairs==null) {
-      return null;
-    }
-    return dataPairs.get(key);
-  }
 
   public ProcessingMethod getProcessingMethod() {
     return processingMethod;
@@ -334,6 +330,10 @@ public final class ProcessData implements Storable {
     }
   }
 
+  private String getKeyTag(final String group, final int index) {
+    return group + KEY_TAG + String.valueOf(index);
+  }
+
   private void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -354,6 +354,12 @@ public final class ProcessData implements Storable {
       props.remove(group + OSType.KEY);
       DialogType.remove(props, prepend);
       lastProcess.remove(props, prepend);
+      int index = 0;
+      String name = getKeyTag(group, index);
+      while (props.getProperty(name) != null) {
+        props.remove(name);
+        name = getKeyTag(group, ++index);
+      }
     }
     else {
       props.setProperty(group + PID_KEY, pid);
@@ -390,7 +396,31 @@ public final class ProcessData implements Storable {
       lastProcess.store(props, prepend);
       // Store everything in computerMap in props.
       storeMap(props, group, computerMap, COMPUTER_KEY);
-      storeMap(props, group, dataPairs, DATA_PAIRS_KEY);
+      if (keyArray != null) {
+        int len = keyArray.size();
+        for (int i = 0; i < len; i++) {
+          props.setProperty(getKeyTag(group, i), keyArray.get(i));
+        }
+      }
+    }
+  }
+
+  CurrentArrayList<String> getKeyArray() {
+    return keyArray;
+  }
+
+  void setKeyArray(CurrentArrayList<String> input) {
+    if (keyArray != null) {
+      keyArray.clear();
+    }
+    if (input == null || input.isEmpty()) {
+      return;
+    }
+    if (keyArray != null) {
+      keyArray.addAll(input);
+    }
+    else {
+      keyArray = new CurrentArrayList<String>(input);
     }
   }
 
@@ -427,6 +457,9 @@ public final class ProcessData implements Storable {
     processingMethod = null;
     dialogType = null;
     lastProcess.reset();
+    if (keyArray != null) {
+      keyArray.clear();
+    }
   }
 
   private void load(Properties props, String prepend) {
@@ -460,7 +493,16 @@ public final class ProcessData implements Storable {
     dialogType = DialogType.load(props, prepend);
     lastProcess.load(props, prepend);
     computerMap = loadMap(props, group, computerMap, COMPUTER_KEY, "0");
-    dataPairs = loadMap(props, group, dataPairs, DATA_PAIRS_KEY, null);
+    int index = 0;
+    String name = getKeyTag(group, index);
+    String value;
+    while ((value = props.getProperty(name)) != null) {
+      if (keyArray == null) {
+        keyArray = new CurrentArrayList<String>();
+      }
+      keyArray.add(value);
+      name = getKeyTag(group, ++index);
+    }
   }
 
   private Map<String, String> loadMap(final Properties props, final String group,
