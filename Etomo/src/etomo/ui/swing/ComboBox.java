@@ -20,15 +20,11 @@ import etomo.util.Utilities;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2008</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$
 * <p> Revision 1.2  2010/12/05 05:01:29  sueh
@@ -46,24 +42,26 @@ import etomo.util.Utilities;
 * <p> bug# 1222
 * <p> </p>
 */
-
 final class ComboBox {
-  public static final String rcsid =
-    "$Id$";
-
   private final JComboBox comboBox;
   private final JLabel label;
   private final JPanel pnlRoot;
-  final boolean addEmptyChoice;// Causes the index to be off by one
+  private final boolean textEntryPolicy;// presidence:1
+  private final boolean emptyChoice;// presidence:2
 
   private boolean checkpointed = false;
   private int checkpointIndex = -1;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
-  private boolean textEntryPolicy = false;
   private boolean enabledPolicy = true;
+  private boolean enabled = true;
+  private boolean editable = true;
+  private boolean placeholder = false;// presidence:3
+  private String emptyLabel = null;
+  private String noSelectionLabel = null;
 
-  private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
-    this.addEmptyChoice = addEmptyChoice;
+  private ComboBox(final String name, final boolean labeled,
+    final boolean textEntryPolicy, final boolean emptyChoice) {
+    this.textEntryPolicy = textEntryPolicy;
     comboBox = new JComboBox();
     setName(name);
     if (labeled) {
@@ -74,22 +72,38 @@ final class ComboBox {
       label = null;
       pnlRoot = null;
     }
+    if (textEntryPolicy) {
+      this.emptyChoice = false;
+    }
+    else {
+      this.emptyChoice = emptyChoice;
+      if (emptyChoice) {
+        comboBox.addItem(null);
+      }
+    }
+    updateDisplay();
   }
 
-  static ComboBox getInstance(final String name, final boolean addEmptyChoice) {
-    ComboBox instance = new ComboBox(name, true, addEmptyChoice);
+  static ComboBox getInstance(final String name) {
+    ComboBox instance = new ComboBox(name, true, false, false);
     instance.createPanel();
     return instance;
   }
 
   static ComboBox getUnlabeledInstance(final String name) {
-    ComboBox instance = new ComboBox(name, false, false);
+    ComboBox instance = new ComboBox(name, false, false, false);
     instance.createPanel();
     return instance;
   }
 
-  static ComboBox getUnlabeledInstance(JLabel label) {
-    ComboBox instance = new ComboBox(label.getText(), false, false);
+  static ComboBox getEditableInstance(final String name) {
+    ComboBox instance = new ComboBox(name, true, true, false);
+    instance.createPanel();
+    return instance;
+  }
+
+  static ComboBox getEmptyChoiceInstance(final String name) {
+    ComboBox instance = new ComboBox(name, true, false, true);
     instance.createPanel();
     return instance;
   }
@@ -113,11 +127,67 @@ final class ComboBox {
     comboBox.addFocusListener(listener);
   }
 
+  /**
+   * Adds a placeholder item at the beginning of the combobox.  Can be called at any time.
+   * This function has no effect if textEntryPolicy or emptyChoice are on.
+   * Calling it more then once replaces the labels.  Calling it with two null labels turns
+   * off placeholder, or has no effect if placeholder is already off.
+   * @param emptyLabel
+   * @param noSelectionLabel
+   */
+  void setPlaceholder(final String emptyLabel, final String noSelectionLabel) {
+    if (textEntryPolicy || emptyChoice) {
+      // these take presidence
+      return;
+    }
+    this.emptyLabel = emptyLabel;
+    this.noSelectionLabel = noSelectionLabel;
+    boolean noLabel = emptyLabel == null && noSelectionLabel == null;
+    if (!placeholder && noLabel)
+      // nothing to do
+      return;
+    // Check empty before changing placeholder boolean.
+    boolean empty = isEmpty();
+    if (empty) {
+      // Empty, but may contain an out-of-date placeholder
+      comboBox.removeAllItems();
+    }
+    if (placeholder && noLabel) {
+      // turn off placeholder
+      placeholder = false;
+    }
+    else {
+      placeholder = true;
+    }
+    if (placeholder && empty) {
+      comboBox.addItem(emptyLabel);
+    }
+    if (!empty) {
+      // Temporarily store existing items so a placeholder can be added, changed, or
+      // removed.
+      int count = comboBox.getItemCount();
+      Object[] items = new Object[count];
+      for (int i = 0; i < count; i++) {
+        items[i] = comboBox.getItemAt(i);
+      }
+      comboBox.removeAllItems();
+      if (placeholder) {
+        comboBox.addItem(noSelectionLabel);
+      }
+      for (int i = 0; i < items.length; i++) {
+        comboBox.addItem(items[i]);
+      }
+    }
+  }
+
   void addItem(final Object input) {
-    if (addEmptyChoice && comboBox.getItemCount() == 0) {
-      comboBox.addItem(null);
+    if (placeholder && isEmpty()) {
+      // Update placeholder
+      comboBox.removeAllItems();
+      comboBox.addItem(noSelectionLabel);
     }
     comboBox.addItem(input);
+    updateDisplay();
   }
 
   void setFieldHighlight() {
@@ -138,13 +208,13 @@ final class ComboBox {
   }
 
   /**
-   * Returns the selected index.  If addEmptyChoice is on, then the index is adjusted so
-   * that it starts from zero.  If the empty choice was selected it returns -1.
+   * Returns the selected index.  If emptyChoice or placeholder is on, then the index is
+   * adjusted so that it starts from zero.  If the placeholder was selected it returns -1.
    * @return
    */
   int getSelectedIndex() {
     int index = comboBox.getSelectedIndex();
-    if (addEmptyChoice && index > -1) {
+    if ((emptyChoice || placeholder) && index > -1) {
       return index - 1;
     }
     return index;
@@ -156,51 +226,61 @@ final class ComboBox {
 
   void removeAllItems() {
     comboBox.removeAllItems();
-  }
-
-  boolean isEnabled() {
-    return comboBox.isEnabled();
-  }
-
-  void setEnabled(final boolean enabled) {
-    if (label != null) {
-      label.setEnabled(enabled);
+    if (emptyChoice) {
+      comboBox.addItem(null);
     }
-    if (enabled && !enabledPolicy) {
-      return;
+    else if (placeholder) {
+      comboBox.addItem(emptyLabel);
     }
-    comboBox.setEnabled(enabled);
-  }
-
-  void setComboBoxEnabled(final boolean enabled) {
-    if (enabled && !enabledPolicy) {
-      return;
-    }
-    comboBox.setEnabled(enabled);
-  }
-
-  void setEditable(final boolean editable) {
-    if (!textEntryPolicy) {
-      if (editable && !enabledPolicy) {
-        return;
-      }
-      comboBox.setEnabled(editable);
-    }
-    else {
-      comboBox.setEditable(editable);
-    }
+    updateDisplay();
   }
 
   /**
-   * Sets the text entry policy.  Text entry policy default is false.  This function calls
-   * the combobox setEditable function.
-   * @param input
+   * Set combo box display based on the settings and what is in the pulldown list.
+   * Enabled:
+   * - should not be enabled if the enabled policy is false.
+   * - should not be enabled if it is empty - unless the text entry policy is true.
+   * - When the text entry policy is false, makeing the field editable/ineditable is done by
+   *   enabling/disabling it.  So in this case substitute (enabled && editable) for enabled.
+   * Editable:
+   * - Set to editable when editable, and the text entry policy is true.
    */
-  void setTextEntryPolicy(final boolean input) {
-    textEntryPolicy = input;
-    // Combobox text field is normally not editable, so this function should always change
-    //editing.
-    comboBox.setEditable(input);
+  private void updateDisplay() {
+    if (!enabledPolicy || (isEmpty() && !textEntryPolicy)) {
+      comboBox.setEnabled(false);
+    }
+    else if (!textEntryPolicy) {
+      comboBox.setEnabled(enabled && editable);
+    }
+    else {
+      comboBox.setEnabled(enabled);
+    }
+    comboBox.setEditable(textEntryPolicy && editable);
+  }
+
+  /**
+   * Takes the placeholder into account.
+   * @return
+   */
+  boolean isEmpty() {
+    return comboBox.getItemCount() <= ((emptyChoice || placeholder) ? 1 : 0);
+  }
+
+  boolean isEnabled() {
+    return enabled;
+  }
+
+  void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    if (label != null) {
+      label.setEnabled(enabled);
+    }
+    updateDisplay();
+  }
+
+  void setEditable(final boolean editable) {
+    this.editable = editable;
+    updateDisplay();
   }
 
   /**
@@ -210,9 +290,7 @@ final class ComboBox {
    */
   void setEnabledPolicy(final boolean input) {
     enabledPolicy = input;
-    if (!input) {
-      comboBox.setEnabled(false);
-    }
+    updateDisplay();
   }
 
   String getLabel() {
@@ -261,15 +339,28 @@ final class ComboBox {
   }
 
   /**
-   * Selects an item.  If addEmptyChoice is on, it adjusts for it, so that a zero index
+   * Selects an item.  If emptyChoice or placeholder is on, it adjusts for it, so that a zero index
    * refers to first non-empty choice.
    * @param index
    */
   void setSelectedIndex(int index) {
-    if (addEmptyChoice) {
+    if (emptyChoice || placeholder) {
       index++;
     }
     comboBox.setSelectedIndex(index);
+  }
+
+  /**
+   * Turns off selection unless emptyChoice or placeholder are set.  If so sets to either the
+   * empty choice or the placeholder.
+   */
+  void unselect() {
+    if (emptyChoice || placeholder) {
+      comboBox.setSelectedIndex(0);
+    }
+    else {
+      comboBox.setSelectedItem(null);
+    }
   }
 
   void setToolTipText(final String tooltip) {
