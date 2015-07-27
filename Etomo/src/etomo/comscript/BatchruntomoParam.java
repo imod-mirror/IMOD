@@ -14,6 +14,7 @@ import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
@@ -49,6 +50,7 @@ public class BatchruntomoParam implements CommandParam, Command {
   private static final String CPU_MACHINE_LIST_DIVIDER = "#";
   private static final String LIST_DIVIDER = ":";
   private static final ProcessName PROCESS_NAME = ProcessName.BATCHRUNTOMO;
+  public static final String USE_EXISTING_ALIGNMENT_TAG = "UseExistingAlignment";
 
   private final EtomoNumber validationType = new EtomoNumber();
 
@@ -61,6 +63,8 @@ public class BatchruntomoParam implements CommandParam, Command {
   private final ScriptParameter startingStep = new ScriptParameter(
     EtomoNumber.Type.DOUBLE, STARTING_STEP_TAG);
   private final StringParameter smtpServer = new StringParameter("SMTPserver");
+  private final EtomoBoolean2 useExistingAlignment = new EtomoBoolean2(
+    USE_EXISTING_ALIGNMENT_TAG);
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -128,6 +132,7 @@ public class BatchruntomoParam implements CommandParam, Command {
       requiredFilesValidationSet.clear();
     }
     smtpServer.reset();
+    useExistingAlignment.reset();
     // parse
     // The interleaved parameters are all based on the .ebt file:
     // rootName: based on .ebt file properties
@@ -142,6 +147,8 @@ public class BatchruntomoParam implements CommandParam, Command {
     emailAddress.parse(scriptCommand);
     endingStep.parse(scriptCommand);
     startingStep.parse(scriptCommand);
+    // smtpServer is not loaded
+    useExistingAlignment.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -169,6 +176,7 @@ public class BatchruntomoParam implements CommandParam, Command {
     startingStep.updateComScript(scriptCommand);
     smtpServer.updateComScript(scriptCommand);
     smtpServer.updateComScript(scriptCommand);
+    useExistingAlignment.updateComScript(scriptCommand);
     String remoteDirectory = null;
     try {
       remoteDirectory =
@@ -362,6 +370,10 @@ public class BatchruntomoParam implements CommandParam, Command {
   public void setStartingStep(final ConstEtomoNumber input) {
     startingStep.set(input);
   }
+  
+  public void setUseExistingAlignment(final boolean input) {
+    useExistingAlignment.set(input);
+  }
 
   public void resetStartingStep() {
     startingStep.reset();
@@ -496,6 +508,10 @@ public class BatchruntomoParam implements CommandParam, Command {
 
   public boolean isGpuMachineListNull() {
     return gpuMachineList == null || gpuMachineList.length() == 0;
+  }
+  
+  public boolean isUseExistingAlignment() {
+    return useExistingAlignment.is();
   }
 
   public boolean gpuMachineListEquals(final String input) {
