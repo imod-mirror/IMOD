@@ -1140,12 +1140,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     // LstFlagAllTom
     pnlLstFlagAllTom.setLayout(new BoxLayout(pnlLstFlagAllTom, BoxLayout.X_AXIS));
     pnlLstFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLstFlagAllTom.add(cbLstFlagAllTom);
+    pnlLstFlagAllTom.add(cbLstFlagAllTom.getComponent());
     pnlLstFlagAllTom.add(Box.createHorizontalGlue());
     // RefFlagAllTom
     pnlRefFlagAllTom.setLayout(new BoxLayout(pnlRefFlagAllTom, BoxLayout.X_AXIS));
     pnlRefFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlRefFlagAllTom.add(cbRefFlagAllTom);
+    pnlRefFlagAllTom.add(cbRefFlagAllTom.getComponent());
     pnlRefFlagAllTom.add(Box.createHorizontalGlue());
     // optional
     pnlOptional.setLayout(new BoxLayout(pnlOptional, BoxLayout.X_AXIS));
@@ -1157,12 +1157,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptional.add(Box.createRigidArea(FixedDim.x15_y0));
     // optional left
     pnlOptionalLeft.setLayout(new BoxLayout(pnlOptionalLeft, BoxLayout.Y_AXIS));
-    pnlOptionalLeft.add(cbflgAlignAverages);
-    pnlOptionalLeft.add(cbFlgAbsValue);
-    pnlOptionalLeft.add(cbAlignedBaseName);
-    pnlOptionalLeft.add(cbFlgStrictSearchLimits);
-    pnlOptionalLeft.add(cbFlgNoReferenceRefinement);
-    pnlOptionalLeft.add(cbFlgRandomize);
+    pnlOptionalLeft.add(cbflgAlignAverages.getComponent());
+    pnlOptionalLeft.add(cbFlgAbsValue.getComponent());
+    pnlOptionalLeft.add(cbAlignedBaseName.getComponent());
+    pnlOptionalLeft.add(cbFlgStrictSearchLimits.getComponent());
+    pnlOptionalLeft.add(cbFlgNoReferenceRefinement.getComponent());
+    pnlOptionalLeft.add(cbFlgRandomize.getComponent());
     // optional right
     pnlOptionalRight.setLayout(new GridLayout(5, 1, 0, 5));
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
