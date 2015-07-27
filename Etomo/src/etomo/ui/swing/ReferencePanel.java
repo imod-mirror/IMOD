@@ -337,7 +337,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     ltfVolume.setEnabled(rtfParticle.isSelected());
     sVolume.setMax(parent.getVolumeTableSize());
     ftfFile.setEnabled(rbFile.isSelected());
-    cmbMultiparticle.setComboBoxEnabled(rbMultiparticle.isSelected());
+    cmbMultiparticle.setEnabled(rbMultiparticle.isSelected());
     lMultiparticle.setEnabled(rbMultiparticle.isSelected());
     msgFlgVolNamesAreTemplates(parent.isFlgVolNamesAreTemplates());
   }
