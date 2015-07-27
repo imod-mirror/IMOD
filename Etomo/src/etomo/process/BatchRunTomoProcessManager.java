@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.BatchRunTomoManager;
 import etomo.comscript.BatchruntomoParam;
 import etomo.type.AxisID;
+import etomo.type.CurrentArrayList;
 import etomo.type.FileType;
 
 /**
@@ -25,20 +26,17 @@ public final class BatchRunTomoProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run the appropriate mtffilter com file for the given axis ID
-   * 
-   * @param axisID
-   *          the AxisID to run newst on.
+   * @param param
+   * @param runKeys - array of keys to the rows involved with this run
    */
-  public String batchruntomo(final BatchruntomoParam param) throws SystemProcessException {
+  public String batchruntomo(final BatchruntomoParam param,
+    final CurrentArrayList<String> runKeys) throws SystemProcessException {
     if (param == null) {
       return null;
     }
     String command = FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, AXID_ID);
     BatchRunTomoProcessMonitor monitor =
-      new BatchRunTomoProcessMonitor(manager, AXID_ID, true, param.getNumRootNames(),
-        param.isEndingStepSet());
-    manager.msgStatusChangerAvailable(monitor);
+      new BatchRunTomoProcessMonitor(manager, AXID_ID, true, runKeys);
     // Start the com script in the background
     ComScriptProcess comScriptProcess =
       startOutfileComScript(command, monitor, AXID_ID, param,
