@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
@@ -28,14 +30,23 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.BatchRunTomoCommand;
+import etomo.type.BatchRunTomoDatasetStatus;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
 import etomo.type.BatchRunTomoStatus;
+import etomo.type.EndingStep;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.Status;
+import etomo.type.StatusChangeBooleanEvent;
 import etomo.type.StatusChangeEvent;
+import etomo.type.StatusChangeListener;
+import etomo.type.StatusChangeTaggedEvent;
+import etomo.type.StatusChanger;
+import etomo.type.Step;
+import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldDisplayer;
@@ -52,7 +63,8 @@ import etomo.util.Utilities;
  *
  * @version $Id$
  */
-final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
+final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
+  ActionListener, StatusChangeListener, StatusChanger {
   private static final String SURFACES_TO_ANALYZE_TWO = "2";
   private static final String SURFACES_TO_ANALYZE_ONE = "1";
   private static final URL IMOD_ICON_URL = ClassLoader
@@ -76,7 +88,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final FieldCell fcbskip = FieldCell.getEditableInstance();
   private final CheckBoxCell cbcSurfacesToAnalyze = new CheckBoxCell();
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
-  private final FieldCell fcStatus = FieldCell.getIneditableInstance();
+  private final FieldCell fcDatasetStatus = FieldCell.getIneditableInstance();
   private final FieldCell fcEndingStep = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
   private final MinibuttonCell mbcEtomo = MinibuttonCell.getInstance(new ImageIcon(
@@ -87,7 +99,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     new ImageIcon(IMOD_ICON_URL), this);
   private final HeaderCell hcNumber = new HeaderCell();
   private final ButtonCell bcEditDataset = ButtonCell.getToggleInstance("Open");
-  private final ActionListener listener = new RowListener(this);
+  private final boolean[] firstSteps = new boolean[BatchRunTomoStepPanel.STEP_PAIRS];
+
+  private ArrayList<StatusChangeListener> listeners = null;
 
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -96,24 +110,27 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final FieldCell fcStack;
   private final BatchRunTomoManager manager;
   private final String stackID;
+  private final TableReference tableReference;
 
   private int imodIndexA = -1;
   private int imodIndexB = -1;
   private BatchRunTomoDatasetDialog datasetDialog = null;
   private BatchRunTomoRowMetaData metaData = null;
-  private BatchRunTomoStatus status = null;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
   private boolean debug = false;
+  private String origStack = null;
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
     final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
     final boolean dual, final BatchRunTomoManager manager, final String stackID,
-    final PreferredTableSize preferredTableSize) {
+    final PreferredTableSize preferredTableSize, final TableReference tableReference) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
     this.manager = manager;
     this.stackID = stackID;
+    this.tableReference = tableReference;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableIneditableInstance(null);
@@ -148,6 +165,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         fcEditDataset);
     }
     // init
+    fcEndingStep.setHorizontalAlignment(JTextField.CENTER);
     setDefaults();
     copy(prevRow);
     setTooltips(prevRow);
@@ -163,6 +181,10 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcSurfacesToAnalyze.setDirectiveDef(DirectiveDef.SURFACES_TO_ANALYZE);
     fcSkip.setDirectiveDef(DirectiveDef.SKIP);
     fcbskip.setDirectiveDef(DirectiveDef.SKIP);
+    mbcEtomo.setEnabled(false);
+    for (int i = 0; i < firstSteps.length; i++) {
+      firstSteps[i] = false;
+    }
     updateDisplay();
     statusChanged(status);
   }
@@ -171,17 +193,17 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
     final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
     final boolean dual, final BatchRunTomoManager manager, final String stackID,
-    final PreferredTableSize datasetWidth) {
+    final PreferredTableSize datasetWidth, final TableReference tableReference) {
     BatchRunTomoRow instance =
       new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
-        overridePrevRow, dual, manager, stackID, datasetWidth);
+        overridePrevRow, dual, manager, stackID, datasetWidth, tableReference);
     instance.addListeners();
     return instance;
   }
 
   static BatchRunTomoRow getDefaultsInstance() {
     return new BatchRunTomoRow(null, null, null, null, -1, null, null, false, false,
-      null, null, null);
+      null, null, null, null);
   }
 
   void copy(final BatchRunTomoRow prevRow) {
@@ -197,6 +219,28 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     return cbcDual.isSelected();
   }
 
+  boolean isRun() {
+    return cbcRun.isEnabled() && cbcRun.isSelected();
+  }
+
+  EndingStep getEndingStep() {
+    if (fcEndingStep.isEmpty()) {
+      return null;
+    }
+    return EndingStep.getInstanceFromText(fcEndingStep.getText());
+  }
+
+  BatchRunTomoDatasetStatus getDatasetStatus() {
+    if (fcDatasetStatus.isEmpty()) {
+      return null;
+    }
+    return BatchRunTomoDatasetStatus.getInstance(fcDatasetStatus.getText());
+  }
+
+  String getStackID() {
+    return stackID;
+  }
+
   private void addListeners() {
     // give each listened to field an unique action command
     mbc3dmodA.setActionCommand(mbc3dmodA.toString());
@@ -205,13 +249,15 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     mbcEtomo.setActionCommand(mbcEtomo.toString());
     cbcBoundaryModel.setActionCommand(cbcBoundaryModel.toString());
     bcEditDataset.setActionCommand(bcEditDataset.toString());
+    cbcRun.setActionCommand(cbcRun.toString());
     // set listeners
-    mbc3dmodA.addActionListener(listener);
-    mbc3dmodB.addActionListener(listener);
-    cbcDual.addActionListener(listener);
-    mbcEtomo.addActionListener(listener);
-    cbcBoundaryModel.addActionListener(listener);
-    bcEditDataset.addActionListener(listener);
+    mbc3dmodA.addActionListener(this);
+    mbc3dmodB.addActionListener(this);
+    cbcDual.addActionListener(this);
+    mbcEtomo.addActionListener(this);
+    cbcBoundaryModel.addActionListener(this);
+    bcEditDataset.addActionListener(this);
+    cbcRun.addActionListener(this);
   }
 
   /**
@@ -285,6 +331,10 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
+  public void actionPerformed(final ActionEvent event) {
+    action(event.getActionCommand(), null, null);
+  }
+
   public void action(final String actionCommand,
     final Deferred3dmodButton deferred3dmodButton,
     final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -335,6 +385,12 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           bcEditDataset.setSelected(true);
         }
       }
+      else if (actionCommand.equals(cbcRun.getActionCommand()) && !fcEndingStep.isEmpty()) {
+        EndingStep endingStep = EndingStep.getInstanceFromText(fcEndingStep.getValue());
+        if (endingStep != null) {
+          sendStatusChange(new StatusChangeBooleanEvent(cbcRun.isSelected(), endingStep));
+        }
+      }
     }
   }
 
@@ -349,7 +405,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     fcbskip.remove();
     cbcSurfacesToAnalyze.remove();
     fcEditDataset.remove();
-    fcStatus.remove();
+    fcDatasetStatus.remove();
     fcEndingStep.remove();
     cbcRun.remove();
     mbcEtomo.remove();
@@ -384,41 +440,143 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
    * Handles global status changes.
    * @param status
    */
-  void statusChanged(final Status status) {
+  public void statusChanged(final Status status) {
+    if (status == null || !(status instanceof BatchRunTomoStatus)) {
+      return;
+    }
     this.status = (BatchRunTomoStatus) status;
-    boolean open = status == null || status == BatchRunTomoStatus.OPEN;
+    boolean open = status == BatchRunTomoStatus.OPEN;
+    cbcDual.setEditable(open);
     cbcBoundaryModel.setEditable(open);
     cbcMontage.setEditable(open);
     fcSkip.setEditable(open);
     fcbskip.setEditable(open);
     cbcSurfacesToAnalyze.setEditable(open);
-    mbcEtomo.setEditable(open);
-    mbc3dmodA.setEditable(open);
-    mbc3dmodB.setEditable(open);
     bcEditDataset.setEditable(open);
-    if (open) {
-      cbcRun.setEditable(true);
+    if (status == BatchRunTomoStatus.KILLED_PAUSED) {
+      // Can only change the datasets in the current run.
+      cbcRun.setEditable(cbcRun.isSelected());
     }
     else {
-      cbcRun.setEditable(false);
+      cbcRun.setEditable(status != BatchRunTomoStatus.RUNNING);
     }
+    // After kill or pause, rows can be removed from resuming the brt run. A row that is
+    // Done or Stopped is already finished, and should be removed from the brt comfile.
+    // With Done, the Run checkbox is automatically unchecked. With Stopped the Run
+    // checkbox needs to be disabled.
+    cbcRun.setEnabled(status != BatchRunTomoStatus.KILLED_PAUSED || !cbcRun.isSelected()
+      || !BatchRunTomoDatasetStatus.STOPPED.equals(fcDatasetStatus.getText()));
+    // Etomo and 3dmod buttons should not be used while the dataset is being run up, or
+    // when the dataset is scheduled to be run up. But there is no need to block buttons
+    // for datasets that are not part of the run.
+    boolean available = status != BatchRunTomoStatus.RUNNING || !cbcRun.isSelected();
+    mbcEtomo.setEditable(available);
+    mbc3dmodA.setEditable(available);
+    mbc3dmodB.setEditable(available);
     if (datasetDialog != null) {
-      datasetDialog.statusChanged(status);
+      datasetDialog.statusChanged(this.status);
     }
   }
 
   /**
-   * Handles dataset-level status changes.
+   * Handles dataset-level status changes.  Returns the RunStep if it was changed.  The
+   * RunStep is the BatchRunTomoStep of a row with a checked Run checkbox.
    * @param statusChangeEvent
+   * @return the status in event if it was assigned to fcEndingStep and the run checkbox is selected
    */
-  void statusChanged(final StatusChangeEvent statusChangeEvent) {
-    Status datasetStatus = null;
-    if (statusChangeEvent == null) {
+  public void statusChanged(final StatusChangeEvent event) {
+    if (event == null || !(event instanceof StatusChangeTaggedEvent)) {
       return;
     }
-    datasetStatus = statusChangeEvent.getStatus();
-    if (datasetStatus != null) {
-      fcStatus.setValue(datasetStatus.toString());
+    Status status = event.getStatus();
+    if (status == null) {
+      return;
+    }
+    // Only respond so an event directed towards this row instance.
+    StatusChangeTaggedEvent taggedEvent = (StatusChangeTaggedEvent) event;
+    if (!taggedEvent.equals(stackID)) {
+      return;
+    }
+    if (status instanceof BatchRunTomoDatasetStatus) {
+      BatchRunTomoDatasetStatus datasetStatus = (BatchRunTomoDatasetStatus) status;
+      fcDatasetStatus.setError(false);
+      fcDatasetStatus.setRunHighlight(false);
+      if (!datasetStatus.isActive()) {
+        // Open up the etomo/3dmod buttons as soon as batchruntomo is done with the
+        // dataset.
+        mbcEtomo.setEditable(true);
+        mbc3dmodA.setEditable(true);
+        mbc3dmodB.setEditable(true);
+      }
+      else if (datasetStatus == BatchRunTomoDatasetStatus.FAILING) {
+        fcDatasetStatus.setError(true);
+      }
+      else {
+        fcDatasetStatus.setRunHighlight(true);
+      }
+      // Monitor has found information on the state of the current dataset being run up
+      fcDatasetStatus.setValue(datasetStatus.getText());
+
+      if (status == BatchRunTomoDatasetStatus.DONE
+        || status == BatchRunTomoDatasetStatus.RUNNING) {
+        // Remove ending step.
+        fcEndingStep.setValue();
+        if (status == BatchRunTomoDatasetStatus.DONE) {
+          // Keep user from mistakenly rerunning a finished dataset
+          cbcRun.setSelected(false);
+        }
+      }
+    }
+    else if (status instanceof BatchRunTomoCommand) {
+      BatchRunTomoCommand command = (BatchRunTomoCommand) status;
+      String currentFile = fcStack.getExpandedValue();
+      if (origStack == null) {
+        origStack = currentFile;
+      }
+      String newFile = taggedEvent.getString();
+      if (command == BatchRunTomoCommand.RENAMED) {
+        // Switching only the file name.
+        newFile =
+          new File(new File(currentFile).getParentFile(), newFile).getAbsolutePath();
+      }
+      tableReference.setUniqueString(stackID, newFile);
+      fcStack.setValue(newFile);
+    }
+    else if (status instanceof EndingStep) {
+      EndingStep endingStep = (EndingStep) status;
+      // A step isn't completed until both axes have finished it. Ignore the first
+      // axis
+      // in a dual axis tomogram.
+      if (cbcDual.isSelected() && !firstSteps[endingStep.getIndex()]) {
+        // Need to see the step for both axes before it can appear in the field
+        firstSteps[endingStep.getIndex()] = true;
+        return;
+      }
+      fcEndingStep.setValue(endingStep.getText());
+      return;
+    }
+    else if ((status instanceof Step) && status == Step.SETUP) {
+      // The .edf file has been created.
+      mbcEtomo.setEnabled(true);
+    }
+  }
+
+  public void addStatusChangeListener(final StatusChangeListener listener) {
+    if (listener == null) {
+      return;
+    }
+    if (listeners == null) {
+      listeners = new ArrayList<StatusChangeListener>();
+    }
+    listeners.add(listener);
+  }
+
+  private void sendStatusChange(final StatusChangeEvent statusChangeEvent) {
+    if (listeners != null) {
+      int len = listeners.size();
+      for (int i = 0; i < len; i++) {
+        listeners.get(i).statusChanged(statusChangeEvent);
+      }
     }
   }
 
@@ -450,7 +608,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         fcEditDataset.add(panel, layout, constraints);
       }
       else {
-        fcStatus.add(panel, layout, constraints);
+        fcDatasetStatus.add(panel, layout, constraints);
         fcEndingStep.add(panel, layout, constraints);
         cbcRun.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -472,7 +630,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     fcbskip.setHighlight(highlight);
     cbcSurfacesToAnalyze.setHighlight(highlight);
     fcEditDataset.setHighlight(highlight);
-    fcStatus.setHighlight(highlight);
+    fcDatasetStatus.setHighlight(highlight);
     fcEndingStep.setHighlight(highlight);
     cbcRun.setHighlight(highlight);
   }
@@ -502,6 +660,18 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     updateDisplay();
   }
 
+  /**
+   * Removes entries from the param where the Run checkbox is unchecked or disabled.
+   * @return
+   */
+  void removeParameters(final BatchruntomoParam param) {
+    if (!cbcRun.isSelected() || !cbcRun.isEnabled()) {
+      // TODO
+      // param.remove(fcStack.getText());
+      // param.remove(origStack);
+    }
+  }
+
   public void getParameters(final BatchRunTomoMetaData metaData) {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
     this.metaData = rowMetaData;
@@ -517,7 +687,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   public void getParameters(final BatchruntomoParam param,
     final boolean deliverToDirectory, final StringBuilder errMsg) {
-    if (!cbcRun.isSelected()) {
+    if (!cbcRun.isSelected() || !cbcRun.isEnabled()) {
       return;
     }
     File stack = new File(fcStack.getExpandedValue());
@@ -786,24 +956,12 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       fcEndingStep.setTooltip(prevRow.fcEndingStep);
     }
     fcEditDataset.setToolTipText(SharedStrings.EDIT_DATASET_TOOLTIP);
-    fcStatus.setToolTipText("Completion status of the dataset");
+    fcDatasetStatus.setToolTipText("Completion status of the dataset");
     cbcRun.setToolTipText("This dataset will be included in the batchruntomo run");
     mbcEtomo.setToolTipText("Opens a tab in eTomo contain this dataset");
     mbc3dmodA.setToolTipText(SharedStrings.IMOD_A_TOOLTIP);
     mbc3dmodB.setToolTipText(SharedStrings.IMOD_B_TOOLTIP);
     bcEditDataset.setToolTipText("Use dataset-specific values.");
     fcStack.setToolTipText(SharedStrings.STACK_TOOLTIP);
-  }
-
-  private static final class RowListener implements ActionListener {
-    private final BatchRunTomoRow row;
-
-    private RowListener(final BatchRunTomoRow row) {
-      this.row = row;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      row.action(event.getActionCommand(), null, null);
-    }
   }
 }
