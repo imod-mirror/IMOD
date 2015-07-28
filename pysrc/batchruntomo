@@ -61,7 +61,7 @@ def abortSet(errString):
    global summaryMessage, finalRetVal
    if suppressAbort:
       return
-   abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS AND SET: ']
+   abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS: ']
    prnLog(abortStr[axisNum] + errString)
    prnLog('', flush = True)
    if dualAxis and axisNum:
@@ -73,7 +73,8 @@ def abortSet(errString):
    message += ' dataset ' + setName + ' after error:\n' + errString + '\n'
    sendEmail('Batchruntomo error on ' + setName, message)
    summaryMessage += message
-   finalRetVal += 1
+   if not axisNum:
+      finalRetVal += 1
    if exitOnError:
       sys.exit(1)
 
@@ -233,7 +234,7 @@ def checkRenameStack(stack):
          return 1
       try:
          os.rename(stack + altExtension, stack + 'st')
-         prnLog('Renamed stack from ' + stack + altExtension + ' to ' + stack + 'st')
+         prnLog('Renamed stack from ' + stack + altExtension + ' to: ' + stack + 'st')
       except OSError:
          abortSet('Error renaming stack from ' + stack + altExtension + ' to ' + stack +\
                      'st')
@@ -261,6 +262,10 @@ def deliverStack(axis):
    destRoot = os.path.join(datasetDir, stackRoot + '.')
    dest = destRoot + 'st'
 
+   # Etomo may change the current dir after delivery, so if they match, skip
+   if deliverFromDir == datasetDir:
+      return 0
+
    # Look for either extension and change it during the move
    renaming = False
    skipIt = False
@@ -282,8 +287,9 @@ def deliverStack(axis):
       return 1
    try:
       os.rename(source, dest)
+      prnLog('Delivered stack ' + source + ' to: ' + dest)
       if renaming:
-         prnLog('Renamed stack from ' + stackRoot + '.' + altExtension + ' to ' + \
+         prnLog('Renamed stack from ' + stackRoot + '.' + altExtension + ' to: ' + \
                    stackRoot + '.st')
    except OSError:
       abortSet('Error moving/renaming stack file from ' + source + ' to ' + dest)
@@ -1086,6 +1092,14 @@ def runClipStats(command, stackSuffix, descrip):
 # Test whether a step should be run
 def needStep(step):
    return step >= startingStep - 0.005 and step <= endingStep + 0.005
+
+
+# Report a step was reached if it is in the range to run and in the list to report
+def reportReachedStep(step):
+   reachPoints = (0, 6, 7, detect3DstepNum)
+   if step in reachPoints and needStep(step):
+      prnstr('Reached step ' + str(step))
+      prnstr('', flush = True)
 
 
 # SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
@@ -2284,10 +2298,14 @@ def detectGoldIn3D():
       abortSet('Error converting eraseGold entry to integer')
       return 1
 
+   # Get the binning or use the binning that etomo would assign, bead size / 5 rounded
+   # to an integer with a minimum binned size of 4
    if eraseGold > 1 and needStep(detect3DstepNum):
       binning = lookupDirective(runtimePrefix + 'GoldErasing', 'binning', 0, INT_VALUE)
       if not binning:
-         binning = aliBinning
+         binning = int(round(fidSizePix / fb3dOptimalBinnedSize))
+         if binning > 1 and fidSizePix / binning < fb3dMinBinnedSize:
+            binning -= 1
 
       # Get the aligned stack if binning differs
       if binning != aliBinning:
@@ -2744,11 +2762,11 @@ def setupCombine():
             if recExists and doBoth:
                if useFileAsReplacement(recName, bpName, False, True):
                   return 1
-               prnLog('Renamed back-projection reconstruction ' + recName + ' to ' + \
+               prnLog('Renamed back-projection reconstruction ' + recName + ' to: ' + \
                          bpName)
             if useFileAsReplacement(SIRTname, recName, False, True):
                return 1
-            prnLog('Renamed SIRT reconstruction ' + SIRTname + ' to ' + recName)
+            prnLog('Renamed SIRT reconstruction ' + SIRTname + ' to: ' + recName)
 
       recRoot = setName + 'b'
 
@@ -3437,10 +3455,12 @@ def runOneAxis():
             return 1
 
    # Positioning
+   reportReachedStep(6)
    if needStep(7) and positionTomogram():
       return 1
    
    # Make aligned stack
+   reportReachedStep(7)
    if makeAlignedStack(0):
       return 1
          
@@ -3457,6 +3477,7 @@ def runOneAxis():
       return 1
    
    # Optionally CTF correct the stack
+   reportReachedStep(detect3DstepNum)
    if needStep(ctfCorrStepNum) and correctCTF and CTFCorrectAlignedStack():
       return 1
 
@@ -3487,20 +3508,20 @@ def runOneAxis():
 # Or run the steps for combine, return on error or when done
 def runCombine():
    if needStep(15) and setupCombine():
-      return
+      return 1
 
    if needStep(16) and initialCombineMatch():
-      return
+      return 1
 
    if alignAndCombineAxes():
-      return
+      return 1
 
    if needStep(trimStepNum) and trimVolume():
-      return
+      return 1
 
    if needStep(nadStepNum):
-      runNAD()
-
+      return runNAD()
+   return 0
    
 #### MAIN PROGRAM  ####
 #
@@ -3579,6 +3600,8 @@ solvematchMinEachSide = 3
 solvematchMinSideRatio = 0.2
 useFallbackRatio = 0.4
 useVolMatch = -1
+fb3dOptimalBinnedSize = 5.
+fb3dMinBinnedSize = 4.
 
 logFile = None
 finalRetVal = 0
@@ -3810,7 +3833,7 @@ for dfileInd in range(numSets):
    if readDirectiveOrTemplate(dfile, BatInd):
       continue
 
-   prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
+   prnstr(fmtstr('Beginning to process {} file # {} : {}', fileType, dfileInd + 1, dfile))
    startTime = time.time()
 
    # If validating a single template file, do not process it, just run the checks
@@ -3830,6 +3853,10 @@ for dfileInd in range(numSets):
          prnstr('Directives all seem OK in that file')
          continue
 
+   prnstr('Starting data set ' + setName + '   at ' + \
+             datetime.datetime.now().strftime('%H:%M:%S'))
+   prnstr('', flush = True)
+      
    # Deliver stacks to dataset directory, from the source current dir or the one for this
    # data set
    if deliverDir:
@@ -3898,10 +3925,6 @@ for dfileInd in range(numSets):
          reportImodError('Error getting pixel size from ' + stack)
          continue
 
-   prnLog('Starting data set ' + setName + '   at ' + \
-             datetime.datetime.now().strftime('%H:%M:%S'))
-   prnLog('', flush = True)
-
    if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
 
       # Run etomo for setup and try to report errors
@@ -3960,8 +3983,10 @@ for dfileInd in range(numSets):
          reportImodError('etomo setup failed, cannot proceed with this data set')
          continue
 
+   reportReachedStep(0)
    fidSizePix = fidSizeNm / pixelSize
    haveAaxisAFSbound = False
+   axisFailed = False
    
    # Loop on the axes.  axisInd is 0 or 1, axisNum is 0 for single, 1/2 for a/b
    for axisInd in range(numAxes):
@@ -3980,6 +4005,7 @@ for dfileInd in range(numSets):
          if runOneProcess(setupBname, message =
                           'Doing setup tasks now that second axis is present'):
             startingStep = 0
+            axisFailed = True
             continue
             
       dataName = setName + axisLet
@@ -3988,6 +4014,9 @@ for dfileInd in range(numSets):
          startingStep -= 100.
          continue
       if runOneAxis():
+
+         # When an axis fails, mark failure to prevent going on to combine
+         axisFailed = True
          if firstStart:
             startingStep = 0
             skipTiltalign = 0
@@ -4016,10 +4045,12 @@ for dfileInd in range(numSets):
       axisLet = 'a'
       axisInd = 2
       dataName = setName
-      runCombine()
-      (minutes, seconds, frac) = elapsedComponents(startTime);
-      prnLog(fmtstr('Completed dataset {}  in {:02d}:{:02d}.{}', setName, minutes,
-                    seconds, frac))
+      if axisFailed:
+         abortSet('One of the axes failed')
+      elif not runCombine():
+         (minutes, seconds, frac) = elapsedComponents(startTime);
+         prnLog(fmtstr('Completed dataset {}  in {:02d}:{:02d}.{}', setName, minutes,
+                       seconds, frac))
       
    closeLogFile()
    prnLog('', flush = True);
