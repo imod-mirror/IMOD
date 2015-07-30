@@ -410,14 +410,8 @@ public final class ProcessData implements Storable {
   }
 
   void setKeyArray(CurrentArrayList<String> input) {
-    if (keyArray != null) {
-      keyArray.clear();
-    }
-    if (input == null || input.isEmpty()) {
-      return;
-    }
-    if (keyArray != null) {
-      keyArray.addAll(input);
+    if (input == null) {
+      keyArray = null;
     }
     else {
       keyArray = new CurrentArrayList<String>(input);
