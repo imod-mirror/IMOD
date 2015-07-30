@@ -244,8 +244,10 @@ public final class BatchRunTomoManager extends BaseManager {
     // Get the saved comscript
     comScriptManager.loadBatchRunTomo(AXIS_ID);
     BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID, true);
-    // Remove unchecked rows
-    dialog.removeParameters(param);
+    // Add datasets that are still checked
+    if (!dialog.getParameters(param, true, true)) {
+      return;
+    }
     comScriptManager.saveBatchRunTomo(param, AXIS_ID);
     // run batchruntomo
     String threadName = null;
@@ -298,7 +300,7 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       return null;
     }
-    if (!dialog.getParameters(param, doValidation)) {
+    if (!dialog.getParameters(param, doValidation, false)) {
       return null;
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AXIS_ID);
