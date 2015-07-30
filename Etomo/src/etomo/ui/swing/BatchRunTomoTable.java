@@ -27,7 +27,6 @@ import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
-import etomo.type.BatchRunTomoDatasetStatus;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
 import etomo.type.BatchRunTomoStatus;
@@ -365,20 +364,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
   }
 
-  public void setParameters(final BatchRunTomoMetaData metaData) {
+  void setParameters(final BatchRunTomoMetaData metaData) {
     rowList.setParameters(metaData);
   }
 
-  public void getParameters(final BatchRunTomoMetaData metaData) {
+  void getParameters(final BatchRunTomoMetaData metaData) {
     rowList.getParameters(metaData);
   }
 
-  public void removeParameters(final BatchruntomoParam param) {
-    rowList.removeParameters(param);
-  }
-
-  public void getParameters(final BatchruntomoParam param,
-    final boolean deliverToDirectory, final StringBuilder errMsg) {
+  void getParameters(final BatchruntomoParam param, final boolean deliverToDirectory,
+    final StringBuilder errMsg) {
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
@@ -761,12 +756,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
      * @return
      */
     CurrentArrayList<String> createRunKeys() {
-      if (runKeys != null) {
-        runKeys.clear();
-      }
-      else {
-        runKeys = new CurrentArrayList<String>();
-      }
+      runKeys = new CurrentArrayList<String>();
       int len = list.size();
       for (int i = 0; i < len; i++) {
         BatchRunTomoRow row = list.get(i);
@@ -774,65 +764,43 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           runKeys.add(row.getStackID());
         }
       }
-      runKeys.setStateInt(0);
       return runKeys;
     }
 
     /**
-     * Updates the runKeys array to reflect the current state of the table.
+     * Creates an new runKeys array to reflect the current state of the table, while
+     * keeping the completed keys as placeholders.  Used for resuming from a kill or
+     * pause.
      * @return
      */
     CurrentArrayList<String> updateRunKeys() {
-      if (runKeys == null || runKeys.isEmpty()) {
-        // Rows not in the original run cannot be added.
-        return runKeys;
+      if (runKeys == null) {
+        return null;
       }
-      // Array list elements can't truly be removed.
       CurrentArrayList<String> newRunKeys = new CurrentArrayList<String>();
-      int keyIndex = 0;
-      int len = list.size();
-      boolean completedElements = true;
-      int totalSucceeded = 0;
-      // Expecting done or stopped rows to all come before unfinished rows
-      for (int i = 0; i < len; i++) {
-        BatchRunTomoRow row = list.get(i);
-        String stackID = runKeys.get(keyIndex);
-        if (row.equalsStackID(stackID)) {
-          BatchRunTomoDatasetStatus datasetStatus = row.getDatasetStatus();
-          if (datasetStatus == BatchRunTomoDatasetStatus.DONE
-            || datasetStatus == BatchRunTomoDatasetStatus.STOPPED) {
-            // Add already completed rows in as placeholders
-            newRunKeys.add(stackID);
-            totalSucceeded++;
-          }
-          else if (row.isRun()) {
-            // Rows that haven't been completed are included if run-checked.
-            newRunKeys.add(stackID);
-            if (completedElements) {
-              // First uncompleted element - save this index
-              completedElements = true;
-              newRunKeys.setCurrentIndexToLastElement();
+      // Copy the completed keys from the original runKeys.
+      newRunKeys.copyToCurrent(runKeys);
+      int runKeyIndex = runKeys.getIndex() + 1;
+      int runKeysSize = runKeys.size();
+      if (runKeyIndex < runKeysSize) {
+        // Incomplete keys available - try to add them
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+          BatchRunTomoRow row = list.get(i);
+          if (row.equalsStackID(runKeys.get(runKeyIndex))) {
+            if (row.isRun()) {
+              // The row is run-checked so the key can be added.
+              newRunKeys.add(runKeys.get(runKeyIndex));
             }
-          }
-          keyIndex++;
-          if (keyIndex >= runKeys.size()) {
-            break;
+            runKeyIndex++;
+            if (runKeyIndex >= runKeysSize) {
+              break;
+            }
           }
         }
       }
-      newRunKeys.setStateInt(totalSucceeded);
-      return newRunKeys;
-    }
-
-    /**
-     * Removes entries from the param where the Run checkbox is unchecked or disabled.
-     * @return
-     */
-    void removeParameters(final BatchruntomoParam param) {
-      int len = list.size();
-      for (int i = 0; i < len; i++) {
-        list.get(i).removeParameters(param);
-      }
+      runKeys = newRunKeys;
+      return runKeys;
     }
 
     private BatchRunTomoRow getRow(final String stackID) {
@@ -919,10 +887,32 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
 
     public void statusChanged(final Status status) {
-      if ((status instanceof BatchRunTomoStatus) && status != BatchRunTomoStatus.RUNNING) {
-        // Fields have been changed to editable - update earliestRunStep.
-        updateEarliestRunStep();
-        sendStatusChanged();
+      if ((status instanceof BatchRunTomoStatus)) {
+        if (status != BatchRunTomoStatus.RUNNING) {
+          // Fields have been changed to editable - update earliestRunStep.
+          updateEarliestRunStep();
+          sendStatusChanged();
+        }
+        if (status == BatchRunTomoStatus.KILLED_PAUSED && runKeys != null) {
+          // Only incomplete rows can be run via resume. For row found in runKeys, disable
+          // rows with checked run checkboxes.
+          int currentSize = Math.min(runKeys.getIndex() + 1, runKeys.size());
+          System.out.println("F:currentSize:" + currentSize);
+          int runKeysIndex = 0;
+          if (runKeysIndex < currentSize) {
+            int size = list.size();
+            for (int i = 0; i < size; i++) {
+              BatchRunTomoRow row = list.get(i);
+              if (row.equalsStackID(runKeys.get(runKeysIndex)) && row.isRun()) {
+                runKeysIndex++;
+                row.setEnabledRun(false);
+                if (runKeysIndex >= currentSize) {
+                  break;
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -961,8 +951,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
     private void sendStatusChanged() {
       if (listeners != null) {
-        int len = listeners.size();
-        for (int i = 0; i < len; i++) {
+        int size = listeners.size();
+        for (int i = 0; i < size; i++) {
           listeners.get(i).statusChanged(earliestRunEndingStep);
         }
       }
@@ -973,8 +963,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
      */
     private void updateEarliestRunStep() {
       earliestRunEndingStep = null;
-      int len = list.size();
-      for (int i = 0; i < len; i++) {
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
         BatchRunTomoRow row = list.get(i);
         if (row.isRun()) {
           EndingStep endingStep = row.getEndingStep();
@@ -989,7 +979,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
 
     private boolean isHighlighted() {
-      for (int i = 0; i < list.size(); i++) {
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
         if (list.get(i).isHighlighted()) {
           return true;
         }
