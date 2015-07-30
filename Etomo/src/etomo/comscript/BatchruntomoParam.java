@@ -73,6 +73,7 @@ public class BatchruntomoParam implements CommandParam, Command {
   // Holds the parameters that should be clustered together for each dataset. See
   // InterleavedIndex.
   private final ArrayList<String>[] interleavedParameters;
+  private final boolean forUpdate;
 
   private List<String> command = null;
   private StringBuffer commandLine = null;
@@ -86,11 +87,12 @@ public class BatchruntomoParam implements CommandParam, Command {
   private Set<String> requiredFilesValidationSet = null;
 
   private BatchruntomoParam(final BaseManager manager, final AxisID axisID,
-    final CommandMode mode, final boolean doValidation) {
+    final CommandMode mode, final boolean doValidation, final boolean forUpdate) {
     this.manager = manager;
     this.axisID = axisID;
     this.mode = mode;
     this.doValidation = doValidation;
+    this.forUpdate = forUpdate;
     if (mode == Mode.BATCH) {
       interleavedParameters = new ArrayList[InterleavedIndex.BATCH_LENGTH];
       interleavedParameters[InterleavedIndex.ROOT_NAME.index] = new ArrayList<String>();
@@ -106,12 +108,17 @@ public class BatchruntomoParam implements CommandParam, Command {
 
   public static BatchruntomoParam getInstance(final BaseManager manager,
     final AxisID axisID, final boolean doValidation) {
-    return new BatchruntomoParam(manager, axisID, Mode.BATCH, doValidation);
+    return new BatchruntomoParam(manager, axisID, Mode.BATCH, doValidation, false);
+  }
+
+  public static BatchruntomoParam getInstanceForUpdate(final BaseManager manager,
+    final AxisID axisID, final boolean doValidation) {
+    return new BatchruntomoParam(manager, axisID, Mode.BATCH, doValidation, true);
   }
 
   public static BatchruntomoParam getValidationInstance(final BaseManager manager,
     final AxisID axisID) {
-    return new BatchruntomoParam(manager, axisID, Mode.VALIDATION, false);
+    return new BatchruntomoParam(manager, axisID, Mode.VALIDATION, false, false);
   }
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
@@ -147,7 +154,9 @@ public class BatchruntomoParam implements CommandParam, Command {
     emailAddress.parse(scriptCommand);
     endingStep.parse(scriptCommand);
     startingStep.parse(scriptCommand);
-    // smtpServer is not loaded
+    if (forUpdate) {
+      smtpServer.parse(scriptCommand);
+    }
     useExistingAlignment.parse(scriptCommand);
   }
 
@@ -174,7 +183,6 @@ public class BatchruntomoParam implements CommandParam, Command {
     emailAddress.updateComScript(scriptCommand);
     endingStep.updateComScript(scriptCommand);
     startingStep.updateComScript(scriptCommand);
-    smtpServer.updateComScript(scriptCommand);
     smtpServer.updateComScript(scriptCommand);
     useExistingAlignment.updateComScript(scriptCommand);
     String remoteDirectory = null;
@@ -370,7 +378,7 @@ public class BatchruntomoParam implements CommandParam, Command {
   public void setStartingStep(final ConstEtomoNumber input) {
     startingStep.set(input);
   }
-  
+
   public void setUseExistingAlignment(final boolean input) {
     useExistingAlignment.set(input);
   }
@@ -509,7 +517,7 @@ public class BatchruntomoParam implements CommandParam, Command {
   public boolean isGpuMachineListNull() {
     return gpuMachineList == null || gpuMachineList.length() == 0;
   }
-  
+
   public boolean isUseExistingAlignment() {
     return useExistingAlignment.is();
   }
