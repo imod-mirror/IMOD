@@ -333,7 +333,7 @@ final class SpacedPanel {
 
   void add(final CheckBox checkBox) {
     // addSpacing();
-    panel.add(checkBox);
+    panel.add(checkBox.getComponent());
     addSpacing();
     if (componentAlignmentX != null) {
       checkBox.setAlignmentX(componentAlignmentX.floatValue());

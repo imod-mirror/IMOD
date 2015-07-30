@@ -104,9 +104,7 @@ public final class SetupReconUIHarness {
     if (directiveFileCollection.isValue(DirectiveDef.SCAN_HEADER)
       && (!directiveFileCollection.contains(DirectiveDef.PIXEL) || !directiveFileCollection
         .contains(DirectiveDef.ROTATION))) {
-      if (!scanHeaderAction(directiveFileCollection)) {
-        return false;
-      }
+      scanHeaderAction(directiveFileCollection);
     }
     if (manager.doneSetupDialog(true)) {
       return true;

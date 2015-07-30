@@ -243,13 +243,12 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   void
     openMessageDialog(BaseManager manager, AxisID axisID, String message, String title) {
-    showOptionPane(manager, axisID, wrap(manager, message), title,
-      JOptionPane.ERROR_MESSAGE);
+    showOptionPane(manager, axisID, wrap(message), title, JOptionPane.ERROR_MESSAGE);
   }
 
   void openMessageDialog(final BaseManager manager, final Component parentComponent,
     final AxisID axisID, final String message, final String title) {
-    showOptionPane(manager, parentComponent, axisID, wrap(manager, message), title,
+    showOptionPane(manager, parentComponent, axisID, wrap(message), title,
       JOptionPane.ERROR_MESSAGE);
   }
 
@@ -262,7 +261,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   boolean openYesNoDialog(final BaseManager manager, final Component parentComponent,
     final AxisID axisID, final String message) {
     int result =
-      showOptionConfirmPane(manager, parentComponent, axisID, wrap(manager, message),
+      showOptionConfirmPane(manager, parentComponent, axisID, wrap(message),
         ETOMO_QUESTION, JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY);
     return result == JOptionPane.YES_OPTION;
   }
@@ -270,31 +269,31 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   void openWarningMessageDialog(final BaseManager manager,
     final Component parentcComponent, final AxisID axisID, final String message,
     final String title) {
-    showOptionPane(manager, parentcComponent, axisID, wrap(manager, message), title,
+    showOptionPane(manager, parentcComponent, axisID, wrap(message), title,
       JOptionPane.WARNING_MESSAGE);
   }
 
   void openMessageDialog(final BaseManager manager, final Component parentcComponent,
     final AxisID axisID, final String[] message, final String title) {
-    showOptionPane(manager, parentcComponent, axisID, wrap(manager, message), title,
+    showOptionPane(manager, parentcComponent, axisID, wrap(message), title,
       JOptionPane.ERROR_MESSAGE);
   }
 
   void openWarningMessageDialog(BaseManager manager, AxisID axisID,
     ProcessMessages processMessages, String title) {
-    showOptionPane(manager, axisID, wrapWarning(manager, processMessages), title,
+    showOptionPane(manager, axisID, wrapWarning(processMessages), title,
       JOptionPane.ERROR_MESSAGE);
   }
 
   void openErrorMessageDialog(BaseManager manager, AxisID axisID,
     ProcessMessages processMessages, String title) {
-    showOptionPane(manager, axisID, wrapError(manager, processMessages), title,
+    showOptionPane(manager, axisID, wrapError(processMessages), title,
       JOptionPane.ERROR_MESSAGE);
   }
 
   boolean openYesNoWarningDialog(BaseManager manager, AxisID axisID, String message) {
     int result =
-      showOptionPane(manager, axisID, wrap(manager, message), "Etomo Warning",
+      showOptionPane(manager, axisID, wrap(message), "Etomo Warning",
         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
         YES_NO_LABEL_ARRAY[NO_INDEX], false, YES_NO_LABEL_ARRAY);
     return result == 0;
@@ -308,7 +307,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   boolean openYesNoDialog(BaseManager manager, AxisID axisID, String message) {
     int result =
-      showOptionConfirmPane(manager, axisID, wrap(manager, message), ETOMO_QUESTION,
+      showOptionConfirmPane(manager, axisID, wrap(message), ETOMO_QUESTION,
         JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY);
     return result == JOptionPane.YES_OPTION;
   }
@@ -326,7 +325,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
     final String message, final String title, final int initialValueIndex,
     final boolean overrideDefaultLabels) {
     int result =
-      showOptionConfirmPane(manager, axisID, wrap(manager, message), title,
+      showOptionConfirmPane(manager, axisID, wrap(message), title,
         JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY[initialValueIndex],
         overrideDefaultLabels, YES_NO_LABEL_ARRAY);
     return result == JOptionPane.YES_OPTION;
@@ -341,7 +340,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   boolean openDeleteDialog(final BaseManager manager, final AxisID axisID,
     final String[] message) {
     int result =
-      showOptionPane(manager, axisID, wrap(manager, message), "Delete File?",
+      showOptionPane(manager, axisID, wrap(message), "Delete File?",
         JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, true,
         new String[] { "Delete", NO });
     return result == 0;
@@ -355,15 +354,14 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   boolean openYesNoDialog(BaseManager manager, AxisID axisID, String[] message) {
     int result =
-      showOptionConfirmPane(manager, axisID, wrap(manager, message), ETOMO_QUESTION,
+      showOptionConfirmPane(manager, axisID, wrap(message), ETOMO_QUESTION,
         JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY);
     return result == JOptionPane.YES_OPTION;
   }
 
   void openInfoMessageDialog(BaseManager manager, AxisID axisID, String message,
     String title) {
-    showOptionPane(manager, axisID, wrap(manager, message), title,
-      JOptionPane.INFORMATION_MESSAGE);
+    showOptionPane(manager, axisID, wrap(message), title, JOptionPane.INFORMATION_MESSAGE);
   }
 
   /**
@@ -374,8 +372,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   void openMessageDialog(BaseManager manager, AxisID axisID, String[] message,
     String title) {
-    showOptionPane(manager, axisID, wrap(manager, message), title,
-      JOptionPane.ERROR_MESSAGE);
+    showOptionPane(manager, axisID, wrap(message), title, JOptionPane.ERROR_MESSAGE);
   }
 
   /**
@@ -385,7 +382,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @return int state of the users select
    */
   int openYesNoCancelDialog(BaseManager manager, AxisID axisID, String message) {
-    return showOptionConfirmPane(manager, axisID, wrap(manager, message), ETOMO_QUESTION,
+    return showOptionConfirmPane(manager, axisID, wrap(message), ETOMO_QUESTION,
       JOptionPane.YES_NO_CANCEL_OPTION, new String[] { YES, NO, CANCEL });
   }
 
@@ -403,12 +400,12 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
       JOptionPane.QUESTION_MESSAGE, initialValue, overrideDefaultLabels, optionStrings);
   }
 
-  private final String[]
-    wrapWarning(BaseManager manager, ProcessMessages processMessages) {
+  private final String[] wrapWarning(final ProcessMessages processMessages) {
     ArrayList messageArray = null;
-    for (int i = 0; i < processMessages.warningListSize(); i++) {
+    for (int i = 0; i < processMessages.size(ProcessMessages.MessageType.WARNING); i++) {
       messageArray =
-        PopupTool.wrapMessage(manager, processMessages.getWarning(i), messageArray);
+        PopupTool.wrapMessage(processMessages.get(ProcessMessages.MessageType.WARNING, i),
+          messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -419,11 +416,12 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @param message
    * @return
    */
-  private final String[] wrapError(BaseManager manager, ProcessMessages processMessages) {
+  private final String[] wrapError(ProcessMessages processMessages) {
     ArrayList messageArray = null;
-    for (int i = 0; i < processMessages.errorListSize(); i++) {
+    for (int i = 0; i < processMessages.size(ProcessMessages.MessageType.ERROR); i++) {
       messageArray =
-        PopupTool.wrapMessage(manager, processMessages.getError(i), messageArray);
+        PopupTool.wrapMessage(processMessages.get(ProcessMessages.MessageType.ERROR, i),
+          messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -434,8 +432,8 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @param message
    * @return
    */
-  private String[] wrap(BaseManager manager, String message) {
-    ArrayList messageArray = PopupTool.wrapMessage(manager, message, null);
+  private String[] wrap(final String message) {
+    ArrayList messageArray = PopupTool.wrapMessage(message, null);
     return toStringArray(messageArray);
   }
 
@@ -445,10 +443,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @param message
    * @return
    */
-  private String[] wrap(BaseManager manager, String[] message) {
+  private String[] wrap(final String[] message) {
     ArrayList messageArray = null;
     for (int i = 0; i < message.length; i++) {
-      messageArray = PopupTool.wrapMessage(manager, message[i], messageArray);
+      messageArray = PopupTool.wrapMessage(message[i], messageArray);
     }
     return toStringArray(messageArray);
   }

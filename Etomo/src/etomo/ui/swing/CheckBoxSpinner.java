@@ -93,7 +93,7 @@ final class CheckBoxSpinner {
     // panel
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(Box.createHorizontalGlue());
-    panel.add(checkBox);
+    panel.add(checkBox.getComponent());
     panel.add(spinner.getContainer());
     panel.add(Box.createHorizontalGlue());
   }

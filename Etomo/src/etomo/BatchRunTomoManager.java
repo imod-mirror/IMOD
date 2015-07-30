@@ -18,6 +18,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseScreenState;
 import etomo.type.BatchRunTomoMetaData;
+import etomo.type.CurrentArrayList;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.FileType;
@@ -25,6 +26,7 @@ import etomo.type.InterfaceType;
 import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.StatusChanger;
 import etomo.type.TableReference;
 import etomo.ui.swing.BatchRunTomoDialog;
 import etomo.ui.swing.MainBatchRunTomoPanel;
@@ -161,6 +163,10 @@ public final class BatchRunTomoManager extends BaseManager {
     }
   }
 
+  public void msgStatusChangerStarted(final StatusChanger changer) {
+    dialog.msgStatusChangerStarted(changer);
+  }
+
   /**
    * Call BaseManager.exitProgram(). Call saveDialog. Return the value of
    * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
@@ -201,55 +207,86 @@ public final class BatchRunTomoManager extends BaseManager {
     return true;
   }
 
-  public void run() {
-    mainPanel.startProgressBar("Saving Files for Run", AXIS_ID);
+  public void batchruntomo(final CurrentArrayList<String> runKeys) {
     Utilities.timestamp("save for run", "start");
     ProcessEndState processEndState = ProcessEndState.DONE;
     try {
       super.save();
-      if (!saveBatchRunTomoDialog(true)) {
-        processEndState = ProcessEndState.FAILED;
+      BatchruntomoParam param = saveBatchRunTomoDialog(true);
+      if (param == null) {
+        return;
+      }
+      String threadName = null;
+      try {
+        threadName = processMgr.batchruntomo(param, runKeys);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute batchruntomo comfile";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(this, message, "Unable to execute com script",
+          AXIS_ID);
+      }
+      if (threadName != null) {
+        setThreadName(threadName, AXIS_ID);
       }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      processEndState = ProcessEndState.FAILED;
     }
     catch (IOException e) {
       e.printStackTrace();
-      processEndState = ProcessEndState.FAILED;
     }
-    mainPanel.stopProgressBar(AXIS_ID, processEndState);
-    String path = propertyUserDir;
-    if (Utilities.isWindowsOS()) {
-      path = Utilities.convertPathToUniversalWindows(propertyUserDir);
-    }
-    logMessage(new String[] { "", "How to run batchruntomo from the command line:",
-      "Open a terminal window.", "Type the following two commands:", "cd " + path,
-      "subm " + metaData.getName() }, "Instructions", AXIS_ID);
   }
 
-  private boolean saveBatchRunTomoDialog(final boolean doValidation) {
+  public void resumeBatchruntomo(final CurrentArrayList<String> runKeys) {
+    // Get the saved comscript
+    comScriptManager.loadBatchRunTomo(AXIS_ID);
+    BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID, true);
+    // Add datasets that are still checked
+    if (!dialog.getParameters(param, true, true)) {
+      return;
+    }
+    comScriptManager.saveBatchRunTomo(param, AXIS_ID);
+    // run batchruntomo
+    String threadName = null;
+    try {
+      threadName = processMgr.batchruntomo(param, runKeys);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute batchruntomo comfile";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute com script", AXIS_ID);
+    }
+    if (threadName != null) {
+      setThreadName(threadName, AXIS_ID);
+    }
+  }
+
+  private BatchruntomoParam saveBatchRunTomoDialog(final boolean doValidation) {
     if (dialog == null) {
-      return false;
+      return null;
     }
     if (paramFile == null
       && (!dialog.isParamFileModifiable() || !setNewParamFile(dialog.getRootDir(),
         dialog.getRootName()))) {
       // setting the param file failed
-      return false;
+      return null;
     }
     dialog.disableDatasetFields();
     dialog.getParameters(userConfig);
     dialog.getParameters(metaData);
     if (!dialog.saveAutodocs(doValidation)) {
-      return false;
+      return null;
     }
-    updateBatchRunTomo(doValidation);
+    BatchruntomoParam param = updateBatchRunTomo(doValidation);
     saveStorables(AXIS_ID);
     savePreferences(AXIS_ID, userConfig);
     Utilities.timestamp("save", "end");
-    return true;
+    return param;
   }
 
   private BatchruntomoParam updateBatchRunTomo(final boolean doValidation) {
@@ -263,11 +300,14 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       return null;
     }
-    dialog.getParameters(param);
+    if (!dialog.getParameters(param, doValidation, false)) {
+      return null;
+    }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AXIS_ID);
     if (parallelPanel != null && !parallelPanel.getParameters(param)) {
       return null;
     }
+    param.setSmtpServer(EtomoDirector.INSTANCE.getUserConfiguration().getSmtpServer());
     comScriptManager.saveBatchRunTomo(param, AXIS_ID);
     if (!param.isValid()) {
       return null;

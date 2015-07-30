@@ -117,5 +117,11 @@ public interface Field {
 
   public boolean equalsFieldHighlight();
 
-  public boolean equalsFieldHighlight(final String value);
+  public boolean equalsFieldHighlight(String value);
+
+  public void setToolTipText(String tooltip);
+
+  public void setTooltip(Field field);
+
+  public String getTooltip();
 }

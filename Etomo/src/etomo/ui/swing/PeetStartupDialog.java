@@ -137,7 +137,7 @@ public final class PeetStartupDialog implements UIComponent, SwingComponent {
     pnlDirectory.add(Box.createRigidArea(FixedDim.x142_y0));
     // copy from panel
     pnlCopyFrom.setLayout(new BoxLayout(pnlCopyFrom, BoxLayout.X_AXIS));
-    pnlCopyFrom.add(cbCopyFrom);
+    pnlCopyFrom.add(cbCopyFrom.getComponent());
     pnlCopyFrom.add(ftfCopyFrom.getRootPanel());
     pnlCopyFrom.add(Box.createRigidArea(FixedDim.x15_y0));
     // button panel

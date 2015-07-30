@@ -20,21 +20,32 @@ import javax.swing.border.LineBorder;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.comscript.BatchruntomoParam;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
+import etomo.type.BatchRunTomoStatus;
+import etomo.type.CurrentArrayList;
 import etomo.type.DuplicateException;
+import etomo.type.EndingStep;
 import etomo.type.NotLoadedException;
 import etomo.type.OrderedHashMap;
+import etomo.type.Status;
+import etomo.type.StatusChangeBooleanEvent;
+import etomo.type.StatusChangeEvent;
+import etomo.type.StatusChangeListener;
+import etomo.type.StatusChanger;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldDisplayer;
 import etomo.ui.PreferredTableSize;
+import etomo.ui.SharedStrings;
 import etomo.ui.TableListener;
 
 /**
@@ -47,9 +58,7 @@ import etomo.ui.TableListener;
  * @version $Id$
  */
 final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
-  ActionListener {
-  public static final String rcsid = "$Id:$";
-
+  ActionListener, StatusChangeListener, StatusChanger {
   private static final String STACK_TITLE = "Stack";
   private static final int MAX_HEADER_ROWS = 3;
   private static final int NUM_STACKS_HEADER_ROWS = MAX_HEADER_ROWS;
@@ -66,8 +75,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   // stacks tab
   private final HeaderCell[] hcDual = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcMontage = new HeaderCell[NUM_STACKS_HEADER_ROWS];
-  private final HeaderCell[] hcExcludeViews = new HeaderCell[NUM_STACKS_HEADER_ROWS];
-  private final HeaderCell hcExcludeViewsB = new HeaderCell("from B");
+  private final HeaderCell[] hcSkip = new HeaderCell[NUM_STACKS_HEADER_ROWS];
+  private final HeaderCell hcSkipB = new HeaderCell("from B");
   private final HeaderCell[] hcBoundaryModel = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcSurfacesToAnalyze = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hc3dmod = new HeaderCell[NUM_STACKS_HEADER_ROWS];
@@ -76,12 +85,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final HeaderCell[] hcEditDataset = new HeaderCell[NUM_DATASET_HEADER_ROWS];
   // run tab
   private final HeaderCell[] hcStatus = new HeaderCell[NUM_RUN_HEADER_ROWS];
+  private final HeaderCell[] hcStep = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final HeaderCell[] hcEtomo = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
   private final MultiLineButton btnCopyDown = new MultiLineButton("Copy Down");
   private final MultiLineButton btnDelete = new MultiLineButton("Delete");
   private final JPanel pnlStackButtons = new JPanel();
+  private ArrayList<StatusChangeListener> listeners = null;
 
   private final RowList rowList;
   private final BatchRunTomoManager manager;
@@ -92,6 +103,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
 
   private BatchRunTomoTable(final BatchRunTomoManager manager,
     final Expandable expandable, final TableReference tableReference) {
@@ -130,9 +142,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     hcMontage[0] = new HeaderCell();
     hcMontage[1] = new HeaderCell();
     hcMontage[2] = new HeaderCell("Montage");
-    hcExcludeViews[0] = new HeaderCell("Exclude");
-    hcExcludeViews[1] = new HeaderCell("Views");
-    hcExcludeViews[2] = new HeaderCell("from A");
+    hcSkip[0] = new HeaderCell("Exclude");
+    hcSkip[1] = new HeaderCell("Views");
+    hcSkip[2] = new HeaderCell("from A");
     hcBoundaryModel[0] = new HeaderCell();
     hcBoundaryModel[1] = new HeaderCell("Boundary");
     hcBoundaryModel[2] = new HeaderCell("Model");
@@ -147,6 +159,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     // run tab
     hcStatus[0] = new HeaderCell();
     hcStatus[1] = new HeaderCell("Status");
+    hcStep[0] = new HeaderCell();
+    hcStep[1] = new HeaderCell("Reached");
     hcRun[0] = new HeaderCell();
     hcRun[1] = new HeaderCell("Run");
     hcEtomo[0] = new HeaderCell("Open");
@@ -186,6 +200,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     // update
     viewport.adjustViewport(-1);
     updateDisplay();
+    statusChanged(status);
   }
 
   int getPreferredWidth() {
@@ -210,10 +225,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         if (i < numRows - 1) {
           constraints.gridwidth = 2;
         }
-        hcExcludeViews[i].add(pnlTable, layout, constraints);
+        hcSkip[i].add(pnlTable, layout, constraints);
         constraints.gridwidth = 1;
         if (i == numRows - 1) {
-          hcExcludeViewsB.add(pnlTable, layout, constraints);
+          hcSkipB.add(pnlTable, layout, constraints);
         }
         hcBoundaryModel[i].add(pnlTable, layout, constraints);
         hcSurfacesToAnalyze[i].add(pnlTable, layout, constraints);
@@ -243,6 +258,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         addStandardHeaders(i, numRows);
         constraints.gridwidth = 1;
         hcStatus[i].add(pnlTable, layout, constraints);
+        hcStep[i].add(pnlTable, layout, constraints);
         hcRun[i].add(pnlTable, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         hcEtomo[i].add(pnlTable, layout, constraints);
@@ -298,6 +314,34 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     btnDelete.addActionListener(this);
   }
 
+  public void addStatusChangeListener(final StatusChangeListener listener) {
+    if (listener == null) {
+      return;
+    }
+    boolean newCollection = false;
+    if (listeners == null) {
+      synchronized (this) {
+        if (listeners == null) {
+          listeners = new ArrayList<StatusChangeListener>();
+          newCollection = true;
+        }
+      }
+    }
+    if (!newCollection && listeners.contains(listener)) {
+      return;
+    }
+    listeners.add(listener);
+  }
+
+  void msgStatusChangerStarted(final StatusChanger changer) {
+    changer.addStatusChangeListener(this);
+    rowList.msgStatusChangerStarted(changer);
+  }
+
+  void addStatusChangeListenerToRowList(final StatusChangeListener listener) {
+    rowList.addStatusChangeListener(listener);
+  }
+
   Component getComponent() {
     return pnlRoot;
   }
@@ -320,16 +364,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
   }
 
-  public void setParameters(final BatchRunTomoMetaData metaData) {
+  void setParameters(final BatchRunTomoMetaData metaData) {
     rowList.setParameters(metaData);
   }
 
-  public void getParameters(final BatchRunTomoMetaData metaData) {
+  void getParameters(final BatchRunTomoMetaData metaData) {
     rowList.getParameters(metaData);
   }
 
-  public void getParameters(final BatchruntomoParam param,
-    final boolean deliverToDirectory, final StringBuilder errMsg) {
+  void getParameters(final BatchruntomoParam param, final boolean deliverToDirectory,
+    final StringBuilder errMsg) {
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
@@ -346,6 +390,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   BatchRunTomoRow getFirstRow() {
     return rowList.getFirstRow();
+  }
+
+  CurrentArrayList<String> createRunKeys() {
+    return rowList.createRunKeys();
+  }
+
+  CurrentArrayList<String> updateRunKeys() {
+    return rowList.updateRunKeys();
   }
 
   /**
@@ -369,6 +421,21 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     btnDelete.setEnabled(enable);
     int index = rowList.getHighlightedIndex();
     btnCopyDown.setEnabled(index != -1 && index < size - 1);
+  }
+
+  public void statusChanged(final Status status) {
+    if (status == null || !(status instanceof BatchRunTomoStatus)) {
+      return;
+    }
+    this.status = (BatchRunTomoStatus) status;
+    boolean open = status == BatchRunTomoStatus.OPEN;
+    btnAdd.setEditable(open);
+    btnCopyDown.setEditable(open);
+    btnDelete.setEditable(open);
+  }
+
+  public void statusChanged(final StatusChangeEvent statusChangeEvent) {
+    // Does not respond to dataset-level or row-level status changes
   }
 
   void msgTabChanged(final BatchRunTomoTab tab) {
@@ -418,7 +485,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       }
     }
     else if (actionCommand.equals(btnDelete.getActionCommand())) {
-      if (rowList.delete()) {
+      if (rowList.removeHighlighted()) {
         rebuildTable();
         updateDisplay();
         UIHarness.INSTANCE.pack(manager);
@@ -442,6 +509,40 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     return rowList.size();
   }
 
+  private void setTooltips() {
+    String dualTooltip = AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.DUAL);
+    String montageTooltip =
+      AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.MONTAGE);
+    String skipTooltip = AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.SKIP);
+    String boundaryModelTooltip =
+      AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING);
+    String boundaryModelTooltip2 =
+      AutodocAttributeRetriever.INSTANCE
+        .getTooltip(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING);
+    String surfacesToAnalyzeTooltip =
+      AutodocAttributeRetriever.INSTANCE.getTooltip(DirectiveDef.SURFACES_TO_ANALYZE);
+    String imodTooltip = "Opens the stacks";
+    for (int i = 0; i < NUM_STACKS_HEADER_ROWS; i++) {
+      hcStack[i].setToolTipText(SharedStrings.STACK_TOOLTIP);
+      hcDual[i].setToolTipText(dualTooltip);
+      hcMontage[i].setToolTipText(montageTooltip);
+      hcSkip[i].setToolTipText(skipTooltip);
+      hcBoundaryModel[i].setToolTipText(boundaryModelTooltip);
+      hcBoundaryModel[i].addTooltip(boundaryModelTooltip2);
+      hcSurfacesToAnalyze[i].addTooltip(surfacesToAnalyzeTooltip);
+      if (i < NUM_STACKS_HEADER_ROWS - 1) {
+        hc3dmod[i].setToolTipText(imodTooltip);
+      }
+    }
+    hcSkipB.setToolTipText(skipTooltip);
+    hc3dmod[NUM_STACKS_HEADER_ROWS - 1].setToolTipText(SharedStrings.IMOD_A_TOOLTIP);
+    hc3dmodB.setToolTipText(SharedStrings.IMOD_B_TOOLTIP);
+    for (int i = 0; i < NUM_DATASET_HEADER_ROWS; i++) {
+      hcBoundaryModel[i].setToolTipText(SharedStrings.EDIT_DATASET_TOOLTIP);
+    }
+  }
+
   static final class DatasetColumn {
     static final DatasetColumn NUMBER = new DatasetColumn(0);
     static final DatasetColumn STACK = new DatasetColumn(1);
@@ -459,8 +560,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
   }
 
-  private class RowList {
-    private final List<BatchRunTomoRow> list = new ArrayList<BatchRunTomoRow>();
+  private class RowList implements StatusChangeListener, StatusChanger {
+    private final ArrayList<BatchRunTomoRow> list = new ArrayList<BatchRunTomoRow>();
 
     private final TableReference tableReference;
     private final BatchRunTomoTable table;
@@ -469,6 +570,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     // Currently only one table listener is required
     private TableListener tableListener = null;
     private EventObject eventObject = null;
+    CurrentArrayList<String> runKeys = null;
+    /**
+     * Comes from the ending step from each row with its run check box checked.  Set to 
+     * the earliest ending step (see the batchruntomo man page and Step).
+     */
+    private EndingStep earliestRunEndingStep = null;
+    private ArrayList<StatusChangeListener> listeners = null;
 
     private RowList(final BatchRunTomoTable table, final TableReference tableReference) {
       this.tableReference = tableReference;
@@ -478,6 +586,27 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     private void setTableListener(final TableListener tableListener) {
       this.tableListener = tableListener;
       eventObject = new EventObject(table);
+    }
+
+    private void msgStatusChangerStarted(final StatusChanger changer) {
+      changer.addStatusChangeListener(this);
+      int len = list.size();
+      for (int i = 0; i < len; i++) {
+        changer.addStatusChangeListener(list.get(i));
+      }
+    }
+
+    /**
+     * Adds listeners for earliestRunStep
+     */
+    public void addStatusChangeListener(final StatusChangeListener listener) {
+      if (listener == null) {
+        return;
+      }
+      if (listeners == null) {
+        listeners = new ArrayList<StatusChangeListener>();
+      }
+      listeners.add(listener);
     }
 
     private void add(final List<DatasetTool.StackInfo> stackInfoList) {
@@ -540,9 +669,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           overridePrevRow = dual || stackInfo.isSingleAxis();
           // Add the row.
           BatchRunTomoRow row =
-            BatchRunTomoRow
-              .getInstance(table, pnlTable, layout, constraints, index + 1, stack,
-                prevRow, overridePrevRow, dual, manager, stackID, preferredTableSize);
+            BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints, index + 1,
+              stack, prevRow, overridePrevRow, dual, manager, stackID,
+              preferredTableSize, tableReference);
+          row.addStatusChangeListener(this);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -593,7 +723,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
             BatchRunTomoRow row =
               BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints,
                 index + 1, new File(tableReference.getUniqueString(stackID)), null,
-                false, false, manager, stackID, preferredTableSize);
+                false, false, manager, stackID, preferredTableSize, tableReference);
+            row.addStatusChangeListener(this);
             row.expandStack(btnStack.isExpanded());
             list.add(row);
             fileAdded = true;
@@ -620,6 +751,68 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       return null;
     }
 
+    /**
+     * Get stackID's from rows with Run checked.
+     * @return
+     */
+    CurrentArrayList<String> createRunKeys() {
+      runKeys = new CurrentArrayList<String>();
+      int len = list.size();
+      for (int i = 0; i < len; i++) {
+        BatchRunTomoRow row = list.get(i);
+        if (row.isRun()) {
+          runKeys.add(row.getStackID());
+        }
+      }
+      return runKeys;
+    }
+
+    /**
+     * Creates an new runKeys array to reflect the current state of the table, while
+     * keeping the completed keys as placeholders.  Used for resuming from a kill or
+     * pause.
+     * @return
+     */
+    CurrentArrayList<String> updateRunKeys() {
+      if (runKeys == null) {
+        return null;
+      }
+      CurrentArrayList<String> newRunKeys = new CurrentArrayList<String>();
+      // Copy the completed keys from the original runKeys.
+      newRunKeys.copyToCurrent(runKeys);
+      int runKeyIndex = runKeys.getIndex() + 1;
+      int runKeysSize = runKeys.size();
+      if (runKeyIndex < runKeysSize) {
+        // Incomplete keys available - try to add them
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+          BatchRunTomoRow row = list.get(i);
+          if (row.equalsStackID(runKeys.get(runKeyIndex))) {
+            if (row.isRun()) {
+              // The row is run-checked so the key can be added.
+              newRunKeys.add(runKeys.get(runKeyIndex));
+            }
+            runKeyIndex++;
+            if (runKeyIndex >= runKeysSize) {
+              break;
+            }
+          }
+        }
+      }
+      runKeys = newRunKeys;
+      return runKeys;
+    }
+
+    private BatchRunTomoRow getRow(final String stackID) {
+      for (int i = 0; i < list.size(); i++) {
+        BatchRunTomoRow row = list.get(i);
+        if (row.equalsStackID(stackID)) {
+          return row;
+        }
+      }
+      return null;
+    }
+
     private boolean rowExists(final String stackID) {
       for (int i = 0; i < list.size(); i++) {
         if (list.get(i).equalsStackID(stackID)) {
@@ -632,7 +825,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     /**
      * @return true if a row was deleted
      */
-    private boolean delete() {
+    private boolean removeHighlighted() {
       int index = getHighlightedIndex();
       if (index != -1) {
         BatchRunTomoRow row = list.get(index);
@@ -693,8 +886,101 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       return list.size();
     }
 
+    public void statusChanged(final Status status) {
+      if ((status instanceof BatchRunTomoStatus)) {
+        if (status != BatchRunTomoStatus.RUNNING) {
+          // Fields have been changed to editable - update earliestRunStep.
+          updateEarliestRunStep();
+          sendStatusChanged();
+        }
+        if (status == BatchRunTomoStatus.KILLED_PAUSED && runKeys != null) {
+          // Only incomplete rows can be run via resume. For row found in runKeys, disable
+          // rows with checked run checkboxes.
+          int currentSize = Math.min(runKeys.getIndex() + 1, runKeys.size());
+          System.out.println("F:currentSize:" + currentSize);
+          int runKeysIndex = 0;
+          if (runKeysIndex < currentSize) {
+            int size = list.size();
+            for (int i = 0; i < size; i++) {
+              BatchRunTomoRow row = list.get(i);
+              if (row.equalsStackID(runKeys.get(runKeysIndex)) && row.isRun()) {
+                runKeysIndex++;
+                row.setEnabledRun(false);
+                if (runKeysIndex >= currentSize) {
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * Handles a row getting or losing a run-step.  Signals its listener(s) if
+     * ealiestRunStep changes.
+     */
+    public void statusChanged(final StatusChangeEvent event) {
+      // Only responds to a row getting or losing a runstep
+      if (!(event instanceof StatusChangeBooleanEvent)) {
+        return;
+      }
+      Status status = event.getStatus();
+      if (status != null && !(status instanceof EndingStep)) {
+        return;
+      }
+      EndingStep endingStep = (EndingStep) status;
+      if (((StatusChangeBooleanEvent) event).is()) {
+        // A runstep was added, or a run checkbox was checked
+        if (endingStep != null
+          && (earliestRunEndingStep == null || endingStep.lt(earliestRunEndingStep))) {
+          // An earlier run step has been added or run-checked.
+          earliestRunEndingStep = endingStep;
+          sendStatusChanged();
+        }
+      }
+      else if (earliestRunEndingStep != null
+        && (endingStep == null || endingStep.le(earliestRunEndingStep))) {
+        // RunStep removed (step is null) or earliest runStep unchecked - must check the
+        // rows to get
+        // the new earliestRunStep.
+        updateEarliestRunStep();
+        sendStatusChanged();
+      }
+    }
+
+    private void sendStatusChanged() {
+      if (listeners != null) {
+        int size = listeners.size();
+        for (int i = 0; i < size; i++) {
+          listeners.get(i).statusChanged(earliestRunEndingStep);
+        }
+      }
+    }
+
+    /**
+     * Sets earliestRunStep.
+     */
+    private void updateEarliestRunStep() {
+      earliestRunEndingStep = null;
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        BatchRunTomoRow row = list.get(i);
+        if (row.isRun()) {
+          EndingStep endingStep = row.getEndingStep();
+          if (endingStep != null && endingStep.lt(earliestRunEndingStep)) {
+            earliestRunEndingStep = endingStep;
+            if (earliestRunEndingStep.isFirst()) {
+              return;
+            }
+          }
+        }
+      }
+    }
+
     private boolean isHighlighted() {
-      for (int i = 0; i < list.size(); i++) {
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
         if (list.get(i).isHighlighted()) {
           return true;
         }

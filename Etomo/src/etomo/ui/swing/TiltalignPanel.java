@@ -1278,7 +1278,7 @@ final class TiltalignPanel implements Expandable, ActionListener {
     // RobustFitting
     pnlRobustFitting.setLayout(new BoxLayout(pnlRobustFitting, BoxLayout.X_AXIS));
     pnlRobustFitting.add(ctfRobustFittingAndKFactorScaling.getRootComponent());
-    pnlRobustFitting.add(cbWeightWholeTracks);
+    pnlRobustFitting.add(cbWeightWholeTracks.getComponent());
     // pnlWeightWholeTracks.add(Box.createHorizontalGlue());
 
     pnlMetroFactor.setLayout(new BoxLayout(pnlMetroFactor, BoxLayout.X_AXIS));
@@ -1298,7 +1298,7 @@ final class TiltalignPanel implements Expandable, ActionListener {
     JPanel pnlLocalAlignments = new JPanel();
     pnlLocalAlignments.setLayout(new BoxLayout(pnlLocalAlignments, BoxLayout.X_AXIS));
     pnlLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLocalAlignments.add(cbLocalAlignments);
+    pnlLocalAlignments.add(cbLocalAlignments.getComponent());
     pnlLocalAlignments.add(Box.createHorizontalGlue());
     cbLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLocalParameters.add(pnlLocalAlignments);
@@ -1450,12 +1450,12 @@ final class TiltalignPanel implements Expandable, ActionListener {
     cbXTiltAutomapSame.setAlignmentX(Component.RIGHT_ALIGNMENT);
     JPanel pnlXTiltAutomapSame = new JPanel();
     pnlXTiltAutomapSame.setLayout(new BoxLayout(pnlXTiltAutomapSame, BoxLayout.X_AXIS));
-    pnlXTiltAutomapSame.add(cbXTiltAutomapSame);
+    pnlXTiltAutomapSame.add(cbXTiltAutomapSame.getComponent());
     pnlXTiltAutomapSame.add(Box.createHorizontalGlue());
     pnlGlobalVariableBody.add(pnlXTiltAutomapSame);
     JPanel pnlProjectionStretch = new JPanel();
     pnlProjectionStretch.setLayout(new BoxLayout(pnlProjectionStretch, BoxLayout.X_AXIS));
-    pnlProjectionStretch.add(cbProjectionStretch);
+    pnlProjectionStretch.add(cbProjectionStretch.getComponent());
     pnlProjectionStretch.add(Box.createHorizontalGlue());
     pnlGlobalVariableBody.add(pnlProjectionStretch);
     pnlGlobalVariable.add(pnlGlobalVariableBody);
@@ -1533,7 +1533,7 @@ final class TiltalignPanel implements Expandable, ActionListener {
     final LabeledTextField field3, final String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-    buttonPanel.add(checkBox);
+    buttonPanel.add(checkBox.getComponent());
     createVariablePanel(panel, buttonPanel, field1, field2, field3, null, null, title,
       null);
   }
@@ -1543,7 +1543,7 @@ final class TiltalignPanel implements Expandable, ActionListener {
     final LabeledTextField field3, final CheckBox checkBox2, final String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-    buttonPanel.add(checkBox1);
+    buttonPanel.add(checkBox1.getComponent());
     createVariablePanel(panel, buttonPanel, field1, field2, field3, null, checkBox2,
       title, null);
   }
@@ -1583,7 +1583,7 @@ final class TiltalignPanel implements Expandable, ActionListener {
       JPanel pnlCheckBox = new JPanel();
       pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.X_AXIS));
       pnlCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
-      pnlCheckBox.add(checkBox);
+      pnlCheckBox.add(checkBox.getComponent());
       pnlCheckBox.add(Box.createHorizontalGlue());
       checkBox.setAlignmentX(Component.RIGHT_ALIGNMENT);
       fieldPanel.add(pnlCheckBox);

@@ -12,7 +12,7 @@ import etomo.type.AxisType;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -221,6 +221,7 @@ public final class DirectiveDef {
   private boolean batchA = false;
   private boolean batchB = false;
   private boolean directiveDescrLoaded = false;
+  private String description = null;
 
   /**
    * General constructor
@@ -326,6 +327,7 @@ public final class DirectiveDef {
       templateB = templateA;
       batchB = batchA;
     }
+    description = element.getDescription();
   }
 
   boolean hasSecondaryMatch(final AxisID axisID) {
@@ -352,6 +354,16 @@ public final class DirectiveDef {
   public boolean isBoolean() {
     loadDirectiveDescr();
     return bool;
+  }
+
+  /**
+   * Gets a tooltip from the description in the directive description file.  No tooltip is
+   * loaded for comparam directives.
+   * @return
+   */
+  public String getTooltip() {
+    loadDirectiveDescr();
+    return description + " (" + toString() + ")";
   }
 
   boolean isTemplate(final AxisID axisID) {

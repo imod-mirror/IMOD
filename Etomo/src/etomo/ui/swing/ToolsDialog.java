@@ -112,8 +112,17 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     logger.logMessage(message);
   }
 
+  public void logMessage(final String message, final boolean timestamp,
+    final boolean newline) {
+    logger.logMessage(message, timestamp, newline);
+  }
+
   public void logMessage(final File file) {
     logger.logMessage(file);
+  }
+
+  public void logMessage(final File file, final boolean newline) {
+    logger.logMessage(file, newline);
   }
 
   public void save() {}

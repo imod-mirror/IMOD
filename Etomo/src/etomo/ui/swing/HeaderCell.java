@@ -151,7 +151,7 @@ final class HeaderCell extends Cell implements TableComponent, UIComponent,
     cell.setBorderPainted(borderPainted);
   }
 
-  public void setEnabled(boolean enable) {
+  void setEnabled(boolean enable) {
     if (controlColor) {
       if (enable) {
         cell.setForeground(Colors.FOREGROUND);
@@ -253,7 +253,7 @@ final class HeaderCell extends Cell implements TableComponent, UIComponent,
   /**
    * Message from row header or column header that their label has changed.
    */
-  public void msgLabelChanged() {
+  void msgLabelChanged() {
     setName();
   }
 
@@ -275,9 +275,8 @@ final class HeaderCell extends Cell implements TableComponent, UIComponent,
     }
     else {
       name =
-        Utilities.convertLabelToName(tableHeader,
-          rowHeader != null ? rowHeader.getText() : null,
-          columnHeader != null ? columnHeader.getText() : null);
+        Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader.getText()
+          : null, columnHeader != null ? columnHeader.getText() : null);
     }
     getComponent().setName(prefix + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
@@ -312,6 +311,20 @@ final class HeaderCell extends Cell implements TableComponent, UIComponent,
 
   void setToolTipText(String text) {
     cell.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+  
+  public void addTooltip(final String text) {
+    if (text == null) {
+      return;
+    }
+    String tooltip = cell.getToolTipText();
+    if (tooltip == null) {
+      setToolTipText(text);
+    }
+    else {
+      cell
+        .setToolTipText(tooltip + " & " + TooltipFormatter.INSTANCE.format(text));
+    }
   }
 
   void pad() {

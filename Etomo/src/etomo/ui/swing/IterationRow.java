@@ -15,7 +15,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 
 /**
  * <p>Description: </p>
@@ -396,13 +396,13 @@ final class IterationRow implements Highlightable {
     EtomoNumber nInteger = new EtomoNumber();
     nDouble.set(dPhiMax.getValue());
     if (!validateRun(dPhiMax.isEmpty(), nDouble, new String[] {
-        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, FieldLabels.D_PHI_LABEL,
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, SharedStrings.D_PHI_LABEL,
         IterationTable.MAX_HEADER3 }, "Use 0 to not search on the angle.")) {
       return false;
     }
     nDouble.set(dPhiIncrement.getValue());
     if (!validateRun(dPhiIncrement.isEmpty(), nDouble, new String[] {
-        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, FieldLabels.D_PHI_LABEL,
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, SharedStrings.D_PHI_LABEL,
         IterationTable.INCR_HEADER3 }, null)) {
       return false;
     }
@@ -410,7 +410,7 @@ final class IterationRow implements Highlightable {
     if (dThetaMax.isEnabled()) {
       nDouble.set(dThetaMax.getValue());
       if (!validateRun(dThetaMax.isEmpty(), nDouble, new String[] {
-          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, FieldLabels.D_THETA_LABEL,
+          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, SharedStrings.D_THETA_LABEL,
           IterationTable.MAX_HEADER3 }, "Use 0 to not search on the angle.")) {
         return false;
       }
@@ -418,7 +418,7 @@ final class IterationRow implements Highlightable {
     if (dThetaIncrement.isEnabled()) {
       nDouble.set(dThetaIncrement.getValue());
       if (!validateRun(dThetaIncrement.isEmpty(), nDouble, new String[] {
-          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, FieldLabels.D_THETA_LABEL,
+          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, SharedStrings.D_THETA_LABEL,
           IterationTable.INCR_HEADER3 }, null)) {
         return false;
       }
@@ -427,7 +427,7 @@ final class IterationRow implements Highlightable {
     if (dPsiMax.isEnabled()) {
       nDouble.set(dPsiMax.getValue());
       if (!validateRun(dPsiMax.isEmpty(), nDouble, new String[] {
-          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, FieldLabels.D_PSI_LABEL,
+          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, SharedStrings.D_PSI_LABEL,
           IterationTable.MAX_HEADER3 }, "Use 0 to not search on the angle.")) {
         return false;
       }
@@ -435,7 +435,7 @@ final class IterationRow implements Highlightable {
     if (dPsiIncrement.isEnabled()) {
       nDouble.set(dPsiIncrement.getValue());
       if (!validateRun(dPsiIncrement.isEmpty(), nDouble, new String[] {
-          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, FieldLabels.D_PSI_LABEL,
+          IterationTable.D_PHI_D_THETA_D_PSI_HEADER1, SharedStrings.D_PSI_LABEL,
           IterationTable.INCR_HEADER3 }, null)) {
         return false;
       }
