@@ -61,11 +61,9 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private Vector<StatusChangeListener> listeners = null;
   private String currentStep = null;
   private String currentDataset = null;
-  private int nDatasetsSucceeded = 0;
   private boolean willResume = false;
   private boolean interrupted = false;
   private boolean datasetRunning = false;
-  private int datasetIndex = -1;
   private boolean endingStepSet = false;
   private boolean startingStepSet = false;
   private int nDatasets = 0;
@@ -92,8 +90,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.runKeys = runKeys;
     if (runKeys != null) {
       nDatasets = runKeys.size();
-      datasetIndex = runKeys.getCurrentIndex();
-      nDatasetsSucceeded = runKeys.getStateInt();
     }
   }
 
@@ -149,7 +145,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     manager.logMessage("Running batchruntomo");
     messages.startStringFeed();
     running = true;
-    nDatasetsSucceeded = 0;
     try {
       /* Wait for processchunks or prochunks to delete .cmds file before enabling the Kill
        * Process button and Pause button. The main loop uses a sleep of 2000 millisecs.
@@ -205,6 +200,10 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       BatchRunTomoStatus status;
       if (pausing || killing) {
         status = BatchRunTomoStatus.KILLED_PAUSED;
+        if (killing) {
+          //runKeys should be pointing to the last completed dataset.
+          runKeys.previous();
+        }
       }
       else if (endingStepSet) {
         status = BatchRunTomoStatus.STOPPED;
@@ -227,7 +226,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private void sendStatusChanged(final BatchRunTomoDatasetStatus status) {
     if (listeners != null) {
       StatusChangeEvent event =
-        new StatusChangeTaggedEvent(runKeys.get(datasetIndex), status);
+        new StatusChangeTaggedEvent(runKeys.getCurrent(), status);
       for (int i = 0; i < listeners.size(); i++) {
         listeners.get(i).statusChanged(event);
       }
@@ -237,7 +236,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private void sendStatusChanged(final Status status) {
     if (listeners != null) {
       StatusChangeEvent event =
-        new StatusChangeTaggedEvent(runKeys.get(datasetIndex), status);
+        new StatusChangeTaggedEvent(runKeys.getCurrent(), status);
       for (int i = 0; i < listeners.size(); i++) {
         listeners.get(i).statusChanged(event);
       }
@@ -247,7 +246,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private void sendStatusChanged(final BatchRunTomoCommand status, final String string) {
     if (listeners != null) {
       StatusChangeEvent event =
-        new StatusChangeTaggedEvent(runKeys.get(datasetIndex), string, status);
+        new StatusChangeTaggedEvent(runKeys.getCurrent(), string, status);
       for (int i = 0; i < listeners.size(); i++) {
         listeners.get(i).statusChanged(event);
       }
@@ -344,7 +343,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   }
 
   public String getStatusString() {
-    return nDatasetsSucceeded + " of " + nDatasets + " completed";
+    return runKeys.getTotal() + " of " + nDatasets + " completed";
   }
 
   public boolean isProcessRunning() {
@@ -456,7 +455,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       messages.feedString(line);
       if (line.indexOf(ProcessOutputStrings.BRT_STARTING_DATASET_TAG) != -1) {
         recognized = true;
-        datasetIndex++;
+        runKeys.next();
+        System.out.println("B:index:"+runKeys.getIndex());
         datasetRunning = true;
         datasetFailed = false;
         datasetDelivered = false;
@@ -472,7 +472,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       }
       // check for the real batchruntomo error message. Everything else will be logged.
       if (line.indexOf(ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG) != -1) {
-        if (nDatasetsSucceeded == 0) {
+        if (runKeys.getTotal() == 0) {
           endMonitor(ProcessEndState.FAILED);
         }
         else {
@@ -515,7 +515,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
           status = BatchRunTomoDatasetStatus.FAILED;
         }
         else {
-          nDatasetsSucceeded++;
+          runKeys.incrementTotal();
           if (endingStepSet) {
             status = BatchRunTomoDatasetStatus.STOPPED;
           }
@@ -605,18 +605,18 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   void updateProgressBar() {
     updateProgressBar = false;
     setProgressBarTitle();
-    manager.getMainPanel().setProgressBarValue(nDatasetsSucceeded, getStatusString(),
+    manager.getMainPanel().setProgressBarValue(runKeys.getTotal(), getStatusString(),
       axisID);
   }
 
   private void initializeProgressBar() {
     setProgressBarTitle();
     if (reconnect) {
-      manager.getMainPanel().setProgressBarValue(nDatasetsSucceeded, "Reconnecting...",
+      manager.getMainPanel().setProgressBarValue(runKeys.getTotal(), "Reconnecting...",
         axisID);
     }
     else {
-      manager.getMainPanel().setProgressBarValue(nDatasetsSucceeded, "Starting...",
+      manager.getMainPanel().setProgressBarValue(runKeys.getTotal(), "Starting...",
         axisID);
     }
   }
