@@ -16,6 +16,9 @@
 #include "imodel.h"
 #include "b3dutil.h"
 
+static void backoffAndAddPoint(Icont *cont, Icont *cfrom, int ptJpoin, int direc,
+                               int skip);
+
 /*!
  * Creates one new contour and initializes it to default values.  Returns NULL
  * if error. 
@@ -1199,7 +1202,7 @@ int imodel_contour_nearest(Icont *cont, int x, int y)
  */ 
 
 /*!
- * Joins two contours [c1] and [c2] by adding a connecting line between them 
+ * Joins two contours [c1] and [c2] by adding a connecting lines between them 
  * and arranging points from the two contours into a single path. ^
  *   If [st1] and [st2] are >=0 the contours will be joined at points [st1] 
  * and [st2]; if either one is negative they will be joined at their nearest 
@@ -1209,7 +1212,11 @@ int imodel_contour_nearest(Icont *cont, int x, int y)
  * be given the general storage properties of the preceding point in the 
  * contour. ^
  *   If [counterdir] is nonzero the two contours will be made to go in opposite
- * directions before being joined.
+ * directions before being joined.  ^
+ *   If [fill] is 0, then it will separate the two connecting lines to leave an open
+ * channel between the contours, moving them each back up to 1 pixel from being in the
+ * same position.  Otherwise, the two connecting lines overlap.  This is needed for
+`* meshing, which is why the [fill] value prevents the separation.
  */
 Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
                        int counterdir)
@@ -1321,18 +1328,23 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
     }
   }
 
-  /* add points to new contour */
-  for(pt = 0; pt <= st1; pt++)
+  /* add points to new contour, backing off from drawing an overlapping connector line
+   unless the fill flag is set */
+  for(pt = 0; pt < st1; pt++)
     imodPointAppend(cont, &(c1->pts[pt]));
+  backoffAndAddPoint(cont, c1, st1, -1, fill);
   if (fill)
     imodPointAppend(cont, &point);
-  for(pt = st2; pt < c2->psize; pt++)
+  backoffAndAddPoint(cont, c2, st2, 1, fill);
+  for(pt = st2 + 1; pt < c2->psize; pt++)
     imodPointAppend(cont, &(c2->pts[pt]));
-  for(pt = 0; pt <= st2; pt++)
+  for(pt = 0; pt < st2; pt++)
     imodPointAppend(cont, &(c2->pts[pt]));
+  backoffAndAddPoint(cont, c2, st2, -1, fill);
   if (fill)
     imodPointAppend(cont, &point);
-  for(pt = st1; pt < c1->psize; pt++)
+  backoffAndAddPoint(cont, c1, st1, 1, fill);
+  for(pt = st1 + 1; pt < c1->psize; pt++)
     imodPointAppend(cont, &(c1->pts[pt]));
 
   pt2 = 0;
@@ -1367,6 +1379,28 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
   istoreCleanEnds(nstore);
   cont->store = nstore;
   return(cont);
+}
+
+/* Adds an endpoint of the connector when joining contours, which is at point joinPt
+ * in contour cfrom, and is being added to cont.  If keepPos is not non-zero, it backs the
+ * point off by up to 1 pixel or halfway to previous/next point depending on direc sign.
+ */
+static void backoffAndAddPoint(Icont *cont, Icont *cfrom, int joinPt, int direc,
+                               int keepPos)
+{
+  Ipoint point;
+  int dirFac = (direc >= 0 ? 1 : -1);
+  int lastPt = (joinPt + dirFac) % cfrom->psize;
+  float frac, seglen = imodPointDistance(&cfrom->pts[joinPt], &cfrom->pts[lastPt]);
+  if (keepPos || cfrom->psize < 3 || seglen < 1.e-3) {
+    imodPointAppend(cont, &cfrom->pts[joinPt]);
+    return;
+  }
+  point.z = cfrom->pts[joinPt].z;
+  frac = B3DMAX(0.5, 1. / seglen);
+  point.x = cfrom->pts[joinPt].x + frac * (cfrom->pts[lastPt].x - cfrom->pts[joinPt].x);
+  point.y = cfrom->pts[joinPt].y + frac * (cfrom->pts[lastPt].y - cfrom->pts[joinPt].y);
+  imodPointAppend(cont, &point);
 }
 
 /*!
