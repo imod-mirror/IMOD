@@ -429,32 +429,31 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     updateDisplay();
   }
 
-  public void removeParameters(final BatchruntomoParam param) {
-    table.removeParameters(param);
-  }
-
-  public boolean getParameters(final BatchruntomoParam param, final boolean doValidation) {
+  public boolean getParameters(final BatchruntomoParam param, final boolean doValidation,
+    final boolean forUpdate) {
     try {
-      if (cbDeliverToDirectory.isSelected()) {
-        param.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
-      }
-      else {
-        param.resetDeliverToDirectory();
-      }
-      if (!cbCPUMachineList.isSelected()) {
-        param.setCPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
-      }
-      if (rbGPUMachineListOff.isSelected()) {
-        param.resetGPUMachineList();
-      }
-      else if (rbGPUMachineListLocal.isSelected()) {
-        param.setGPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
-      }
-      if (ctfEmailAddress.isSelected()) {
-        param.setEmailAddress(ctfEmailAddress.getText(doValidation));
-      }
-      else {
-        param.resetEmailAddress();
+      if (!forUpdate) {
+        if (cbDeliverToDirectory.isSelected()) {
+          param.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
+        }
+        else {
+          param.resetDeliverToDirectory();
+        }
+        if (!cbCPUMachineList.isSelected()) {
+          param.setCPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+        }
+        if (rbGPUMachineListOff.isSelected()) {
+          param.resetGPUMachineList();
+        }
+        else if (rbGPUMachineListLocal.isSelected()) {
+          param.setGPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+        }
+        if (ctfEmailAddress.isSelected()) {
+          param.setEmailAddress(ctfEmailAddress.getText(doValidation));
+        }
+        else {
+          param.resetEmailAddress();
+        }
       }
       StringBuilder errMsg = new StringBuilder();
       boolean deliverToDirectory = cbDeliverToDirectory.isSelected();
@@ -482,7 +481,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
           "Datasets Cannot Share a Directory");
         return false;
       }
-      stepPanel.getParameters(param);
+      if (!forUpdate) {
+        stepPanel.getParameters(param);
+      }
       return true;
     }
     catch (FieldValidationFailedException e) {
