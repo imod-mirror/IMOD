@@ -453,19 +453,17 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     fcbskip.setEditable(open);
     cbcSurfacesToAnalyze.setEditable(open);
     bcEditDataset.setEditable(open);
-    if (status == BatchRunTomoStatus.KILLED_PAUSED) {
-      // Can only change the datasets in the current run.
-      cbcRun.setEditable(cbcRun.isSelected());
+    // Run checkbox:
+    // -ineditable when running
+    // -editable when killed or paused and selected (so it can be removed from the resume.
+    cbcRun
+      .setEditable((status != BatchRunTomoStatus.RUNNING && status != BatchRunTomoStatus.KILLED_PAUSED)
+        || (status == BatchRunTomoStatus.KILLED_PAUSED && cbcRun.isSelected()));
+    // Run checkbox is disabled via the runKeys when killed or paused (see the table
+    // rowlist). Enable it the rest of the time.
+    if (status != BatchRunTomoStatus.KILLED_PAUSED) {
+      cbcRun.setEnabled(true);
     }
-    else {
-      cbcRun.setEditable(status != BatchRunTomoStatus.RUNNING);
-    }
-    // After kill or pause, rows can be removed from resuming the brt run. A row that is
-    // Done or Stopped is already finished, and should be removed from the brt comfile.
-    // With Done, the Run checkbox is automatically unchecked. With Stopped the Run
-    // checkbox needs to be disabled.
-    cbcRun.setEnabled(status != BatchRunTomoStatus.KILLED_PAUSED || !cbcRun.isSelected()
-      || !BatchRunTomoDatasetStatus.STOPPED.equals(fcDatasetStatus.getText()));
     // Etomo and 3dmod buttons should not be used while the dataset is being run up, or
     // when the dataset is scheduled to be run up. But there is no need to block buttons
     // for datasets that are not part of the run.
@@ -476,6 +474,10 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     if (datasetDialog != null) {
       datasetDialog.statusChanged(this.status);
     }
+  }
+
+  void setEnabledRun(final boolean enabled) {
+    cbcRun.setEnabled(enabled);
   }
 
   /**
@@ -660,18 +662,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     updateDisplay();
   }
 
-  /**
-   * Removes entries from the param where the Run checkbox is unchecked or disabled.
-   * @return
-   */
-  void removeParameters(final BatchruntomoParam param) {
-    if (!cbcRun.isSelected() || !cbcRun.isEnabled()) {
-      // TODO
-      // param.remove(fcStack.getText());
-      // param.remove(origStack);
-    }
-  }
-
   public void getParameters(final BatchRunTomoMetaData metaData) {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
     this.metaData = rowMetaData;
@@ -691,7 +681,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
       return;
     }
     File stack = new File(fcStack.getExpandedValue());
-    param.addDirectiveFile(new File(stack.getParent(), getBatchDirectiveFileName()));
+    param.addDirectiveFile(new File(stack.getParent(), getBatchDirectiveFileName(fcStack
+      .getContractedValue())));
     String rootName = DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected());
     param.addRootName(rootName, deliverToDirectory, cbcDual.isSelected(), errMsg);
     if (!param.addCurrentLocation(stack.getParent(), !deliverToDirectory, errMsg)) {
@@ -699,17 +690,16 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     }
   }
 
-  private String getBatchDirectiveFileName() {
+  private String getBatchDirectiveFileName(final String fileName) {
     return manager.getName() + "_"
-      + DatasetTool.getDatasetName(fcStack.getContractedValue(), cbcDual.isSelected())
-      + ".adoc";
+      + DatasetTool.getDatasetName(fileName, cbcDual.isSelected()) + ".adoc";
   }
 
   void loadAutodoc() {
     DirectiveFile directiveFile =
       DirectiveFile.getInstance(manager, null,
         new File(new File(fcStack.getExpandedValue()).getParent(),
-          getBatchDirectiveFileName()), true);
+          getBatchDirectiveFileName(fcStack.getContractedValue())), true);
     setValues(directiveFile);
     DirectiveDef directiveDef = DirectiveDef.SKIP;
     if (directiveFile.contains(directiveDef)) {
@@ -732,7 +722,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     final File deliverToDirectory, final FieldDisplayer fieldDisplayer) {
     File stack = new File(fcStack.getExpandedValue());
     File originalLocation = stack.getParentFile();
-    File file = new File(originalLocation, getBatchDirectiveFileName());
+    File file =
+      new File(originalLocation, getBatchDirectiveFileName(fcStack.getContractedValue()));
     try {
       if (file.exists()) {
         Utilities.deleteFile(file, manager, null);
