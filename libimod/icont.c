@@ -1196,6 +1196,19 @@ int imodel_contour_nearest(Icont *cont, int x, int y)
   return(index);
 }
 
+/*!
+ * Returns 1 if contour [inner] is completely inside or touching contour [outer], 
+ * otherwise returns 0.
+ */
+int imodContourInsideCont(Icont *inner, Icont *outer)
+{
+  int pt;
+  for (pt = 0; pt < inner->psize; pt++)
+    if (!imodPointInsideCont(outer, &inner->pts[pt]))
+      return 0;
+  return 1;
+}
+
 /****************************************************************************/
 /* CONTOUR-MODIFYING FUNCTIONS
  * DOC_SECTION MODIFYING
