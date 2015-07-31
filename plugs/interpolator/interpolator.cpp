@@ -3495,7 +3495,7 @@ mergeAllTouchingConts( vector<IcontPtr> conts )
 	for(int i=1; i<int(conts.size()); i++)
 		if( cont_doContsTouch( conts[i-1].cont, conts[i].cont ) )
 		{
-      cont_getOuterUnionPolygon( conts[i-1].cont, conts[i-1].cont, conts[i].cont );
+      cont_getOuterUnionPolygon( conts[i-1].cont, conts[i-1].cont, conts[i].cont, 0 );
       deleteAllPts( conts[i].cont );
       eraseContour( conts, i );
 			i=0;

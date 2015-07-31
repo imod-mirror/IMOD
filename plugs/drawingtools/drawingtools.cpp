@@ -621,7 +621,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     case (DM_SCULPT):
     {
       if( plug.but2Pressed ) {
-        edit_executeSculptStart();
+        edit_executeSculptStart(false);
       }
       else if ( plug.but2Down ) {
         edit_executeSculpt();
@@ -649,7 +649,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     case (DM_JOIN):
     {
       if( plug.but2Pressed ) {
-        edit_executeSculptStart();
+        edit_executeSculptStart(true);
       }
       else if ( plug.but2Down ) {
         edit_executeSculpt();
@@ -7028,7 +7028,7 @@ bool edit_copiedContIfDiffSlice( bool selectNewCont )
 //-- current contour - if not then it will create a NEW contour
 //-- around the sculpt circle.
 
-void edit_executeSculptStart()
+void edit_executeSculptStart(bool makeInsideLists)
 {
 	plug.newContStarted = false;
     
@@ -7069,7 +7069,25 @@ void edit_executeSculptStart()
     imodSetIndex(imod, objIdx, newContPos, 0);
 		plug.newContStarted = true;
   }
-  
+
+  // For join, make list of contours inside and outside current one before starting
+  if (makeInsideLists) {
+    cont = imodContourGet(imod);
+    int zSlice = imodContourZValue( cont );
+    int objIdx, contIdx, ptIdx;
+    imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+    plug.outsideCurCont.clear();
+    plug.insideCurCont.clear();
+    for (int i=0; i<csize( obj ); i++) {
+      Icont *contCompare = getCont(obj, i);
+      if (getZ(contCompare) != zSlice || i == contIdx || isEmpty(contCompare))
+        continue;
+      if (imodContourInsideCont(cont, contCompare))
+        plug.outsideCurCont.insert(i);
+      else if (imodContourInsideCont(contCompare, cont))
+        plug.insideCurCont.insert(i);
+    }
+  }
 }
 
 
@@ -8294,6 +8312,7 @@ void edit_joinCurrContWithAnyTouching()
   Imod  *imod = ivwGetModel(plug.view);
   Iobj  *obj  = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
+  int contInside = 0;
   
   if( !isContValid(cont) )
     return;
@@ -8313,7 +8332,11 @@ void edit_joinCurrContWithAnyTouching()
     if( cont_doCountoursCross( cont, contCompare, true, true ) )
     {
       undoContourDataChgCC( plug.view );          // REGISTER UNDO
-      bool unionMade = cont_getOuterUnionPolygon( cont, cont, contCompare );
+      if (plug.outsideCurCont.count(i))
+        contInside = 1;
+      else if (plug.insideCurCont.count(i))
+        contInside = -1;
+      bool unionMade = cont_getOuterUnionPolygon( cont, cont, contCompare, contInside );
       
       if(unionMade)
       {

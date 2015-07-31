@@ -4536,14 +4536,16 @@ int cont_getIntersectingPolygons(vector<IcontPtr> &finConts, Icont *cont1, Icont
 
 //------------------------
 //-- Returns a vector of polygons representing the union (i.e. combined area)
-//-- of two contours.
+//-- of two contours.  contInside should be set to > 0 if cont1 was originally inside
+//-- cont2 or < 0 if cont2 was originally inside cont1
 //-- NOTE: If the two contours intersect in > 2 places then multiple
 //--       contours will be returned - one of them an "outer" contour
 //--       and the other ones will actual be holes in the outer contour.
 //--       (see "cont_getOuterUnionPolygon" for a diagram)
 //--
 
-int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont2 )
+int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont2,
+                           int contInside)
 {       
   finConts.clear();       // will store the final combined regions
                           // (the union of the two contours)
@@ -4601,12 +4603,16 @@ int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont
   {
     bool firstSegmentC1Inside = imodPointInsideCont(cont2, getPt(cont1Seg[0].cont,1));
     int offset = (firstSegmentC1Inside) ? 0 : 1 ;
+    if (contInside > 0)
+      offset = 1 - offset;
     for(int i=(int)cont1Seg.size()-1; i>=0; i--)
       if( i>=offset && i%2 == offset )
         eraseContour( cont1Seg, i );
     
     bool firstSegmentC2Inside = imodPointInsideCont(cont1, getPt(cont2Seg[0].cont,1));
     offset = (firstSegmentC2Inside) ? 0 : 1 ;
+    if (contInside < 0)
+      offset = 1 - offset;
     for(int i=(int)cont2Seg.size()-1; i>=0; i--)
       if( i>=offset && i%2 == offset )
         eraseContour( cont2Seg, i );
@@ -4671,6 +4677,8 @@ bool cont_smallerArea( IcontPtr c1, IcontPtr c2 ) {
 //------------------------
 //-- Returns a single polygon "newCont" representing the outer union
 //-- (i.e. combined outer area) of the two contours "cont1O" and "cont2O".
+//-- "contInside" should be > 0 if cont1O was originally inside cont2O, or < 0 of cont2O
+//-- was originally inside cont1O.
 //-- Returns true if successful, or false if could not find outer union successfully. 
 //-- NOTE: If the polygons don't overlap an empty polygon will be returned.
 //-- NOTE: If the polygons intersect at > 2 places then the union area
@@ -4695,13 +4703,14 @@ bool cont_smallerArea( IcontPtr c1, IcontPtr c2 ) {
 
 
 
-bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
+bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O,
+                                int contInside )
 {
   vector<IcontPtr> joinedConts;
-  cont_getUnionPolygons( joinedConts, cont1O, cont2O );
+  cont_getUnionPolygons( joinedConts, cont1O, cont2O, contInside );
   
   if ( joinedConts.empty() ) {
-    cont_getUnionPolygons( joinedConts, cont2O, cont1O );
+    cont_getUnionPolygons( joinedConts, cont2O, cont1O, -contInside );
   }
   
   if ( joinedConts.empty() ) {        // if contours don't touch: return empty contour
