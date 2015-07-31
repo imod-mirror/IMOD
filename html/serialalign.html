@@ -69,8 +69,9 @@ in the eTomo Options menu. There is also an option on the Align tab to load
 data into <A HREF = "man/midas.html#TOP">Midas</A> with binning, which will
 save memory, make the program run faster, and may make the images look better
 than full-sized images zoomed down.
-
+</P>
 <H3><A NAME = "Starting"></A>Getting Started</H3>
+<P>
 The images that you want to align need to be in a single MRC file, referred to as
 a stack.  If your images are in one section per file, then they can be stacked
 with <A HREF = "man/newstack.html#TOP">Newstack</A> (if they are already in
@@ -107,7 +108,7 @@ This dialog also has a place
 (<code>/usr/local/ImodCalib/Distortion</code> by default).  If you select a
     distortion file, be sure to set the binning on the camera at which the
     images were acquired.
-
+</P>
 <H3><A NAME = "Blending"></A>Blending Montaged Images</H3>
 <P>
 If you have a montaged image stack, the interface opens with the <B>Initial
@@ -197,8 +198,9 @@ help and the section on <B>Fixing Montage Overlaps</B> in the
 <P>
 After fixing edges, you need to save the shifts, exit 
 <A HREF = "man/midas.html#TOP">Midas</A>, and remake the blended stack.
-
+</P>
 <H3><A NAME = "Aligning"></A>Aligning the Serial Sections with Linear Transformations</H3>
+<P>
 On the <B>Align</B> tab in the eTomo interface, you can do both automated alignment with 
 <A HREF = "man/xfalign.html#TOP">Xfalign</A> and manual alignment with 
 <A HREF = "man/midas.html#TOP">Midas</A>.  Nearly all of the controls are for
@@ -276,8 +278,9 @@ skipped one.
   images, press <B>Initial Auto Autoalignment</B>.  You can then examine how
   well the alignment worked in <A HREF = "man/midas.html#TOP">Midas</A>, as
   described in the next section.
-
+</P>
 <h3><A NAME = "Manual"></A> Manually Editing an Alignment</H3>
+<P>
 The program <A HREF = "man/midas.html#TOP">Midas</A> provides for interactive
 visualization and manual adjustment of the alignment between two images.  Like
 automatic alignment, it works with a list of transformations that relate each
@@ -327,8 +330,9 @@ transformation:
   transform or to a previously saved one.
 <LI> Use the "S" hot key to save the transforms before exiting.
 </UL>
-
+</P>
 <h3><A NAME = "UsingBoth"></A>Combining Automatic and Manual Alignment</H3>
+<P>
 The action buttons at the bottom of the alignment panel provide for several
 alternative strategies and do not all need to be used.  Possibilities are:
 <UL>
@@ -350,7 +354,7 @@ check and fix the result with <B>Midas</B>, then use  <B>Refine
   that produces results not worth working from, you can press 
 <B>Revert Auto Alignment to Midas</B> to restore the transforms that were
 saved from <A HREF = "man/midas.html#TOP">Midas</A>. 
-  
+</P>  
 <h3><A NAME = "Warping"></A>Aligning Images with Warping</H3>
 <P>
 A warping (nonlinear) transformation is specified by a set of shifts between
@@ -425,7 +429,7 @@ without the warping.  Use <A HREF = "man/midas.html#TOP">Midas</A>
 to fix any problems from that search.  Then use <B>Refine with Auto
     Alignment</B> to add the warping, omitting the linear search by turning
 off <B>Search For</B>.
-
+</P>
 <h3><A NAME = "Images"></A>Creating the Aligned Stack</H3>
 <P>
 Once you have satisfactory transforms for aligning the images, go to the 
@@ -476,8 +480,9 @@ resolutions, using the command-line program
 <A HREF = "man/makepyramid.html#TOP">Makepyramid</A>, which allows relatively fast
 access to the image data in <A HREF = "man/3dmod.html#TOP">3dmod</A>
 without needing huge amounts of memory.
-
+</P>
 <H3><A NAME = "Handedness"></A>Stacking Order and Handedness of Structures</H3>
+<P>
 The order in which your images are stacked affects whether structures in your
 reconstruction have the correct handedness.  Handedness matters if you are
 reconstructing structures such as microtubule bundles that may twist,
@@ -526,6 +531,7 @@ For serial block-face imaging with scanning EM, the handedness depends on two fa
 <LI> Whether the images are stacked in the order in which they are acquired
   (-1) or in inverted order (1), for the same reasons as with transmission EM.
 </UL>
+<P>
 Yes, if the images are not inverted and they are stacked in order,
 handedness <I>will</I> be inverted.  The programs
 <A HREF = "man/tif2mrc.html#TOP">Tif2mrc</A>,
@@ -533,7 +539,7 @@ handedness <I>will</I> be inverted.  The programs
 <A HREF = "man/raw2mrc.html#TOP">Raw2mrc</A> all have an option "-i" to stack
 images in inverted order, specifically in order to preserve handedness when
 converting these kind of data to MRC files.
-
+</P>
 <H3><A NAME = "Linear"></A>Background on Linear Transformations</H3>
 <P>
 Two images can be aligned by applying a coordinate transformation to
@@ -597,11 +603,13 @@ line of the file specifies:
 <pre>
    A11   A12   A21   A22   DX  DY
 </pre>
+<P>
 The command-line program 
 <A HREF = "man/xf2rotmagstr.html#TOP">Xf2rotmagstr</A> can be used to convert
 the transforms in a file into natural parameters.
-
+</P>
 <h3><A NAME = "FandG"></A>Background on F and G Transforms</h3>
+<P>
 Whenever there are more than two images, a series of transforms will be
 needed to align the whole stack of images.  This series is obtained in two
 stages.  First, each successive pair of images is considered separately, and a
@@ -638,10 +646,12 @@ transforms produce a proper alignment:
  1 ____-+------+---    g: DX = +4
  0 -----+------+--_    g: DX = -1
 </pre>
+<P>
 In summary, <b>f</b> transforms align each section to the preceding
 one; <b>g</b> transforms align each section to the whole stack.
-
+</P>
 <h3><A NAME = "FtoG2"></A>Converting from an F List to a G List</h3>
+<P>
 As discussed in <A HREF = "#FandG">Background on F and G Transforms</A>, to get from the
 list of <b>f</b> transforms to a useful
 stack of aligned images, one must first convert them to <b>g</b> transforms using the
@@ -744,8 +754,9 @@ microtubules may have a twist, and if these microtubules dominate the
 alignment, the alignment will contain a progressive rotation that should be
 preserved.  Choose <B>Remove trends in translation & rotation</B> to eliminate
 rotation trends.
-
+</P>
 <H3><A NAME = "Fiducial"></A>
+<P>
 Generating or Editing an Alignment with Fiducial Points</H3>
 The program <A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can solve for the
 parameters of a transformation between sections from the locations of points
@@ -773,8 +784,9 @@ to a new alignment (see below).
 One
 limitation is that a warping transform file cannot be used as an existing
 transform file to be edited by <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>.
-
+</P>
 <H3><A NAME = "Realigning"></A>Realigning Images and Models</H3>
+<P>
 Sometimes one will find after modeling on a set of images that the
 alignment needs to be improved.  
 The operations to run depend on whether you
