@@ -128,7 +128,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private final MultiLineButton btnRevertToGlobal;
 
   private String lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
-  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.DEFAULT;
 
   private BatchRunTomoRow row;
   private boolean emptyTable;
