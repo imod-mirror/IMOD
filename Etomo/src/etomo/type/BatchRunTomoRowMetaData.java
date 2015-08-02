@@ -10,14 +10,14 @@ import java.util.Properties;
  * @version $Id$
  */
 public final class BatchRunTomoRowMetaData {
-  private static final String GROUP_KEY = "Row";
+  private static final String GROUP_KEY = "row";
   private static final String ROW_NUMBER_KEY = "RowNumber";
   private static final String DATASET_STATUS_KEY = "DatasetStatus";
   private static final String ENDING_STEP_KEY = "EndingStep";
 
   private final EtomoNumber rowNumber = new EtomoNumber(ROW_NUMBER_KEY);
-  private final EtomoBoolean2 dual = new EtomoBoolean2("Dual");
-  private final StringProperty bskip = new StringProperty("BSkip");
+  private final EtomoBoolean2 dual = new EtomoBoolean2("dual");
+  private final StringProperty bskip = new StringProperty("bskip");
   private final EtomoBoolean2 run = new EtomoBoolean2("Run");
   private final StringProperty origStack = new StringProperty("OrigStack");
   private final EtomoBoolean2 etomoEnabled = new EtomoBoolean2("Etomo.Enabled");
