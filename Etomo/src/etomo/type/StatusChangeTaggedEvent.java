@@ -1,9 +1,20 @@
 package etomo.type;
 
+/**
+* <p>Description: An event with an identifying tag.  Also contains an extra, optional
+* string.</p>
+* 
+* <p>Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
+*/
 public class StatusChangeTaggedEvent implements StatusChangeEvent {
   private final String tag;
   private final String string;
-  private final Status status;
+
+  private Status status = null;
 
   public StatusChangeTaggedEvent(final String tag, final Status status) {
     this.tag = tag;
@@ -20,6 +31,10 @@ public class StatusChangeTaggedEvent implements StatusChangeEvent {
 
   public boolean equals(final String input) {
     return (tag == null && input == null) || (tag != null && tag.equals(input));
+  }
+
+  public void setStatus(final Status status) {
+    this.status = status;
   }
 
   public String getString() {
