@@ -197,7 +197,13 @@ public final class BatchRunTomoManager extends BaseManager {
     return screenState;
   }
 
+  /**
+   * Save on exit.
+   */
   public boolean save() throws LogFile.LockException, IOException {
+    if (dialog.isStatusKilledPaused()) {
+      dialog.startOver();
+    }
     mainPanel.startProgressBar("Saving Files", AXIS_ID);
     Utilities.timestamp("save", "start");
     super.save();
