@@ -33,7 +33,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   private final BatchRunTomoDatasetMetaData datasetMetaData =
     new BatchRunTomoDatasetMetaData();
   private final PanelHeaderSettings datasetTableHeader = new PanelHeaderSettings(
-    "DatasetTableHeader");
+    "datasetTableHeader");
   private EtomoBoolean2 useExistingAlignment = new EtomoBoolean2("UseExistingAlignment");
   private EtomoBoolean2 useEndingStep = new EtomoBoolean2(ENDING_STEP_KEY + ".Use");
   private EtomoBoolean2 useStartingStep = new EtomoBoolean2(STARTING_STEP_KEY + ".Use");
