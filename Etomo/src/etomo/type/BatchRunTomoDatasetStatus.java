@@ -13,51 +13,54 @@ package etomo.type;
 */
 public final class BatchRunTomoDatasetStatus implements Status {
   public static final BatchRunTomoDatasetStatus DONE = new BatchRunTomoDatasetStatus(
-    "Done", false);
+    "Done", false, "Done");
   public static final BatchRunTomoDatasetStatus FAILED = new BatchRunTomoDatasetStatus(
-    "Failed", false);
+    "Failed", false, "Failed");
   public static final BatchRunTomoDatasetStatus FAILING = new BatchRunTomoDatasetStatus(
-    "Running", true);
+    "Running", true, "Failing");
   public static final BatchRunTomoDatasetStatus KILLED = new BatchRunTomoDatasetStatus(
-    "Killed", false);
+    "Killed", false, "Killed");
   public static final BatchRunTomoDatasetStatus RUNNING = new BatchRunTomoDatasetStatus(
-    "Running", true);
+    "Running", true, "Running");
   public static final BatchRunTomoDatasetStatus STARTING = new BatchRunTomoDatasetStatus(
-    "Running", true);
+    "Running", true, "Starting");
   public static final BatchRunTomoDatasetStatus STOPPED = new BatchRunTomoDatasetStatus(
-    "Stopped", false);
+    "Stopped", false, "Stopped");
 
   private final String text;
   private final boolean active;
+  private final String key;
 
-  private BatchRunTomoDatasetStatus(final String text, final boolean active) {
+  private BatchRunTomoDatasetStatus(final String text, final boolean active,
+    final String key) {
     this.text = text;
     this.active = active;
+    this.key = key;
   }
 
-  public static BatchRunTomoDatasetStatus getInstance(final String text) {
-    if (text == null) {
+  public static BatchRunTomoDatasetStatus getInstance(final String key) {
+    if (key == null) {
       return null;
     }
-    if (DONE.text.equals(text)) {
+    if (DONE.key.equals(key)) {
       return DONE;
     }
-    if (FAILED.text.equals(text)) {
+    if (FAILED.key.equals(key)) {
       return FAILED;
     }
-    if (FAILING.text.equals(text)) {
+    if (FAILING.key.equals(key)) {
       return FAILING;
     }
-    if (KILLED.text.equals(text)) {
+    if (KILLED.key.equals(key)) {
       return KILLED;
     }
-    if (RUNNING.text.equals(text)) {
+    if (RUNNING.key.equals(key)) {
       return RUNNING;
     }
-    if (STARTING.text.equals(text)) {
+    if (STARTING.key.equals(key)) {
       return STARTING;
     }
-    if (STOPPED.text.equals(text)) {
+    if (STOPPED.key.equals(key)) {
       return STOPPED;
     }
     return null;
@@ -69,6 +72,10 @@ public final class BatchRunTomoDatasetStatus implements Status {
 
   public String getText() {
     return text;
+  }
+
+  public String getKey() {
+    return key;
   }
 
   public String toString() {
