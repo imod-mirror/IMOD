@@ -456,7 +456,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       if (line.indexOf(ProcessOutputStrings.BRT_STARTING_DATASET_TAG) != -1) {
         recognized = true;
         runKeys.next();
-        System.out.println("B:index:"+runKeys.getIndex());
         datasetRunning = true;
         datasetFailed = false;
         datasetDelivered = false;
