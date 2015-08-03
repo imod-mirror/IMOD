@@ -116,9 +116,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   private int imodIndexB = -1;
   private BatchRunTomoDatasetDialog datasetDialog = null;
   private BatchRunTomoRowMetaData metaData = null;
-  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.DEFAULT;
   private boolean debug = false;
   private String origStack = null;
+  private BatchRunTomoDatasetStatus datasetStatus = null;
+  private EndingStep endingStep = null;
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
@@ -174,7 +176,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
       cbcDual.setSelected(dual);
     }
     cbcRun.setSelected(true);
-    // mbcEtomo.setEnabled(false);
     // directives
     cbcDual.setDirectiveDef(DirectiveDef.DUAL);
     cbcMontage.setDirectiveDef(DirectiveDef.MONTAGE);
@@ -487,20 +488,19 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
    * @return the status in event if it was assigned to fcEndingStep and the run checkbox is selected
    */
   public void statusChanged(final StatusChangeEvent event) {
-    if (event == null || !(event instanceof StatusChangeTaggedEvent)) {
+    // Only respond so an event directed towards this row instance.
+    if (!(event instanceof StatusChangeTaggedEvent) || event == null
+      || !((StatusChangeTaggedEvent) event).equals(stackID)) {
       return;
     }
     Status status = event.getStatus();
     if (status == null) {
       return;
     }
-    // Only respond so an event directed towards this row instance.
-    StatusChangeTaggedEvent taggedEvent = (StatusChangeTaggedEvent) event;
-    if (!taggedEvent.equals(stackID)) {
-      return;
-    }
     if (status instanceof BatchRunTomoDatasetStatus) {
-      BatchRunTomoDatasetStatus datasetStatus = (BatchRunTomoDatasetStatus) status;
+      // Keep these two variables in sync.
+      datasetStatus = (BatchRunTomoDatasetStatus) status;
+      fcDatasetStatus.setValue(datasetStatus.getText());
       fcDatasetStatus.setError(false);
       fcDatasetStatus.setRunHighlight(false);
       if (!datasetStatus.isActive()) {
@@ -517,7 +517,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
         fcDatasetStatus.setRunHighlight(true);
       }
       // Monitor has found information on the state of the current dataset being run up
-      fcDatasetStatus.setValue(datasetStatus.getText());
 
       if (status == BatchRunTomoDatasetStatus.DONE
         || status == BatchRunTomoDatasetStatus.RUNNING) {
@@ -535,7 +534,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
       if (origStack == null) {
         origStack = currentFile;
       }
-      String newFile = taggedEvent.getString();
+      String newFile = ((StatusChangeTaggedEvent) event).getString();
       if (command == BatchRunTomoCommand.RENAMED) {
         // Switching only the file name.
         newFile =
@@ -545,7 +544,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
       fcStack.setValue(newFile);
     }
     else if (status instanceof EndingStep) {
-      EndingStep endingStep = (EndingStep) status;
+      endingStep = (EndingStep) status;
       // A step isn't completed until both axes have finished it. Ignore the first
       // axis
       // in a dual axis tomogram.
@@ -655,9 +654,29 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     else {
       fcEditDataset.setValue();
     }
+    origStack = rowMetaData.getOrigStack();
+    mbcEtomo.setEnabled(rowMetaData.isEtomoEnabled());
     if (isDatasetDialog) {
       datasetDialog = BatchRunTomoDatasetDialog.getSavedRowInstance(manager, this);
       datasetDialog.setParameters(rowMetaData.getDatasetMetaData());
+    }
+    // Set off internal status changed events.
+    statusChanged(metaData.getStatus());
+    BatchRunTomoDatasetStatus datasetStatus = rowMetaData.getDatasetStatus();
+    StatusChangeTaggedEvent event = null;
+    if (datasetStatus != null) {
+      event = new StatusChangeTaggedEvent(stackID, datasetStatus);
+      statusChanged(event);
+    }
+    EndingStep endingStep = rowMetaData.getEndingStep();
+    if (endingStep != null) {
+      if (event == null) {
+        event = new StatusChangeTaggedEvent(stackID, endingStep);
+      }
+      else {
+        event.setStatus(endingStep);
+      }
+      statusChanged(event);
     }
     updateDisplay();
   }
@@ -670,9 +689,13 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     rowMetaData.setBskip(fcbskip.getValue());
     rowMetaData.setRun(cbcRun.isSelected());
     rowMetaData.setDatasetDialog(datasetDialog != null);
+    rowMetaData.setOrigStack(origStack);
+    rowMetaData.setEtomoEnabled(mbcEtomo.isEnabled());
     if (datasetDialog != null) {
       datasetDialog.getParameters(rowMetaData.getDatasetMetaData());
     }
+    rowMetaData.setDatasetStatus(datasetStatus);
+    rowMetaData.setEndingStep(endingStep);
   }
 
   public void getParameters(final BatchruntomoParam param,
