@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -113,8 +113,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final BatchRunTomoStepPanel stepPanel;
 
   private BatchRunTomoTab curTab = null;
-  private Vector<StatusChangeListener> listeners = null;
-  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
+  private ArrayList<StatusChangeListener> listeners = null;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.DEFAULT;
 
   private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID,
     final TableReference tableReference) {
@@ -314,7 +314,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     if (listeners == null) {
       synchronized (this) {
         if (listeners == null) {
-          listeners = new Vector<StatusChangeListener>();
+          listeners = new ArrayList<StatusChangeListener>();
           newElement = true;
         }
       }
@@ -346,12 +346,16 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       ltfRootName.setEditable(false);
       ftfRootDir.setText(manager.getPropertyUserDir());
       ftfRootDir.setEditable(false);
+      cbDeliverToDirectory.setEditable(false);
+      ftfDeliverToDirectory.setEditable(false);
       ftfDeliverToDirectory.setText(metaData.getDeliverToDirectory());
       ftfInputDirectiveFile.setText(metaData.getInputDirectiveFile());
       ftfInputDirectiveFile.checkpoint();
       table.setParameters(metaData);
+      stepPanel.setParameters(metaData);
       datasetDialog.setParameters(metaData.getDatasetMetaData());
       phDatasetTable.set(metaData.getDatasetTableHeader());
+      statusChanged(metaData.getStatus());
     }
     else {
       ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
@@ -369,6 +373,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   public void disableDatasetFields() {
     ltfRootName.setEditable(false);
     ftfRootDir.setEditable(false);
+    cbDeliverToDirectory.setEditable(false);
+    ftfDeliverToDirectory.setEditable(false);
   }
 
   public void getParameters(final UserConfiguration userConfiguration) {
@@ -402,8 +408,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     metaData.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
     metaData.setInputDirectiveFile(ftfInputDirectiveFile.getFile());
     table.getParameters(metaData);
+    stepPanel.getParameters(metaData);
     datasetDialog.getParameters(metaData.getDatasetMetaData());
     metaData.setDatasetTableHeader(phDatasetTable);
+    metaData.setStatus(status);
   }
 
   public void setParameters(final BatchruntomoParam param) {
@@ -591,18 +599,22 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         curTab == BatchRunTomoTab.RUN);
     }
     else if (actionCommand.equals(btnStartOver.getActionCommand())) {
-      statusChanged(BatchRunTomoStatus.OPEN);
-      if (listeners != null) {
-        for (int i = 0; i < listeners.size(); i++) {
-          listeners.get(i).statusChanged(status);
-        }
-      }
+      startOver();
     }
     else if (actionCommand.equals(btnPause.getActionCommand())) {
       manager.pause(axisID);
     }
     else {
       updateDisplay();
+    }
+  }
+
+  public void startOver() {
+    statusChanged(BatchRunTomoStatus.OPEN);
+    if (listeners != null) {
+      for (int i = 0; i < listeners.size(); i++) {
+        listeners.get(i).statusChanged(status);
+      }
     }
   }
 
@@ -775,6 +787,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ftfDeliverToDirectory.setEnabled(cbDeliverToDirectory.isSelected());
   }
 
+  public boolean isStatusKilledPaused() {
+    return status == BatchRunTomoStatus.KILLED_PAUSED;
+  }
+
   public void statusChanged(final Status status) {
     if (status == null || !(status instanceof BatchRunTomoStatus)) {
       return;
@@ -788,11 +804,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     rbGPUMachineList.setEditable(open);
     btnRun.setEditable(open || status == BatchRunTomoStatus.STOPPED);
     ftfInputDirectiveFile.setEditable(open);
-    cbDeliverToDirectory.setEditable(open);
-    if (cbDeliverToDirectory.isEnabled()) {
-      cbDeliverToDirectory.setEnabled(status != BatchRunTomoStatus.RUNNING);
-    }
-    ftfDeliverToDirectory.setEditable(open);
     templatePanel.setEditable(open);
     // Running - enable
     // pause
