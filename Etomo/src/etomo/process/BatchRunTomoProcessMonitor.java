@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import javax.swing.SwingUtilities;
+
 import etomo.BatchRunTomoManager;
 import etomo.process.ProcessMessages;
 import etomo.storage.LogFile;
@@ -201,7 +203,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       if (pausing || killing) {
         status = BatchRunTomoStatus.KILLED_PAUSED;
         if (killing) {
-          //runKeys should be pointing to the last completed dataset.
+          // runKeys should be pointing to the last completed dataset.
           runKeys.previous();
         }
       }
@@ -216,41 +218,22 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   }
 
   private void sendStatusChanged(final BatchRunTomoStatus status) {
-    if (listeners != null) {
-      for (int i = 0; i < listeners.size(); i++) {
-        listeners.get(i).statusChanged(status);
-      }
-    }
+    SwingUtilities.invokeLater(new StatusChangeEventSender(status));
   }
 
   private void sendStatusChanged(final BatchRunTomoDatasetStatus status) {
-    if (listeners != null) {
-      StatusChangeEvent event =
-        new StatusChangeTaggedEvent(runKeys.getCurrent(), status);
-      for (int i = 0; i < listeners.size(); i++) {
-        listeners.get(i).statusChanged(event);
-      }
-    }
+    SwingUtilities.invokeLater(new StatusChangeEventSender(new StatusChangeTaggedEvent(
+      runKeys.getCurrent(), status)));
   }
 
   private void sendStatusChanged(final Status status) {
-    if (listeners != null) {
-      StatusChangeEvent event =
-        new StatusChangeTaggedEvent(runKeys.getCurrent(), status);
-      for (int i = 0; i < listeners.size(); i++) {
-        listeners.get(i).statusChanged(event);
-      }
-    }
+    SwingUtilities.invokeLater(new StatusChangeEventSender(new StatusChangeTaggedEvent(
+      runKeys.getCurrent(), status)));
   }
 
   private void sendStatusChanged(final BatchRunTomoCommand status, final String string) {
-    if (listeners != null) {
-      StatusChangeEvent event =
-        new StatusChangeTaggedEvent(runKeys.getCurrent(), string, status);
-      for (int i = 0; i < listeners.size(); i++) {
-        listeners.get(i).statusChanged(event);
-      }
-    }
+    SwingUtilities.invokeLater(new StatusChangeEventSender(new StatusChangeTaggedEvent(
+      runKeys.getCurrent(), string, status)));
   }
 
   public void msgLogFileRenamed() {}
@@ -690,6 +673,38 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     if (processOutput == null) {
       processOutput =
         LogFile.getInstance(FileType.BATCH_RUN_TOMO_LOG.getFile(manager, axisID));
+    }
+  }
+
+  private final class StatusChangeEventSender implements Runnable {
+    private final Status status;
+    private final StatusChangeEvent event;
+
+    private StatusChangeEventSender(Status status) {
+      this.status = status;
+      event = null;
+    }
+
+    private StatusChangeEventSender(StatusChangeEvent event) {
+      status = null;
+      this.event = event;
+    }
+
+    public void run() {
+      if (listeners == null) {
+        return;
+      }
+      int size = listeners.size();
+      if (status != null) {
+        for (int i = 0; i < size; i++) {
+          listeners.get(i).statusChanged(status);
+        }
+      }
+      else if (event != null) {
+        for (int i = 0; i < size; i++) {
+          listeners.get(i).statusChanged(event);
+        }
+      }
     }
   }
 }
