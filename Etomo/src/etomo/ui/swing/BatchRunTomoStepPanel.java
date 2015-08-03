@@ -16,6 +16,7 @@ import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoStatus;
 import etomo.type.EndingStep;
 import etomo.type.EtomoAutodoc;
@@ -49,7 +50,7 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
   private final AxisID axisID;
 
   private EndingStep earliestRunEndingStep = null;
-  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.DEFAULT;
 
   private BatchRunTomoStepPanel(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -253,39 +254,70 @@ final class BatchRunTomoStepPanel implements ActionListener, StatusChangeListene
     }
   }
 
+  void getParameters(final BatchRunTomoMetaData metaData) {
+    metaData.setUseEndingStep(cbEndingStep.isSelected());
+    RadioButton.RadioButtonModel model =
+      (RadioButton.RadioButtonModel) bgEndingStep.getSelection();
+    if (model != null) {
+      EndingStep endingStep = (EndingStep) model.getEnumeratedType();
+      if (endingStep != null) {
+        metaData.setEndingStep(endingStep);
+      }
+    }
+    metaData.setUseStartingStep(cbStartingStep.isSelected());
+    model = (RadioButton.RadioButtonModel) bgStartingStep.getSelection();
+    if (model != null) {
+      StartingStep startingStep = (StartingStep) model.getEnumeratedType();
+      if (startingStep != null) {
+        metaData.setStartingStep(startingStep);
+      }
+    }
+    metaData.setUseExistingAlignment(!cbDoNotUseExistingAlignment.isSelected());
+  }
+
+  void setParameters(final BatchRunTomoMetaData metaData) {
+    cbEndingStep.setSelected(metaData.isUseEndingStep());
+    EndingStep endingStep = metaData.getEndingStep();
+    if(endingStep!=null) {
+      rbEndingStep[endingStep.getIndex()].setSelected(true);
+    }
+    cbStartingStep.setSelected(metaData.isUseStartingStep());
+    StartingStep startingStep = metaData.getStartingStep();
+    if(startingStep!=null) {
+      rbStartingStep[startingStep.getIndex()].setSelected(true);
+    }
+    cbDoNotUseExistingAlignment.setSelected(!metaData.isUseExistingAlignment());
+    statusChanged(metaData.getStatus());
+    statusChanged(metaData.getEarliestRunEndingStep());
+  }
+
   void setParameters(final BatchruntomoParam param) {
     EndingStep endingStep = EndingStep.getInstance(param.getEndingStep());
     if (endingStep != null) {
       rbEndingStep[endingStep.getIndex()].setSelected(true);
     }
-    else {
-      cbEndingStep.setSelected(false);
-    }
     StartingStep startingStep = StartingStep.getInstance(param.getStartingStep());
     if (startingStep != null) {
       rbStartingStep[startingStep.getIndex()].setSelected(true);
-    }
-    else {
-      cbStartingStep.setSelected(false);
     }
     cbDoNotUseExistingAlignment.setSelected(!param.isUseExistingAlignment());
     updateDisplay();
   }
 
   void getParameters(final BatchruntomoParam param) {
-    RadioButton.RadioButtonModel radioButtonModel;
+    RadioButton.RadioButtonModel model;
     param.resetEndingStep();
     if (cbEndingStep.isEnabled() && cbEndingStep.isSelected()) {
-      radioButtonModel = (RadioButton.RadioButtonModel) bgEndingStep.getSelection();
-      if (radioButtonModel != null && radioButtonModel.isEnabled()) {
-        param.setEndingStep(radioButtonModel.getEnumeratedType().getValue());
+      model = (RadioButton.RadioButtonModel) bgEndingStep.getSelection();
+      if (model != null && model.isEnabled()) {
+        param.setEndingStep(model.getEnumeratedType().getValue());
       }
     }
     param.resetStartingStep();
     if (cbStartingStep.isEnabled() && cbStartingStep.isSelected()) {
-      radioButtonModel = (RadioButton.RadioButtonModel) bgStartingStep.getSelection();
-      if (radioButtonModel != null && radioButtonModel.isEnabled()) {
-        param.setStartingStep(radioButtonModel.getEnumeratedType().getValue());
+      model = (RadioButton.RadioButtonModel) bgStartingStep.getSelection();
+      if (model != null && model.isEnabled()) {
+        param.setStartingStep(model.getEnumeratedType().getValue());
       }
     }
     param.setUseExistingAlignment(!cbDoNotUseExistingAlignment.isSelected());
