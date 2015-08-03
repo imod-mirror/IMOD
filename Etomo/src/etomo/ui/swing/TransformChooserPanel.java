@@ -96,7 +96,7 @@ final class TransformChooserPanel {
     pnlChooser.setLayout(new BoxLayout(pnlChooser, BoxLayout.Y_AXIS));
     pnlChooser.setAlignmentX(Component.CENTER_ALIGNMENT);
     if (cbSearch != null) {
-      pnlChooser.add(cbSearch);
+      pnlChooser.add(cbSearch.getComponent());
     }
     else {
       pnlChooser.add(new JLabel(SEARCH_LABEL));

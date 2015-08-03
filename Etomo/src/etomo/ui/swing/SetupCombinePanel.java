@@ -658,7 +658,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlPatchSize.add(pnlPatchRegionModel);
     // PatchRegionModel
     pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel, BoxLayout.Y_AXIS));
-    pnlPatchRegionModel.add(cbPatchRegionModel);
+    pnlPatchRegionModel.add(cbPatchRegionModel.getComponent());
     pnlPatchRegionModel.add(btnPatchRegionModel.getComponent());
     // AutoPatch
     pnlAutoPatch.setLayout(new BoxLayout(pnlAutoPatch, BoxLayout.Y_AXIS));
@@ -671,7 +671,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // AutoPatchFinalSizeCheckBox
     pnlAutoPatchFinalSizeCheckBox.setLayout(new BoxLayout(pnlAutoPatchFinalSizeCheckBox,
       BoxLayout.X_AXIS));
-    pnlAutoPatchFinalSizeCheckBox.add(cbAutoPatchFinalSize);
+    pnlAutoPatchFinalSizeCheckBox.add(cbAutoPatchFinalSize.getComponent());
     pnlAutoPatchFinalSizeCheckBox.add(Box.createHorizontalGlue());
     // MinMax
     pnlMinMax.setLayout(new BoxLayout(pnlMinMax, BoxLayout.X_AXIS));
@@ -700,12 +700,12 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // ParallelProcess
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(cbParallelProcess.getComponent());
     pnlParallelProcess.add(Box.createHorizontalGlue());
     // NoVolcombine
     pnlNoVolcombine.setLayout(new BoxLayout(pnlNoVolcombine, BoxLayout.X_AXIS));
     pnlNoVolcombine.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlNoVolcombine.add(cbNoVolcombine);
+    pnlNoVolcombine.add(cbNoVolcombine.getComponent());
     pnlNoVolcombine.add(Box.createHorizontalGlue());
     // TempDirectory
     pnlTempDirectory.setBorder(BorderFactory.createEtchedBorder());
@@ -720,7 +720,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // ManualCleanup
     pnlManualCleanup.setLayout(new BoxLayout(pnlManualCleanup, BoxLayout.X_AXIS));
     pnlManualCleanup.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlManualCleanup.add(cbManualCleanup);
+    pnlManualCleanup.add(cbManualCleanup.getComponent());
     pnlManualCleanup.add(Box.createHorizontalGlue());
     // Button
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));

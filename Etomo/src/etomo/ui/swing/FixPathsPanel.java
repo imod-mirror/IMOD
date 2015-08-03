@@ -90,7 +90,7 @@ final class FixPathsPanel implements Expandable {
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     lblwarning.setForeground(ProcessControlPanel.colorNotStarted);
     pnlBody.add(lblwarning);
-    pnlBody.add(cbChoosePathEveryRow);
+    pnlBody.add(cbChoosePathEveryRow.getComponent());
     JPanel pnlButton = new JPanel();
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());

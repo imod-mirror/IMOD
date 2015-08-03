@@ -17,7 +17,7 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
@@ -51,6 +51,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   private BooleanFieldSetting checkpoint = null;
   private BooleanFieldSetting defaultValue = null;
   private BooleanFieldSetting fieldHighlight = null;
+  private boolean enabled = true;
+  private boolean editable = true;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -121,7 +123,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   public boolean isText() {
     return false;
   }
-  
+
   public boolean isVisible() {
     return radioButton.isVisible();
   }
@@ -208,7 +210,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     // only search for default value once
     if (defaultValue == null) {
       defaultValue = new BooleanFieldSetting();
-      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      String value = AutodocAttributeRetriever.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
         defaultValue.set(value);
@@ -223,10 +225,12 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     return defaultValue != null && defaultValue.isSet()
       && defaultValue.equals(isSelected());
   }
-  public boolean equalsDefaultValue(final String  value) {
+
+  public boolean equalsDefaultValue(final String value) {
     return defaultValue != null && defaultValue.isSet()
-      && defaultValue.equals(value !=null&&!value.matches("\\s*"));
+      && defaultValue.equals(value != null && !value.matches("\\s*"));
   }
+
   public boolean equalsDefaultValue(final boolean input) {
     return defaultValue != null && defaultValue.isSet() && defaultValue.equals(input);
   }
@@ -424,8 +428,36 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     setToolTipText(text);
   }
 
-  void setToolTipText(final String text) {
+  public void setToolTipText(final String text) {
     radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      radioButton.setToolTipText(field.getTooltip());
+    }
+  }
+
+  public String getTooltip() {
+    return radioButton.getToolTipText();
+  }
+
+  void setPreformattedTooltip(final String tooltip) {
+    radioButton.setToolTipText(tooltip);
+  }
+
+  public void addTooltip(final String text) {
+    if (text == null) {
+      return;
+    }
+    String tooltip = radioButton.getToolTipText();
+    if (tooltip == null) {
+      setToolTipText(text);
+    }
+    else {
+      radioButton
+        .setToolTipText(tooltip + " & " + TooltipFormatter.INSTANCE.format(text));
+    }
   }
 
   void setVisible(final boolean visible) {
@@ -494,19 +526,36 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     return radioButton;
   }
 
-  void setEnabled(final boolean enable) {
-    radioButton.setEnabled(enable);
-    if (enable) {
+  public void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    // Only visually enabled if both enabled and editable
+    radioButton.setEnabled(enabled && editable);
+    if (enabled && editable) {
       updateFieldHighlight(isSelected());
     }
   }
 
-  String getActionCommand() {
-    return radioButton.getActionCommand();
+  public void setEditable(final boolean editable) {
+    this.editable = editable;
+    // Editable has no visible effect if the button is disabled.
+    if (enabled) {
+      radioButton.setEnabled(editable);
+    }
+    if (enabled && editable) {
+      updateFieldHighlight(isSelected());
+    }
   }
 
   public boolean isEnabled() {
-    return radioButton.isEnabled();
+    return enabled;
+  }
+
+  public boolean isEditable() {
+    return editable;
+  }
+
+  String getActionCommand() {
+    return radioButton.getActionCommand();
   }
 
   void setAlignmentX(float alignmentX) {

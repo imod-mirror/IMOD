@@ -27,13 +27,15 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  */
 class SpinnerCell extends InputCell {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final EtomoNumber disabledValue;
   private final EtomoNumber savedValue;
   private JSpinner spinner = null;
   private final EtomoNumber.Type type;
   private boolean enabled = true;
+  private boolean editable = true;
 
   public String toString() {
     return getTextField().getText();
@@ -44,18 +46,11 @@ class SpinnerCell extends InputCell {
   }
 
   /**
-   * The buttons should still work
-   */
-  void setEditable(boolean editable) {
-    getTextField().setEditable(editable);
-  }
-
-  /**
    * disable - the buttons shouldn't work
    */
-  public void setEnabled(boolean enabled) {
+  void setEnabled(boolean enabled) {
     this.enabled = enabled;
-    getComponent().setEnabled(enabled);
+    spinner.setEnabled(enabled && editable);
     if (!disabledValue.isNull()) {
       if (enabled) {
         if (disabledValue.equals((Number) spinner.getValue()) && !savedValue.isNull()) {
@@ -70,6 +65,25 @@ class SpinnerCell extends InputCell {
         spinner.setValue(disabledValue.getNumber());
       }
     }
+  }
+
+  boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * The buttons should still work
+   */
+  void setEditable(boolean editable) {
+    this.editable = editable;
+    if (enabled) {
+      // disabled overrides editable
+      spinner.setEnabled(editable);
+    }
+  }
+
+  boolean isEditable() {
+    return editable;
   }
 
   void setDisabledValue(int disabledValue) {

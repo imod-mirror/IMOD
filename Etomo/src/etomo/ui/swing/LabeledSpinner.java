@@ -18,7 +18,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
@@ -171,6 +171,8 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   private TextFieldSetting defaultValueSetting = null;
   private TextFieldSetting checkpoint = null;
   private TextFieldSetting fieldHighlight = null;
+  private boolean enabled = true;
+  private boolean editable = true;
 
   private LabeledSpinner(final String spinLabel, int value, int minimum, int maximum,
     int stepSize, final int defaultValue, final int hgap) {
@@ -312,7 +314,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     // only search for default value once
     if (defaultValueSetting == null) {
       defaultValueSetting = new TextFieldSetting(EtomoNumber.Type.INTEGER);
-      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      String value = AutodocAttributeRetriever.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
         defaultValueSetting.set(value);
@@ -551,16 +553,30 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     }
   }
 
-  void setEnabled(final boolean isEnabled) {
-    spinner.setEnabled(isEnabled);
-    label.setEnabled(isEnabled);
-    if (isEnabled) {
+  public void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    // Only visually enabled if both enabled and editable
+    spinner.setEnabled(enabled && editable);
+    label.setEnabled(enabled && editable);
+    if (enabled && editable) {
+      updateFieldHighlight();
+    }
+  }
+
+  public void setEditable(final boolean editable) {
+    this.editable = editable;
+    // Editable has no visible effect if the button is disabled.
+    if (enabled) {
+      // leave the label enabled for uneditable
+      spinner.setEnabled(editable);
+    }
+    if (enabled && editable) {
       updateFieldHighlight();
     }
   }
 
   public boolean isEnabled() {
-    return (spinner.isEnabled());
+    return enabled;
   }
 
   boolean isVisible() {
@@ -628,12 +644,26 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     panel.setAlignmentX(alignment);
   }
 
-  void setToolTipText(final String text) {
+  public void setToolTipText(final String text) {
     String tooltip = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(tooltip);
     spinner.setToolTipText(tooltip);
     getTextField().setToolTipText(tooltip);
     label.setToolTipText(tooltip);
+  }
+
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      String tooltip = field.getTooltip();
+      panel.setToolTipText(tooltip);
+      spinner.setToolTipText(tooltip);
+      getTextField().setToolTipText(tooltip);
+      label.setToolTipText(tooltip);
+    }
+  }
+
+  public String getTooltip() {
+    return spinner.getToolTipText();
   }
 
   void addMouseListener(final MouseListener listener) {

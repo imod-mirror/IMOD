@@ -194,7 +194,7 @@ public final class ParallelPanel implements Expandable, Storable {
         JPanel clusterPanel = new JPanel();
         clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.X_AXIS));
         clusterPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        clusterPanel.add(cbQueues);
+        clusterPanel.add(cbQueues.getComponent());
         clusterPanel.add(Box.createHorizontalGlue());
         bodyPanel.add(clusterPanel);
       }

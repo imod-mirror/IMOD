@@ -646,11 +646,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void setTwodirEnabled(final AxisID axisID, final boolean enable) {
     if (axisID == AxisID.SECOND) {
-      ctfBtwodir.setCheckBoxEnabled(enable);
+      ctfBtwodir.setEnabled(enable);
       lBtwodir.setEnabled(enable);
     }
     else {
-      ctfTwodir.setCheckBoxEnabled(enable);
+      ctfTwodir.setEnabled(enable);
       lTwodir.setEnabled(enable);
     }
   }
@@ -969,12 +969,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     JPanel pnlParallelProcess = new JPanel();
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(cbParallelProcess.getComponent());
     JPanel pnlGpuProcessing = new JPanel();
 
     pnlGpuProcessing.setLayout(new BoxLayout(pnlGpuProcessing, BoxLayout.X_AXIS));
     pnlGpuProcessing.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlGpuProcessing.add(cbGpuProcessing);
+    pnlGpuProcessing.add(cbGpuProcessing.getComponent());
 
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
@@ -1036,7 +1036,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     // Add adjusted focus checkbox
     pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA, BoxLayout.X_AXIS));
     pnlAdjustedFocusA.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAdjustedFocusA.add(cbAdjustedFocusA);
+    pnlAdjustedFocusA.add(cbAdjustedFocusA.getComponent());
     pnlAdjustedFocusA.add(Box.createHorizontalGlue());
     cbAdjustedFocusA.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusA.setEnabled(false);
@@ -1058,7 +1058,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     // Add adjusted focus checkbox
     pnlAdjustedFocusB.setLayout(new BoxLayout(pnlAdjustedFocusB, BoxLayout.X_AXIS));
     pnlAdjustedFocusB.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAdjustedFocusB.add(cbAdjustedFocusB);
+    pnlAdjustedFocusB.add(cbAdjustedFocusB.getComponent());
     pnlAdjustedFocusB.add(Box.createHorizontalGlue());
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusB.setEnabled(false);

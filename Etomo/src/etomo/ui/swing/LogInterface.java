@@ -43,7 +43,11 @@ public interface LogInterface {
 
   public void logMessage(String message);
 
+  public void logMessage(String message, boolean timestamp, boolean newline);
+
   public void logMessage(File file);
+
+  public void logMessage(File file, boolean newline);
 
   public void save();
 

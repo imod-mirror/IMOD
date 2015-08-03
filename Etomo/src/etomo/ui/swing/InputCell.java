@@ -35,6 +35,8 @@ abstract class InputCell extends Cell {
   private boolean initialized = false;
   private String tableHeader = null;
   private HeaderCell rowHeader = null, columnHeader = null;
+  private boolean debug = false;
+  private boolean runHighlight = false;
 
   abstract Component getComponent();
 
@@ -42,7 +44,9 @@ abstract class InputCell extends Cell {
 
   abstract int getWidth();
 
-  public abstract void setEnabled(boolean enabled);
+  abstract void setEnabled(boolean enabled);
+
+  abstract boolean isEnabled();
 
   abstract void setToolTipText(String toolTipText);
 
@@ -59,14 +63,25 @@ abstract class InputCell extends Cell {
     }
   }
 
+  void setDebug(final boolean input) {
+    debug = input;
+  }
+
+  boolean isDebug() {
+    return debug;
+  }
+
   void setEditable(boolean editable) {
     this.editable = editable;
-    getComponent().setEnabled(editable);
-    setBackground();
+    if (isEnabled()) {
+      // disabled overrides editable
+      getComponent().setEnabled(editable);
+      setBackground();
+    }
   }
 
   boolean isEditable() {
-    return getComponent().isEnabled();
+    return editable;
   }
 
   final void setHighlight(boolean highlight) {
@@ -104,32 +119,52 @@ abstract class InputCell extends Cell {
     setBackground();
   }
 
+  final void setRunHighlight(boolean runHighlight) {
+    this.runHighlight = runHighlight;
+    setBackground();
+  }
+
+  /**
+   * Order of precedence:
+   * 1. error
+   * 2. warning
+   * 3. runHighlight
+   * 4. highlight
+   */
   void setBackground() {
-    if (highlight) {
-      if (editable) {
-        setBackground(Colors.HIGHLIGHT_BACKGROUND);
-      }
-      else {
-        setBackground(Colors.HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
-      }
-    }
-    else if (warning) {
-      if (editable) {
-        setBackground(Colors.WARNING_BACKGROUND);
-      }
-      else {
-        setBackground(Colors.WARNING_BACKGROUND_NOT_EDITABLE);
-      }
-    }
-    else if (error) {
-      if (editable) {
+    if (error) {
+      if (isEnabled()) {
         setBackground(Colors.CELL_ERROR_BACKGROUND);
       }
       else {
         setBackground(Colors.CELL_ERROR_BACKGROUND_NOT_EDITABLE);
       }
     }
-    else if (editable) {
+    else if (warning) {
+      if (isEnabled()) {
+        setBackground(Colors.WARNING_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.WARNING_BACKGROUND_NOT_EDITABLE);
+      }
+    }
+    else if (runHighlight) {
+      if (isEnabled()) {
+        setBackground(Colors.RUN_HIGHLIGHT_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.RUN_HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
+      }
+    }
+    else if (highlight) {
+      if (isEnabled()) {
+        setBackground(Colors.HIGHLIGHT_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
+      }
+    }
+    else if (isEnabled()) {
       setBackground(Colors.BACKGROUND);
     }
     else {
@@ -163,8 +198,9 @@ abstract class InputCell extends Cell {
   }
 
   String convertLabelToName() {
-    return Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
-      .getText() : null, columnHeader != null ? columnHeader.getText() : null);
+    return Utilities.convertLabelToName(tableHeader,
+      rowHeader != null ? rowHeader.getText() : null,
+      columnHeader != null ? columnHeader.getText() : null);
   }
 
   /**

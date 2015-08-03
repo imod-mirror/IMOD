@@ -198,7 +198,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     // SobelFilter panel
     if (pnlSobelFilter != null) {
       pnlSobelFilter.setLayout(new BoxLayout(pnlSobelFilter, BoxLayout.X_AXIS));
-      pnlSobelFilter.add(cbSobelFilter);
+      pnlSobelFilter.add(cbSobelFilter.getComponent());
       pnlSobelFilter.add(Box.createHorizontalGlue());
     }
     // warping panel
@@ -214,7 +214,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       pnlWarping.add(pnlShiftLimitsForWarp);
       // FindWarping panel
       pnlFindWarping.setLayout(new BoxLayout(pnlFindWarping, BoxLayout.X_AXIS));
-      pnlFindWarping.add(cbFindWarping);
+      pnlFindWarping.add(cbFindWarping.getComponent());
       pnlFindWarping.add(Box.createHorizontalGlue());
       // WarpPatchSize panel
       pnlWarpPatchSize.setLayout(new BoxLayout(pnlWarpPatchSize, BoxLayout.X_AXIS));
@@ -222,7 +222,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       pnlWarpPatchSize.add(ltfWarpPatchSizeY.getComponent());
       // BoundaryModel panel
       pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
-      pnlBoundaryModel.add(cbBoundaryModel);
+      pnlBoundaryModel.add(cbBoundaryModel.getComponent());
       pnlBoundaryModel.add(btnBoundaryModel.getComponent());
       // ShiftLimitsForWarp panel
       pnlShiftLimitsForWarp.setLayout(new BoxLayout(pnlShiftLimitsForWarp,
@@ -233,7 +233,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     // pre cross correlation
     pnlPreCrossCorrelation.setLayout(new BoxLayout(pnlPreCrossCorrelation,
         BoxLayout.X_AXIS));
-    pnlPreCrossCorrelation.add(cbPreCrossCorrelation);
+    pnlPreCrossCorrelation.add(cbPreCrossCorrelation.getComponent());
     pnlPreCrossCorrelation.add(Box.createHorizontalGlue());
     // buttons
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);

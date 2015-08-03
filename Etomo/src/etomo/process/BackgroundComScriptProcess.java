@@ -20,15 +20,11 @@ import etomo.util.Utilities;
  * background.
  * </p>
  * 
- * <p>Copyright: Copyright (c) 2004</p>
- * 
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $$Author$$
- * 
- * @version $$Revision$$
+ * <p>Copyright: Copyright 2004 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.36  2011/02/22 03:58:18  sueh
@@ -217,8 +213,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public class BackgroundComScriptProcess extends ComScriptProcess {
-  public static final String rcsid = "$$Id$$";
-
   private final AxisID axisID;
   private final ComscriptState comscriptState;
   private final BaseManager manager;
@@ -231,12 +225,12 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param watchedFileName
    */
   public BackgroundComScriptProcess(final BaseManager manager, final String comScript,
-      final BaseProcessManager processManager, final AxisID axisID,
-      final String watchedFileName, final DetachedProcessMonitor monitor,
-      final ComscriptState comscriptState, final ProcessSeries processSeries,
-      final boolean resumable) {
+    final BaseProcessManager processManager, final AxisID axisID,
+    final String watchedFileName, final DetachedProcessMonitor monitor,
+    final ComscriptState comscriptState, final ProcessSeries processSeries,
+    final boolean resumable) {
     super(manager, comScript, processManager, axisID, watchedFileName, monitor,
-        processSeries, resumable);
+      processSeries, resumable);
     this.comscriptState = comscriptState;
     this.axisID = axisID;
     this.manager = manager;
@@ -278,13 +272,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       return false;
     }
     if (groupPid == null) {
-      String[] command = new String[] { FileLocation.LSOF.getAbsolutePath(), "-w", "-S",
-          "-l", "-M", "-L" };
+      String[] command =
+        new String[] { FileLocation.LSOF.getAbsolutePath(), "-w", "-S", "-l", "-M", "-L" };
       lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     }
     else {
-      String[] command = new String[] { FileLocation.LSOF.getAbsolutePath(), "-w", "-S",
-          "-l", "-M", "-L", "-g", groupPid };
+      String[] command =
+        new String[] { FileLocation.LSOF.getAbsolutePath(), "-w", "-S", "-l", "-M", "-L",
+          "-g", groupPid };
       lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     }
     lsof.run();
@@ -301,7 +296,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     String[] fields;
     LogFile comscriptLog;
     try {
-      comscriptLog = LogFile.getInstance(getWorkingDirectory().getAbsolutePath(), axisID,
+      comscriptLog =
+        LogFile.getInstance(getWorkingDirectory().getAbsolutePath(), axisID,
           comscriptState.getComscriptName());
     }
     catch (LogFile.LockException e) {
@@ -326,9 +322,9 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      getProcessMessages().addError(e.getMessage());
-      getProcessMessages().addError(
-          getComScriptName() + " may already be running.  Check the log file.");
+      getProcessMessages().add(ProcessMessages.MessageType.ERROR, e.getMessage());
+      getProcessMessages().add(ProcessMessages.MessageType.ERROR,
+        getComScriptName() + " may already be running.  Check the log file.");
       e.printStackTrace();
       return false;
     }
@@ -338,15 +334,15 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     while (index <= endCommand) {
       try {
         renameFiles(
-            comscriptState.getWatchedFile(index),
-            getWorkingDirectory(),
-            LogFile.getInstance(manager.getPropertyUserDir(), getAxisID(),
-                comscriptState.getCommand(index)));
+          comscriptState.getWatchedFile(index),
+          getWorkingDirectory(),
+          LogFile.getInstance(manager.getPropertyUserDir(), getAxisID(),
+            comscriptState.getCommand(index)));
       }
       catch (LogFile.LockException e) {
-        getProcessMessages().addError(e.getMessage());
-        getProcessMessages().addError(
-            getComScriptName() + " may already be running.  Check the log file.");
+        getProcessMessages().add(ProcessMessages.MessageType.ERROR, e.getMessage());
+        getProcessMessages().add(ProcessMessages.MessageType.ERROR,
+          getComScriptName() + " may already be running.  Check the log file.");
         e.printStackTrace();
         return false;
       }
@@ -360,22 +356,23 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * commands to execute the .csh file in the background.  
    */
   void execPython(String[] commands) throws IOException, SystemProcessException,
-      LogFile.LockException {
+    LogFile.LockException {
     File workingDirectory = getWorkingDirectory();
     String runName = parseBaseName(getComScriptName(), ".com");
     String pythonFileName = runName + ".py";
     File pythonFile = new File(workingDirectory, pythonFileName);
     File outFile = new File(workingDirectory, getWatchedFileName());
     Utilities.writeFile(pythonFile, commands, true);
-    String[] command = { "python", "-u", BaseManager.getIMODBinPath() + "startprocess",
-        "-o", getWatchedFileName(), "python", "-u", pythonFileName };
-    BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
-        getDetachedMonitor(), getAxisID());
+    String[] command =
+      { "python", "-u", BaseManager.getIMODBinPath() + "startprocess", "-o",
+        getWatchedFileName(), "python", "-u", pythonFileName };
+    BackgroundSystemProgram program =
+      new BackgroundSystemProgram(manager, command, getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
     program.setWorkingDirectory(workingDirectory);
 
-    ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID, outFile,
-        getProcessData());
+    ParseBackgroundPID parsePID =
+      new ParseBackgroundPID(program, processID, outFile, getProcessData());
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
     // make sure nothing else is writing or backing up the log files
@@ -443,7 +440,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     try {
       if ((line = bufferedReader.readLine()) != null) {
         if (line.startsWith("Shell PID:") || line.indexOf("Python PID:") != -1
-            || line.startsWith("Windows PID:") || line.startsWith("Cygwin PID:")) {
+          || line.startsWith("Windows PID:") || line.startsWith("Cygwin PID:")) {
           String[] tokens = line.split("\\s+");
           if (tokens.length > 2) {
             boolean found = false;
