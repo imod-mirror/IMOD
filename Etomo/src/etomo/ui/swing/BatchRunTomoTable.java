@@ -103,7 +103,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
-  private BatchRunTomoStatus status = BatchRunTomoStatus.OPEN;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.DEFAULT;
 
   private BatchRunTomoTable(final BatchRunTomoManager manager,
     final Expandable expandable, final TableReference tableReference) {
@@ -366,6 +366,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   void setParameters(final BatchRunTomoMetaData metaData) {
     rowList.setParameters(metaData);
+    statusChanged(metaData.getStatus());
   }
 
   void getParameters(final BatchRunTomoMetaData metaData) {
@@ -887,28 +888,28 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
 
     public void statusChanged(final Status status) {
-      if ((status instanceof BatchRunTomoStatus)) {
-        if (status != BatchRunTomoStatus.RUNNING) {
-          // Fields have been changed to editable - update earliestRunStep.
-          updateEarliestRunStep();
-          sendStatusChanged();
-        }
-        if (status == BatchRunTomoStatus.KILLED_PAUSED && runKeys != null) {
-          // Only incomplete rows can be run via resume. For row found in runKeys, disable
-          // rows with checked run checkboxes.
-          int currentSize = Math.min(runKeys.getIndex() + 1, runKeys.size());
-          System.out.println("F:currentSize:" + currentSize);
-          int runKeysIndex = 0;
-          if (runKeysIndex < currentSize) {
-            int size = list.size();
-            for (int i = 0; i < size; i++) {
-              BatchRunTomoRow row = list.get(i);
-              if (row.equalsStackID(runKeys.get(runKeysIndex)) && row.isRun()) {
-                runKeysIndex++;
-                row.setEnabledRun(false);
-                if (runKeysIndex >= currentSize) {
-                  break;
-                }
+      if (!(status instanceof BatchRunTomoStatus)) {
+        return;
+      }
+      if (status != BatchRunTomoStatus.RUNNING) {
+        // Fields have been changed to editable - update earliestRunStep.
+        updateEarliestRunStep();
+        sendStatusChanged();
+      }
+      if (status == BatchRunTomoStatus.KILLED_PAUSED && runKeys != null) {
+        // Only incomplete rows can be run via resume. For row found in runKeys, disable
+        // rows with checked run checkboxes.
+        int currentSize = Math.min(runKeys.getIndex() + 1, runKeys.size());
+        int runKeysIndex = 0;
+        if (runKeysIndex < currentSize) {
+          int size = list.size();
+          for (int i = 0; i < size; i++) {
+            BatchRunTomoRow row = list.get(i);
+            if (row.equalsStackID(runKeys.get(runKeysIndex)) && row.isRun()) {
+              runKeysIndex++;
+              row.setEnabledRun(false);
+              if (runKeysIndex >= currentSize) {
+                break;
               }
             }
           }
@@ -922,15 +923,17 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
      */
     public void statusChanged(final StatusChangeEvent event) {
       // Only responds to a row getting or losing a runstep
-      if (!(event instanceof StatusChangeBooleanEvent)) {
+      if (!(event instanceof StatusChangeBooleanEvent) || event == null) {
         return;
       }
-      Status status = event.getStatus();
+      StatusChangeBooleanEvent statusChangeBooleanEvent =
+        (StatusChangeBooleanEvent) event;
+      Status status = statusChangeBooleanEvent.getStatus();
       if (status != null && !(status instanceof EndingStep)) {
         return;
       }
       EndingStep endingStep = (EndingStep) status;
-      if (((StatusChangeBooleanEvent) event).is()) {
+      if (statusChangeBooleanEvent.is()) {
         // A runstep was added, or a run checkbox was checked
         if (endingStep != null
           && (earliestRunEndingStep == null || endingStep.lt(earliestRunEndingStep))) {
@@ -1040,12 +1043,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setParameters(metaData);
       }
+      statusChanged(metaData.getStatus());
     }
 
     private void getParameters(final BatchRunTomoMetaData metaData) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).getParameters(metaData);
       }
+      metaData.setEarliestRunEndingStep(earliestRunEndingStep);
     }
 
     private void getParameters(final BatchruntomoParam param,
