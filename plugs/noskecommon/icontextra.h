@@ -302,7 +302,8 @@ int cont_getIntersectingSegments( Icont *cont1, Icont *cont2, vector<IcontPtr> &
 int cont_getIntersectingSegmentsSafe( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                      
 int cont_getUnionPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                        
-bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O );                    
+bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O,
+                                int contInside );
 
 Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int startPt );
 Ipoint cont_getPtFractAlongLength( Icont *cont, float fract, bool closed, int startPt );

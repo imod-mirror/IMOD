@@ -2,7 +2,8 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 7/29/15: Created an open channel between contours instead of overlapping
 connectors When joining closed contours in 3dmod, and made it avoid a
-self-crossing joined contour when one contout is inside another.
+self-crossing joined contour when one contour is inside another. Also made the
+join tool in Drawing Tools work with one contour inside another.
 
 7/20/15: IMOD_4-8-39
 7/16/15: Made Batchruntomo pick a good binning for 3d bead finding if no
