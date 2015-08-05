@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+# imoduntar - Utility to list or extract all files from a tar file
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+import sys, os, tarfile
+
+dolist = False
+numStart = 1
+if len(sys.argv) > 1 and sys.argv[1] == '-t':
+   numStart = 2
+   dolist = True
+
+if len(sys.argv) < numStart + 1:
+   sys.stdout.write("""Usage: imoduntar [-t] filename
+    Extracts all files from a tar file created with gzip, bzip2, or no 
+    compression, or lists all files with the -t option\n""")
+   sys.exit(0)
+
+fname = sys.argv[numStart]
+pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
+try:
+   mess = 'opening ' + fname + ' as a tar file'
+   tf = tarfile.open(fname, 'r')
+   if dolist:
+      mess = 'listing the files in ' + fname
+      tf.list()
+   else:
+      mess = 'extracting the files from ' + fname
+      if pyVersion >= 250:
+         tf.extractall()
+      else:
+         for tfi in tf:
+            tf.extract(tfi)
+      sys.stdout.write('All files extracted from ' + fname + '\n')
+            
+except Exception:
+   sys.stdout.write('An error occurred ' + mess + '\n')
+   sys.exit(1)
+
+sys.exit(0)
+   
