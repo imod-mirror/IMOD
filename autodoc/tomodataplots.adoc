@@ -13,7 +13,7 @@ first non-option argument is used for the name.
 short = type
 type = IA
 usage = Type of data to plot (1-3: transforms, 4: blendmont, 5-10: tiltalign,
-11-12: clip stat)
+11-13: clip stat, 14: tilt series X/Y/Z)
 tooltip =
 manpage = Type of data to plot.  
 ^  1-3: Shifts from a transform file; 1 for X shift, 2 for Y shifts, 3 for both.
