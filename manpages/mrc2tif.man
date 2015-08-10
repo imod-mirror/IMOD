@@ -50,7 +50,8 @@ the dynamic range for that subset of the image data, and enter the contrast
 settings withs the 
 .B -C
 option.
-.P Output to JPEG or PNG files is selected by entering the
+.P
+Output to JPEG or PNG files is selected by entering the
 .B -j
 or the
 .B -p
