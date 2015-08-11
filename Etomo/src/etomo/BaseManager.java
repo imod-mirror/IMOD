@@ -1679,12 +1679,12 @@ public abstract class BaseManager {
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
-      // axisID = AxisID.FIRST;
+      getProcessManager().unblockAxis(AxisID.FIRST);
     }
     else if (threadName.equals(threadNameB)) {
       getMainPanel().stopProgressBar(AxisID.SECOND, endState, statusString);
       threadNameB = "none";
-      // axisID = AxisID.SECOND;
+      getProcessManager().unblockAxis(AxisID.SECOND);
     }
     else if (!nonBlocking) {
       uiHarness.openMessageDialog(this, "Unknown thread finished!!!" + "\nThread name: "
