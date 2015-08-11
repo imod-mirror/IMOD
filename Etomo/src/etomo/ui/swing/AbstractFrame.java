@@ -404,8 +404,8 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
     ArrayList messageArray = null;
     for (int i = 0; i < processMessages.size(ProcessMessages.MessageType.WARNING); i++) {
       messageArray =
-        PopupTool.wrapMessage(processMessages.get(ProcessMessages.MessageType.WARNING, i),
-          messageArray);
+        PopupTool.wrapMessage(
+          processMessages.get(ProcessMessages.MessageType.WARNING, i), messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -452,6 +452,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   }
 
   private final String[] toStringArray(ArrayList arrayList) {
+    if (arrayList == null) {
+      return null;
+    }
     if (arrayList.size() == 1) {
       String[] returnArray = { (String) arrayList.get(0) };
       return returnArray;
