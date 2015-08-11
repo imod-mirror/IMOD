@@ -55,6 +55,8 @@ public interface SystemProcessInterface {
   public void setProcessingMethod(ProcessingMethod processingMethod);
 
   public void setKeyArray(CurrentArrayList<String> keyArray);
+
+  public void resetProcessData();
 }
 /**
 * <p> $Log$
