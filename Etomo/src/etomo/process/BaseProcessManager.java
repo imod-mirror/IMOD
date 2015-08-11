@@ -630,7 +630,7 @@ public abstract class BaseProcessManager {
         ReconnectProcess.getLogInstance(manager, this, monitor,
           axisProcessData.getSavedProcessData(axisID), axisID, monitor.getLogFileName(),
           ProcesschunksProcessMonitor.SUCCESS_TAG, processData.getSubDirName(),
-          processSeries, popupChunkWarnings);
+          processSeries, popupChunkWarnings, false);
       monitor.setProcess(process);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
@@ -789,10 +789,12 @@ public abstract class BaseProcessManager {
 
   final ComScriptProcess startOutfileComScript(final String commandString,
     final OutfileProcessMonitor monitor, final AxisID axisID, final Command command,
-    final FileType fileType) throws SystemProcessException {
+    final FileType fileType, final ProcessName processName,
+    final boolean reconnectWhenNotRunning, final ProcessData managedProcessData)
+    throws SystemProcessException {
     OutfileComScriptProcess process =
       new OutfileComScriptProcess(manager, commandString, this, axisID, monitor, command,
-        fileType);
+        fileType, processName, reconnectWhenNotRunning, managedProcessData);
     monitor.setProcess(process);
     return startComScript(process, commandString, monitor, axisID);
   }
@@ -1447,8 +1449,8 @@ public abstract class BaseProcessManager {
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages.add(ProcessMessages.MessageType.ERROR, "<html>Com script failed: "
-          + script.getComScriptName());
+        combinedMessages.add(ProcessMessages.MessageType.ERROR,
+          "<html>Com script failed: " + script.getComScriptName());
         combinedMessages.add(ProcessMessages.MessageType.ERROR,
           "\n<html><U>Log file errors:</U>");
         combinedMessages.add(ProcessMessages.MessageType.ERROR, messages);
@@ -1501,13 +1503,14 @@ public abstract class BaseProcessManager {
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
         && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.add(ProcessMessages.MessageType.ERROR, "<html>Terminated: " + name);
+        combinedMessages.add(ProcessMessages.MessageType.ERROR, "<html>Terminated: "
+          + name);
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages.add(ProcessMessages.MessageType.ERROR, "<html>Com script failed: "
-          + name);
+        combinedMessages.add(ProcessMessages.MessageType.ERROR,
+          "<html>Com script failed: " + name);
         combinedMessages.add(ProcessMessages.MessageType.ERROR,
           "\n<html><U>Log file errors:</U>");
         combinedMessages.add(ProcessMessages.MessageType.ERROR, messages);
@@ -1544,6 +1547,36 @@ public abstract class BaseProcessManager {
      * processMonitorA.interrupt(); processMonitorA = null; } threadAxisA = null; } if
      * (threadAxisB == script) { if (processMonitorB != null) {
      * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; } */
+    // Inform the app manager that this process is complete
+    manager.processDone(name, exitValue, script.getProcessData().getProcessName(),
+      script.getAxisID(), script.getProcessEndState(),
+      script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0,
+      script.getProcessResultDisplay(), script.getProcessSeries(), false);
+  }
+
+  public final void msgReconnectDone(final LoggedReconnectProcess script,
+    final int exitValue, final boolean popupChunkWarnings) {
+    String name = script.getProcessData().getProcessName().toString();
+    System.err.println("msgReconnectDone:processName=" + name);
+    if (exitValue != 0) {
+      ProcessMessages messages = script.getProcessMessages();
+      if (script.getProcessEndState() != ProcessEndState.KILLED
+        && script.getProcessEndState() != ProcessEndState.PAUSED) {
+        uiHarness.openErrorMessageDialog(manager, messages, "Reconnect Terminated",
+          script.getAxisID());
+        System.err.print("Reconnect Terminated (" + Utilities.getDateTimeStamp()
+          + "):exitValue:" + exitValue/* + ",\nscript:"*/);
+        // script.dumpState(2);
+        // make sure script knows about failure
+        script.setProcessEndState(ProcessEndState.FAILED);
+      }
+      errorProcess(script);
+    }
+    else {
+      postProcess(script);
+    }
+    manager.saveStorables(script.getAxisID());
+    axisProcessData.clearThread(script);
     // Inform the app manager that this process is complete
     manager.processDone(name, exitValue, script.getProcessData().getProcessName(),
       script.getAxisID(), script.getProcessEndState(),
