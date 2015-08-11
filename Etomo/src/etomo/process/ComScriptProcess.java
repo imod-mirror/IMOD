@@ -478,6 +478,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private ProcessDetails processDetails = null;
   private CommandDetails commandDetails = null;
   private final ProcessData processData;
+  // Use reconnect to update dialog - clear processData once process is done.
+  private boolean reconnectWhenNotRunning = false;
 
   private boolean started = false;
   private boolean error = false;
@@ -489,6 +491,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private ProcessResultDisplay processResultDisplay = null;
   private boolean parseLogFile = true;
   private boolean nonBlocking = false;
+  private ProcessName processName = null;
 
   // set in initialize
   private LogFile logFile;
@@ -595,8 +598,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   public ComScriptProcess(final BaseManager manager, final String comScript,
     final BaseProcessManager processManager, final AxisID axisID,
-    final ProcessMonitor processMonitor, final Command command, final FileType fileType) {
+    final ProcessMonitor processMonitor, final Command command, final FileType fileType,
+    final ProcessName processName, final boolean reconnectWhenNotRunning,final ProcessData managedProcessData) {
     this.manager = manager;
+    this.reconnectWhenNotRunning = reconnectWhenNotRunning;
     processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -605,7 +610,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = null;
     this.processMonitor = processMonitor;
     this.processResultDisplay = null;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    this.processName = processName;
+    processData = managedProcessData;
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = null;
     this.command = command;
@@ -863,38 +869,57 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       processData.setProcessingMethod(processingMethod);
     }
   }
-  
+
   public final void setKeyArray(CurrentArrayList<String> keyArray) {
     if (processData != null && keyArray != null) {
       processData.setKeyArray(keyArray);
     }
   }
 
-  private void initialize(FileType fileType) {
-    ProcessName processName = getProcessName();
+  LogFile buildLogFile(final FileType fileType) {
+    if (getProcessName() != null) {
+      return buildLogFileFromProcessName();
+    }
+    return buildLogFileFromFileType(fileType);
+  }
+
+  LogFile buildLogFileFromProcessName() {
     try {
-      if (processName != null) {
-        logFile =
-          LogFile.getInstance(manager.getPropertyUserDir(), axisID, getProcessName());
-      }
-      else {
-        logFile =
-          LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-            fileType.getRoot(manager, axisID));
-      }
+      return LogFile.getInstance(manager.getPropertyUserDir(), axisID, getProcessName());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager,
         "Unable to create log file.\n" + e.getMessage(), "Com Script Log Failure");
-      logFile = null;
     }
     catch (NullPointerException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager,
         "Unable to create log file.\n" + e.getMessage(), "Com Script Log Failure");
-      logFile = null;
     }
+    return null;
+  }
+
+  LogFile buildLogFileFromFileType(final FileType fileType) {
+    try {
+      return LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+        fileType.getRoot(manager, axisID));
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager,
+        "Unable to create log file.\n" + e.getMessage(), "Com Script Log Failure");
+    }
+    catch (NullPointerException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager,
+        "Unable to create log file.\n" + e.getMessage(), "Com Script Log Failure");
+    }
+    return null;
+  }
+
+  private void initialize(FileType fileType) {
+    logFile = buildLogFile(fileType);
     if (command != null && processMonitor != null && command.isMessageReporter()) {
       processMonitor.useMessageReporter();
     }
@@ -936,6 +961,11 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   void runMsgComScriptDone(final int exitValue) {
     processManager.msgComScriptDone(this, exitValue, nonBlocking);
+    if (reconnectWhenNotRunning) {
+      //The reconnect won't check to see if the process is run - remove process data for
+      //completed process.
+      resetProcessData();
+    }
   }
 
   boolean getNonBlocking() {
@@ -1035,6 +1065,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return true;
   }
 
+  public void resetProcessData() {
+    if (processData != null) {
+      processData.reset();
+    }
+  }
+
   static protected void renameFiles(String watchedFileName, File workingDirectory,
     LogFile logFile) throws LogFile.LockException {
     if (logFile == null) {
@@ -1070,6 +1106,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   public ProcessName getProcessName() {
+    if (processName != null) {
+      return processName;
+    }
     return ProcessName.getInstance(comScriptName, axisID/* , ".com" */);
   }
 
@@ -1355,7 +1394,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   final ProcessEndState getProcessEndState() {
     if (processMonitor == null) {
-      System.out.println("A:endState:"+endState);
       return endState;
     }
     return processMonitor.getProcessEndState();
