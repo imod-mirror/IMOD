@@ -21,4 +21,11 @@ interface Monitor extends Runnable {
   public boolean isPausing();
 
   public void setWillResume();
+
+  /**
+   * Halt the monitor as quickly as possible with a valid state, but without running
+   * end-of-monitor or end-of-process functionality.  May not be implemented by all
+   * monitors.
+   */
+  public void halt();
 }
