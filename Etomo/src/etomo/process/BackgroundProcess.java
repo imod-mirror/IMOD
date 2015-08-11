@@ -909,6 +909,12 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processManager.msgProcessDone(this, exitValue, errorFound, popupChunkWarnings);
   }
 
+  public void resetProcessData() {
+    if (processData != null) {
+      processData.reset();
+    }
+  }
+
   public ProcessMessages getProcessMessages() {
     if (program == null) {
       return null;
