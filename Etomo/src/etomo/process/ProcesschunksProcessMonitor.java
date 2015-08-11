@@ -121,6 +121,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final boolean isRunning() {
     return running;
   }
+  public void halt() {}
 
   public final void stop() {
     stop = true;
