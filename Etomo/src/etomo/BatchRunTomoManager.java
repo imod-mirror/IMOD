@@ -9,6 +9,9 @@ import etomo.logic.DatasetTool;
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
 import etomo.process.ImodManager;
+import etomo.process.ProcessData;
+import etomo.process.ProcessMessages;
+import etomo.process.ProcessOutputStrings;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
@@ -25,6 +28,7 @@ import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.StatusChanger;
 import etomo.type.TableReference;
@@ -55,6 +59,11 @@ public final class BatchRunTomoManager extends BaseManager {
     new BatchRunTomoComScriptManager(this);
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
     AxisType.SINGLE_AXIS);
+  // Reuse the message string feed because starting it is too slow for reconnect, and
+  // the reconnect finishes too fast for the string feed to complete.
+  private final ProcessMessages messages = ProcessMessages.getLoggedInstance(this, true,
+    true, ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG,
+    ProcessOutputStrings.BRT_ABORT_TAG, false);
 
   private final BatchRunTomoMetaData metaData;
 
@@ -62,6 +71,9 @@ public final class BatchRunTomoManager extends BaseManager {
   private MainBatchRunTomoPanel mainPanel;
 
   private BatchRunTomoDialog dialog = null;
+  // True if reconnect() has been run for the specified axis.
+  private boolean reconnectRunA = false;
+  private boolean reconnectRunB = false;
 
   public BatchRunTomoManager() {
     this("", null);
@@ -80,6 +92,9 @@ public final class BatchRunTomoManager extends BaseManager {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData, logWindow);
       openBatchRunTomoDialog();
+      // Monitor is listened to by dialogs, so dialogs must exist before the monitor is
+      // run.
+      reconnect(axisProcessData.getSavedProcessData(AXIS_ID), AXIS_ID, false);
     }
     if (!loadedParamFile) {
       tableReference.setNew();
@@ -121,7 +136,6 @@ public final class BatchRunTomoManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(axisProcessData.getSavedProcessData(AXIS_ID), AXIS_ID, false);
   }
 
   public void openBatchRunTomoDialog() {
@@ -177,6 +191,8 @@ public final class BatchRunTomoManager extends BaseManager {
       if (super.exitProgram(axisID)) {
         endThreads();
         saveParamFile();
+        processMgr.haltMonitorThread();
+        messages.stopStringFeed();
         return true;
       }
       return false;
@@ -222,9 +238,11 @@ public final class BatchRunTomoManager extends BaseManager {
       if (param == null) {
         return;
       }
+      messages.startStringFeed();
+      messages.clear();
       String threadName = null;
       try {
-        threadName = processMgr.batchruntomo(param, runKeys);
+        threadName = processMgr.batchruntomo(param, runKeys, messages);
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -258,7 +276,7 @@ public final class BatchRunTomoManager extends BaseManager {
     // run batchruntomo
     String threadName = null;
     try {
-      threadName = processMgr.batchruntomo(param, runKeys);
+      threadName = processMgr.batchruntomo(param, runKeys, messages);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -269,6 +287,62 @@ public final class BatchRunTomoManager extends BaseManager {
     }
     if (threadName != null) {
       setThreadName(threadName, AXIS_ID);
+    }
+  }
+
+  /**
+   * Attempts to reconnect to a currently running process. Only run once per
+   * axis. Only attempts one reconnect. Does not call super.reconnect because this
+   * interface doesn't use the parallel process command.
+   * 
+   * @param axisID -
+   *          axis of the running process.
+   * @return true if a reconnect was attempted.
+   */
+  public boolean reconnect(final ProcessData processData, final AxisID axisID,
+    final boolean multiLineMessages) {
+    if (isReconnectRun(axisID)) {
+      getProcessManager().unblockAxis(axisID);
+      return false;
+    }
+    setReconnectRun(axisID);
+    if (processData == null) {
+      return false;
+    }
+    ProcessName processName = processData.getProcessName();
+    if (processName == ProcessName.BATCHRUNTOMO) {
+      if (processData.isOnDifferentHost()) {
+        handleDifferentHost(processData, axisID);
+        return false;
+      }
+      messages.startStringFeed();
+      // ProcessData will only be saved if the process was running when etomo exited.
+      // Even if the process is no long running, reconnect in order to update the display.
+      System.err.println("\nAttempting to reconnect in Axis " + axisID.toString() + "\n"
+        + processData);
+      processMgr.reconnectBatchruntomo(processData, messages);
+      setThreadName(processName.toString(), axisID);
+      return true;
+    }
+    else {
+      getProcessManager().unblockAxis(axisID);
+    }
+    return false;
+  }
+
+  private boolean isReconnectRun(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return reconnectRunB;
+    }
+    return reconnectRunA;
+  }
+
+  private void setReconnectRun(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      reconnectRunB = true;
+    }
+    else {
+      reconnectRunA = true;
     }
   }
 
