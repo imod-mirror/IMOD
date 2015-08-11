@@ -403,7 +403,7 @@ public final class ParallelPanel implements Expandable, Storable {
    */
   public void setProcessingMethod(ProcessingMethod method) {
     // Handle local method
-    if (method.isLocal()) {
+    if (method == null || method.isLocal()) {
       currentTable.stopLoad();
       return;
     }
