@@ -41,10 +41,10 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private final ProcessMessages messages;
   private final BatchRunTomoManager manager;
   private final AxisID axisID;
-  private final boolean multiLineMessages;
   private final CurrentArrayList<String> runKeys;
-
+  private final boolean reconnect;
   private final ArrayList<String> stacks = new ArrayList<String>();
+  private final ProcessData processData;
 
   private boolean updateProgressBar = false;// turn on to changed the progress bar title
   private ProcessEndState endState = null;
@@ -58,7 +58,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private boolean killing = false;
   private boolean stop = false;
   private boolean running = false;
-  private boolean reconnect = false;
   private SystemProcessInterface process = null;
   private Vector<StatusChangeListener> listeners = null;
   private String currentStep = null;
@@ -72,37 +71,53 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private boolean datasetFailed = false;
   private boolean datasetDelivered = false;
   private boolean datasetRenamed = false;
+  private boolean live = true;// The program is running
+  private int processedLineNumber = 0;
+  private boolean halt = false;
 
-  public void dumpState() {
-    System.err.print("[updateProgressBar:" + updateProgressBar + ",useCommandsPipe:"
-      + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
-      + ",\nkilling:" + killing + ",stop:" + stop + ",running:" + running
-      + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages + "]");
-  }
-
-  BatchRunTomoProcessMonitor(final BatchRunTomoManager manager, final AxisID axisID,
-    final boolean multiLineMessages, final CurrentArrayList<String> runKeys) {
+  private BatchRunTomoProcessMonitor(final BatchRunTomoManager manager,
+    final AxisID axisID, final CurrentArrayList<String> runKeys, ProcessData processData,
+    final ProcessMessages messages, final boolean reconnect) {
     this.manager = manager;
     this.axisID = axisID;
-    this.multiLineMessages = multiLineMessages;
-    messages =
-      ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        ProcessOutputStrings.BRT_BATCH_RUN_TOMO_ERROR_TAG,
-        ProcessOutputStrings.BRT_ABORT_TAG, false);
+    this.messages = messages;
     this.runKeys = runKeys;
+    this.reconnect = reconnect;
+    this.processData = processData;
     if (runKeys != null) {
       nDatasets = runKeys.size();
     }
   }
 
-  public static BatchRunTomoProcessMonitor getReconnectInstance(
-    final BatchRunTomoManager manager, final AxisID axisID,
-    final ProcessData processData, final boolean multiLineMessages) {
+  static BatchRunTomoProcessMonitor getInstance(final BatchRunTomoManager manager,
+    final AxisID axisID, final CurrentArrayList<String> runKeys, ProcessData processData,
+    final ProcessMessages messages) {
     BatchRunTomoProcessMonitor instance =
-      new BatchRunTomoProcessMonitor(manager, axisID, multiLineMessages,
-        processData.getKeyArray());
-    instance.reconnect = true;
+      new BatchRunTomoProcessMonitor(manager, axisID, runKeys, processData, messages,
+        false);
     return instance;
+  }
+
+  static BatchRunTomoProcessMonitor getReconnectInstance(
+    final BatchRunTomoManager manager, final AxisID axisID,
+    final ProcessData processData, final ProcessMessages messages) {
+    BatchRunTomoProcessMonitor instance =
+      new BatchRunTomoProcessMonitor(manager, axisID, processData.getKeyArray(),
+        processData, messages, true);
+    instance.live = false;
+    instance.processedLineNumber = processData.getLineNumber();
+    processData.resetLineNumber();
+    if (instance.processedLineNumber > 0) {
+      messages.hibernate();
+    }
+    return instance;
+  }
+
+  public void dumpState() {
+    System.err.print("[updateProgressBar:" + updateProgressBar + ",useCommandsPipe:"
+      + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
+      + ",\nkilling:" + killing + ",stop:" + stop + ",running:" + running
+      + ",\nreconnect:" + reconnect + "]");
   }
 
   /**
@@ -142,11 +157,16 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     listeners.add(listener);
   }
 
+  synchronized public void halt() {
+    halt = true;
+  }
+
   public void run() {
-    manager.msgStatusChangerStarted(this);
-    manager.logMessage("Running batchruntomo");
-    messages.startStringFeed();
     running = true;
+    manager.msgStatusChangerStarted(this);
+    if (!reconnect) {
+      manager.logMessage("Running batchruntomo");
+    }
     try {
       /* Wait for processchunks or prochunks to delete .cmds file before enabling the Kill
        * Process button and Pause button. The main loop uses a sleep of 2000 millisecs.
@@ -174,7 +194,15 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
           if (updateState() || updateProgressBar) {
             updateProgressBar();
           }
-          Thread.sleep(100);
+          if (halt) {
+            // Can halt since the updateState has returned. But all existing messages
+            // must be processed before state is valid.
+            messages.feedEndMessage();
+            return;
+          }
+          if (!reconnect || live) {
+            Thread.sleep(100);
+          }
         }
         catch (LogFile.LockException e) {
           // File creation may be slow, so give this more tries.
@@ -250,7 +278,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   public void endMonitor() {
     processRunning = false;// the only place that this should be changed
     closeProcessOutput();
-    messages.stopStringFeed();
+    messages.feedEndMessage();
   }
 
   public String getLogFileName() {
@@ -384,8 +412,13 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     String line = null;
     int index;
     int index2;
-    while (processOutput != null
+    while (!halt && processOutput != null
       && (line = processOutput.readLine(processOutputReaderId)) != null) {
+      processData.incrementLineNumber();
+      // Avoid processing output more then once (for reconnect).
+      if (reconnect && processData.isGtLineNumber(processedLineNumber)) {
+        messages.wake();
+      }
       line = line.trim();
       // Handle parameter list at the top of the log
       if (line.indexOf(ProcessOutputStrings.START_PARAMETERS_TAG) != -1) {
@@ -576,10 +609,15 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
         }
       }
     }
-    // Wait until the entire log is processed before ending the monitor
-    if (processRunning && interrupted && line == null) {
-      endMonitor();
-      return true;
+    if (processRunning && line == null) {
+      if (interrupted) {
+        endMonitor();
+        return true;
+      }
+      else {
+        // Waiting for something to complete - must have caught up with the process.
+        live = true;
+      }
     }
     return false;
   }
