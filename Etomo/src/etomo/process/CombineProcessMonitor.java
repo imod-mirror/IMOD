@@ -265,6 +265,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     return true;
   }
+  public void halt() {}
 
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endMonitor(ProcessEndState.KILLED);
