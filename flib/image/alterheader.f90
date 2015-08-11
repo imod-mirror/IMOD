@@ -386,7 +386,7 @@ program alterheader
       enddo
     enddo
     print *,'Enter new label'
-    read(6, 101) filin
+    read(5, 101) filin
     read(filin, '(20a4)') (title(j, iold + 1), j = 1, 20)
     newtitle = ntitle + 1
   else

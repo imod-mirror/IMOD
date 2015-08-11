@@ -12,7 +12,8 @@ tilt series processing in a window, using Genhstplt(1) via Onegenplot(1).
 It can plot X and Y shifts from alignment transforms, min and max values from
 running "clip stat", the errors from shifting montage frames into alignment in
 Blendmont(1), various components of a Tiltalign(1) solution, or the mean
-residual error for each view.
+residual error for each view.  It can also plot X, Y, and Z position
+versus tilt angle during tilt series acquisition.
 .P
 Each kind of plot has defaults for whether points will be connected by lines,
 whether a symbol is drawn at each point, and the kind of symbol.  These
