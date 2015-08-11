@@ -668,11 +668,11 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      reconnect(axisProcessData.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
-      reconnect(axisProcessData.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.FIRST), AxisID.FIRST, false);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.SECOND), AxisID.SECOND, false);
     }
     else {
-      reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
     }
   }
 
@@ -700,8 +700,9 @@ public final class ApplicationManager extends BaseManager implements
    *          axis of the running process.
    * @return true if a reconnect was attempted.
    */
-  public boolean reconnect(ProcessData processData, AxisID axisID) {
-    if (super.reconnect(processData, axisID, false)) {
+  public boolean reconnect(ProcessData processData, AxisID axisID,
+    final boolean multiLineMessages) {
+    if (super.reconnect(processData, axisID, multiLineMessages)) {
       return true;
     }
     if (isReconnectRun(axisID)) {
