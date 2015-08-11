@@ -58,6 +58,8 @@ public final class ProcessData implements Storable {
   private static final String COMPUTER_KEY = "Computer";
   private static final String DATA_PAIRS_KEY = "DataPairs";
   private static final String KEY_TAG = "Key.";
+  private static final String LINE_NUMBER_KEY = "LineNumber";
+  private static final int LINE_NUMBER_DEFAULT = 0;
 
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
   private final StringProperty subProcessName = new StringProperty("SubProcessName");
@@ -87,6 +89,7 @@ public final class ProcessData implements Storable {
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   // Optional array of keys associated with the process.
   private CurrentArrayList<String> keyArray = null;
+  private int lineNumber = LINE_NUMBER_DEFAULT;
 
   public void dumpState() {
     System.err.println("[processDataPrepend:" + processDataPrepend + ",pid:" + pid
@@ -354,6 +357,7 @@ public final class ProcessData implements Storable {
       props.remove(group + OSType.KEY);
       DialogType.remove(props, prepend);
       lastProcess.remove(props, prepend);
+      props.remove(group + LINE_NUMBER_KEY);
       int index = 0;
       String name = getKeyTag(group, index);
       while (props.getProperty(name) != null) {
@@ -394,6 +398,7 @@ public final class ProcessData implements Storable {
         dialogType.store(props, prepend);
       }
       lastProcess.store(props, prepend);
+      props.setProperty(group + LINE_NUMBER_KEY, String.valueOf(lineNumber));
       // Store everything in computerMap in props.
       storeMap(props, group, computerMap, COMPUTER_KEY);
       if (keyArray != null) {
@@ -403,6 +408,22 @@ public final class ProcessData implements Storable {
         }
       }
     }
+  }
+
+  void resetLineNumber() {
+    lineNumber = LINE_NUMBER_DEFAULT;
+  }
+
+  boolean isGtLineNumber(final int input) {
+    return lineNumber > input;
+  }
+
+  int getLineNumber() {
+    return lineNumber;
+  }
+
+  void incrementLineNumber() {
+    lineNumber++;
   }
 
   CurrentArrayList<String> getKeyArray() {
@@ -451,6 +472,7 @@ public final class ProcessData implements Storable {
     processingMethod = null;
     dialogType = null;
     lastProcess.reset();
+    lineNumber = LINE_NUMBER_DEFAULT;
     if (keyArray != null) {
       keyArray.clear();
     }
@@ -486,6 +508,14 @@ public final class ProcessData implements Storable {
     osType = OSType.getInstance(props, prepend);
     dialogType = DialogType.load(props, prepend);
     lastProcess.load(props, prepend);
+    EtomoNumber etLineNumber = new EtomoNumber(LINE_NUMBER_KEY);
+    etLineNumber.load(props, prepend);
+    if (etLineNumber.isNull()) {
+      lineNumber = LINE_NUMBER_DEFAULT;
+    }
+    else {
+      lineNumber = etLineNumber.getInt();
+    }
     computerMap = loadMap(props, group, computerMap, COMPUTER_KEY, "0");
     int index = 0;
     String name = getKeyTag(group, index);
