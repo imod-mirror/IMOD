@@ -10,7 +10,7 @@ package etomo.process;
 *
 * @version $Id$
 */
-final class ProcessOutputStrings {
+public final class ProcessOutputStrings {
   static final String START_PARAMETERS_TAG = "*** Entries to program batchruntomo ***";
   static final String END_PARAMETERS_TAG = "*** End of entries ***";
   // batchruntomo
@@ -22,7 +22,7 @@ final class ProcessOutputStrings {
   static final String BRT_DATASET_SUCCESS_TAG = "Completed dataset";
   static final String BRT_TIME_STAMP_TAG = " at ";
   static final String BRT_SUCCESS_TAG = "SUCCESSFULLY COMPLETED";
-  static final String BRT_BATCH_RUN_TOMO_ERROR_TAG = "ERROR: batchruntomo -";
+  public static final String BRT_BATCH_RUN_TOMO_ERROR_TAG = "ERROR: batchruntomo -";
   static final String BRT_ALT_ERROR_TAG = "ABORT SET:";
   static final String BRT_AXIS_B_TAG = "Starting axis B";
   static final String[] BRT_LOG_TAGS = new String[] { "Final align -",
@@ -35,8 +35,8 @@ final class ProcessOutputStrings {
   static final String BRT_ABORT_AXIS_TAG = "ABORT AXIS:";
   static final String BRT_ENDING_STEP_PARAM_TAG = "EndingStep =";
   static final String BRT_STARTING_STEP_PARAM_TAG = "StartingStep =";
-  static final String BRT_DELIVERED_TAG="Delivered stack";
+  static final String BRT_DELIVERED_TAG = "Delivered stack";
   static final String BRT_RENAMED_TAG = "Renamed stack from";
-  static final String BRT_FILE_TAG= "to:";
-  static final String BRT_ABORT_TAG="ABORT";
+  static final String BRT_FILE_TAG = "to:";
+  public static final String BRT_ABORT_TAG = "ABORT";
 }
