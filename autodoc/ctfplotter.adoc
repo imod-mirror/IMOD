@@ -79,7 +79,7 @@ starts, it will be read in and the results displayed in a table in the Angle
 Range and Tile Selection dialog. The previous version will become a backup
 file (with ~ added to its name) when new results are saved to this file.  If
 you supply an initial defocus file with more than line, be sure to use the
-exact angles from the tilt angle file specified with -angleFn; do not round to
+exact angles from the tilt angle file specified with \fB-angleFn\fR; do not round to
 one decimal place.  Alternatively, add the number "2" as an extra value at the
 end of the first line of the file; this will prevent the program from thinking
 that the view numbers might be off by one.
@@ -144,9 +144,9 @@ short = range
 type = FP
 usage = Starting and ending tilt angles for initial analysis or autofitting
 tooltip =
-manpage = When the -autoFit option is not entered, this entry sets the starting
+manpage = When the \fB-autoFit\fR option is not entered, this entry sets the starting
 and ending tilt angles for the initial analysis and is a required entry.  Views with a
-tilt angle within this range are used to compute the CTF curve.  When -autoFit
+tilt angle within this range are used to compute the CTF curve.  When \fB-autoFit\fR
 is entered, this entry sets the extent over which steps will be taken in autofitting.
 
 [Field = AutoFitRangeAndStep]
@@ -163,7 +163,12 @@ tiles" radio button will be selected at the end. 2) Three fitting iterations
 will be done, with the expected defocus used the first time and the current
 defocus estimate used for the next two iterations.  3) The size of the range
 is determined by the parameter entered here, not by the starting and ending
-angles entered with the -range option.
+angles entered with the \fB-range\fR option.  This autofitting will not be done if
+there are already values in the defocus file and if the \fB-range\fR option is
+entered, in order to prevent an annoying message when opening Ctfplotter after
+processing with Batchruntomo(1).  Otherwise, if autofitting is specified
+and there are existing defocus values, the program will ask you to confirm
+whether to replace them.
 
 [Field = FrequencyRangeToFit]
 short = frequency
