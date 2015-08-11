@@ -325,6 +325,15 @@ int main(int argc, char *argv[])
     label->setText("Loading slices ...");
     qApp->processEvents();
   }
+
+  // If doing auto without save and exit and the table is non-empty and there is an
+  // an angle range, then suppress the autofit, assuming it happened previously
+  if (ifAutofit && !saveAndExit && ilistSize(app.getSavedList()) > 0 && ifAngleRange) {
+    lowAngle = autoFromAngle;
+    highAngle = autoToAngle;
+    ifAutofit = 0;
+  }
+
   app.setLowAngle(lowAngle);
   app.setHighAngle(highAngle);
   if (focalPairProcessing) {
