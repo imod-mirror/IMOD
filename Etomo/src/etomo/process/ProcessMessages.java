@@ -76,39 +76,8 @@ public class ProcessMessages {
   // added to the queue. The instance of the queue should be received from
   private ArrayBlockingQueue<String> stringFeed = null;
   private Thread stringFeedThread = null;
-
-  public void dumpState() {
-    System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
-      + ",processOutputStringArray:");
-    if (processOutputStringArray != null) {
-      System.err.print("{");
-      for (int i = 0; i < processOutputStringArray.length; i++) {
-        System.err.print(processOutputStringArray[i]);
-        if (i < processOutputStringArray.length - 1) {
-          System.err.print(",");
-        }
-      }
-      System.err.print("}");
-    }
-    System.err.print(",index:" + index + ",line:" + line + ",infoList:");
-    if (infoList != null) {
-      System.err.println(infoList.toString());
-    }
-    System.err.print(",warningList:");
-    if (warningList != null) {
-      System.err.println(warningList.toString());
-    }
-    System.err.print(",errorList:");
-    if (errorList != null) {
-      System.err.println(errorList.toString());
-    }
-    System.err.print(",chunkErrorList:");
-    if (chunkErrorList != null) {
-      System.err.println(chunkErrorList.toString());
-    }
-    System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
-      + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
-  }
+  private Object stringFeedLock = new Object();
+  private boolean hibernate = false;
 
   static ProcessMessages getInstance(final BaseManager manager) {
     return new ProcessMessages(manager, false, false, null, null, false, false, false,
@@ -137,11 +106,11 @@ public class ProcessMessages {
       false, false, null, null, false);
   }
 
-  static ProcessMessages
+  public static ProcessMessages
     getLoggedInstance(final BaseManager manager, final boolean multiLineMessages,
       final boolean logMessages, final String errorOverrideLogTag, final String errorTag,
       final boolean alwaysMultiline) {
-    return new ProcessMessages(manager, multiLineMessages, true, null, null, false,
+    return new ProcessMessages(manager, multiLineMessages, false, null, null, false,
       false, logMessages, errorOverrideLogTag, errorTag, alwaysMultiline);
   }
 
@@ -177,29 +146,117 @@ public class ProcessMessages {
     }
   }
 
-  void startStringFeed() {
-    if (stringFeed == null) {
-      synchronized (this) {
-        if (stringFeed == null) {
-          stringFeed = new ArrayBlockingQueue<String>(STRING_FEED_QUEUE_CAPACITY);
-        }
+  /**
+   * Instance should ignore all input.  Lines sent to instance will be lost.
+   */
+  void hibernate() {
+    hibernate = true;
+  }
+
+  /**
+   * Instance should stop hibernating and behave normally.
+   */
+  void wake() {
+    hibernate = false;
+  }
+
+  public void startStringFeed() {
+    synchronized (stringFeedLock) {
+      if (stringFeed != null) {
+        return;
       }
-    }
-    // Start string feed thread
-    if (stringFeedThread == null || !stringFeedThread.isAlive()) {
-      synchronized (this) {
-        if (stringFeedThread == null || !stringFeedThread.isAlive()) {
-          // Run parse() on a separate thread. NextLine will wait for stringFeed when no
-          // other input is available.
-          stringFeedThread = new Thread(new ParseThread());
-          stringFeedThread.start();
-        }
-      }
+      stringFeed = new ArrayBlockingQueue<String>(STRING_FEED_QUEUE_CAPACITY);
+      // Start string feed thread
+      // Run parse() on a separate thread. NextLine will wait for stringFeed when no
+      // other input is available.
+      stringFeedThread = new Thread(new ParseThread());
+      stringFeedThread.start();
     }
   }
 
-  void stopStringFeed() {
+  /**
+   * Sends a stop token to the string feed and then tells this thread to wait for the
+   * string feed thread to complete.  All previously added strings in the string feed will
+   * be processed before the string feed thread exits.
+   */
+  public void stopStringFeed() {
     feedString(END_STRING_FEED_TOKEN);
+    synchronized (stringFeedLock) {
+      if (stringFeedThread == null) {
+        return;
+      }
+    }
+    try {
+      // Calling thread waits until run thread stops
+      stringFeedThread.join();
+    }
+    catch (InterruptedException e) {}
+  }
+
+  /**
+   * When multilinemessage is set, must send an extra message to get all the messages to
+   * be processed, because the parse may be waiting to see if there is more of the last
+   * message.
+   */
+  void feedEndMessage() {
+    if (hibernate) {
+      return;
+    }
+    feedString("");
+  }
+
+  /**
+   * Clear all lists
+   */
+  public void clear() {
+    if (hibernate) {
+      return;
+    }
+    if (infoList != null) {
+      infoList.clear();
+    }
+    if (warningList != null) {
+      warningList.clear();
+    }
+    if (errorList != null) {
+      errorList.clear();
+    }
+    if (chunkErrorList != null) {
+      chunkErrorList.clear();
+    }
+  }
+
+  public void dumpState() {
+    System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
+      + ",processOutputStringArray:");
+    if (processOutputStringArray != null) {
+      System.err.print("{");
+      for (int i = 0; i < processOutputStringArray.length; i++) {
+        System.err.print(processOutputStringArray[i]);
+        if (i < processOutputStringArray.length - 1) {
+          System.err.print(",");
+        }
+      }
+      System.err.print("}");
+    }
+    System.err.print(",index:" + index + ",line:" + line + ",infoList:");
+    if (infoList != null) {
+      System.err.println(infoList.toString());
+    }
+    System.err.print(",warningList:");
+    if (warningList != null) {
+      System.err.println(warningList.toString());
+    }
+    System.err.print(",errorList:");
+    if (errorList != null) {
+      System.err.println(errorList.toString());
+    }
+    System.err.print(",chunkErrorList:");
+    if (chunkErrorList != null) {
+      System.err.println(chunkErrorList.toString());
+    }
+    System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
+      + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
   }
 
   /**
@@ -207,20 +264,26 @@ public class ProcessMessages {
    * worker thread running ParseThread.run.
    * @param string
    */
-  synchronized void feedString(final String string) {
-    if (stringFeed == null || stringFeedThread == null || !stringFeedThread.isAlive()) {
-      // If the string feed isn't operating, treat as a normal process output.
-      if (string != null && !string.equals(END_STRING_FEED_TOKEN)) {
-        addProcessOutput(string);
-      }
+  void feedString(final String string) {
+    if (hibernate) {
+      return;
     }
-    else {
+    boolean stringFeedAvailable = false;
+    synchronized (stringFeedLock) {
+      stringFeedAvailable = stringFeed != null;
+    }
+    if (stringFeedAvailable) {
       try {
         stringFeed.put(string);
       }
       catch (InterruptedException e) {
         e.printStackTrace();
       }
+      return;
+    }
+    else {
+      // If the string feed isn't operating, treat as a normal process output.
+      addProcessOutput(string);
     }
   }
 
@@ -230,6 +293,9 @@ public class ProcessMessages {
    * @param type
    */
   void feedNewline(final MessageType type) {
+    if (hibernate) {
+      return;
+    }
     if (type == null) {
       feedString("");
     }
@@ -244,6 +310,9 @@ public class ProcessMessages {
    * @param type
    */
   void feedMessage(final String message) {
+    if (hibernate) {
+      return;
+    }
     feedString(message);
     feedString("");
   }
@@ -257,6 +326,9 @@ public class ProcessMessages {
    * @param type
    */
   void feedMessage(final MessageType type, final String message) {
+    if (hibernate) {
+      return;
+    }
     if (type == null) {
       feedString(message);
     }
@@ -267,7 +339,7 @@ public class ProcessMessages {
       feedString(message);
     }
     else {
-      feedString(type.tag + message);
+      feedString(type.tag + " " + message);
     }
     feedString("");
   }
@@ -295,6 +367,9 @@ public class ProcessMessages {
    * @param processOutput: OutputBufferManager
    */
   synchronized void addProcessOutput(final OutputBufferManager processOutput) {
+    if (hibernate) {
+      return;
+    }
     outputBufferManager = processOutput;
     nextLine();
     while (outputBufferManager != null) {
@@ -309,6 +384,9 @@ public class ProcessMessages {
    * @param processOutput: String[]
    */
   synchronized void addProcessOutput(final String[] processOutput) {
+    if (hibernate) {
+      return;
+    }
     processOutputStringArray = processOutput;
     nextLine();
     while (processOutputStringArray != null) {
@@ -325,6 +403,9 @@ public class ProcessMessages {
    */
   synchronized void addProcessOutput(final File processOutput)
     throws FileNotFoundException {
+    if (hibernate) {
+      return;
+    }
     // Open the file as a stream
     InputStream fileStream = new FileInputStream(processOutput);
     bufferedReader = new BufferedReader(new InputStreamReader(fileStream));
@@ -336,6 +417,9 @@ public class ProcessMessages {
 
   synchronized void addProcessOutput(final LogFile processOutput)
     throws LogFile.LockException, FileNotFoundException {
+    if (hibernate) {
+      return;
+    }
     // Open the log file
     logFile = processOutput;
     logFileReaderId = logFile.openReader();
@@ -352,6 +436,9 @@ public class ProcessMessages {
    * @param processOutput: String
    */
   synchronized void addProcessOutput(final String processOutput) {
+    if (hibernate) {
+      return;
+    }
     // Open the file as a stream
     processOutputString = processOutput;
     boolean oldMultiLineMessages = multiLineAllMessages;
@@ -371,6 +458,9 @@ public class ProcessMessages {
   }
 
   synchronized void add(final ProcessMessages processMessages) {
+    if (hibernate) {
+      return;
+    }
     if (processMessages == null) {
       return;
     }
@@ -381,10 +471,16 @@ public class ProcessMessages {
   }
 
   synchronized void add(final MessageType type, final ProcessMessages processMessages) {
+    if (hibernate) {
+      return;
+    }
     add(type, processMessages.getList(type, false));
   }
 
   synchronized void add(final MessageType type, final List<String> input) {
+    if (hibernate) {
+      return;
+    }
     if (type == null || input == null || input.isEmpty()) {
       return;
     }
@@ -413,6 +509,9 @@ public class ProcessMessages {
   }
 
   synchronized void add(final MessageType type, final String input) {
+    if (hibernate) {
+      return;
+    }
     if (type == null) {
       return;
     }
@@ -428,6 +527,9 @@ public class ProcessMessages {
   }
 
   synchronized void add(final MessageType type) {
+    if (hibernate) {
+      return;
+    }
     if (type == null) {
       return;
     }
@@ -437,6 +539,9 @@ public class ProcessMessages {
   }
 
   synchronized void add(final MessageType type, final String[] input) {
+    if (hibernate) {
+      return;
+    }
     if (type == null || input == null || input.length == 0) {
       return;
     }
@@ -531,7 +636,8 @@ public class ProcessMessages {
 
   /**
    * Look for a message or a success tag.  Return when something is found or
-   * when there is nothing left to look for.
+   * when there is nothing left to look for.  Causes nextLine to be called after the
+   * message has been processed.
    */
   private void parse() {
     if (parsePipWarning()) {
@@ -997,26 +1103,29 @@ public class ProcessMessages {
   /**
    * Figure out which type of process output is being read and call the
    * corresponding nextLine function.
+   * When stringFeed is in use, waits for stringFeed to contain something and returns
+   * true unless one of the ending tokens are found.
    * @return
    */
   private boolean nextLine() {
     // String feed thread - do NOT wait for a string, except on the string feed thread.
     if (stringFeed != null && Thread.currentThread().equals(stringFeedThread)) {
       // This is the string feed thread - wait for a string
-      try {
-        line = stringFeed.take();
-        currentLine.load(line);
-        // If the end token is found, false will be returned, parse() will end, and the
-        // stringFeedThread will end.
-        if (line.equals(END_STRING_FEED_TOKEN)) {
-          return false;
+      boolean takeSucceeded = false;
+      while (!takeSucceeded) {
+        try {
+          line = stringFeed.take();
+          if (line != null && line.equals(END_STRING_FEED_TOKEN)) {
+            return false;
+          }
+          takeSucceeded = true;
+          currentLine.load(line);
+          return true;
         }
-        return true;
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
       }
-      catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      return false;
     }
     boolean retval = false;
     if (outputBufferManager != null) {
@@ -1217,10 +1326,18 @@ public class ProcessMessages {
   }
 
   private class ParseThread implements Runnable {
+    /**
+     * Gets lines from stringFeed (must be set up with startStringFeed).  Stops when the
+     * END_STRING_FEED_TOKEN is received. Clears the string feed queue when it ends.
+     */
     public void run() {
       nextLine();
       while (line == null || !line.equals(END_STRING_FEED_TOKEN)) {
         parse();
+      }
+      synchronized (stringFeedLock) {
+        stringFeed = null;
+        stringFeedThread = null;
       }
     }
   }
@@ -1257,6 +1374,11 @@ public class ProcessMessages {
     private int tagIndex = -1;
 
     Line() {}
+
+    public String toString() {
+      return "[messageType:" + messageType + ",startIndex:" + startIndex + ",tagIndex:"
+        + tagIndex + "\n" + line;
+    }
 
     private void reset() {
       line = null;
