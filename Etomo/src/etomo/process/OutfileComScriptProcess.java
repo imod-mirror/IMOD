@@ -7,6 +7,7 @@ import etomo.comscript.Command;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.FileType;
+import etomo.type.ProcessName;
 
 /**
 * <p>Description: Process for a comscript that is detatched and watches a file.</p>
@@ -23,10 +24,24 @@ public final class OutfileComScriptProcess extends ComScriptProcess {
 
   public OutfileComScriptProcess(final BaseManager manager, final String comScript,
     final BaseProcessManager processManager, final AxisID axisID,
-    final DetachedProcessMonitor monitor, final Command command, final FileType fileType) {
-    super(manager, comScript, processManager, axisID, monitor, command, fileType);
+    final DetachedProcessMonitor monitor, final Command command, final FileType fileType,
+    final ProcessName processName, final boolean reconnectWhenNotRunning,
+    final ProcessData managedProcessData) {
+    super(manager, comScript, processManager, axisID, monitor, command, fileType,
+      processName, reconnectWhenNotRunning, managedProcessData);
     this.processManager = processManager;
     this.monitor = monitor;
+  }
+
+  /**
+   * Builds the log file, prefering to use fileType instead of the processName.  Either
+   * fileType or getProcessName() must be non-null.
+   */
+  LogFile buildLogFile(final FileType fileType) {
+    if (fileType != null) {
+      return buildLogFileFromFileType(fileType);
+    }
+    return buildLogFileFromProcessName();
   }
 
   /**
