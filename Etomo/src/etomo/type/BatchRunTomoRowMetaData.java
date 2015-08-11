@@ -12,20 +12,26 @@ import java.util.Properties;
 public final class BatchRunTomoRowMetaData {
   private static final String GROUP_KEY = "row";
   private static final String ROW_NUMBER_KEY = "RowNumber";
+  private static final String DATASET_STATUS_KEY = "DatasetStatus";
+  private static final String ENDING_STEP_KEY = "EndingStep";
 
   private final EtomoNumber rowNumber = new EtomoNumber(ROW_NUMBER_KEY);
   private final EtomoBoolean2 dual = new EtomoBoolean2("dual");
   private final StringProperty bskip = new StringProperty("bskip");
   private final EtomoBoolean2 run = new EtomoBoolean2("Run");
+  private final StringProperty origStack = new StringProperty("OrigStack");
+  private final EtomoBoolean2 etomoEnabled = new EtomoBoolean2("Etomo.Enabled");
 
   private BatchRunTomoDatasetMetaData datasetMetaData = null;
+  private BatchRunTomoDatasetStatus datasetStatus = null;
+  private EndingStep endingStep = null;
 
   private final String stackID;
 
   BatchRunTomoRowMetaData(final String stackID) {
     this.stackID = stackID;
   }
-  
+
   public String toString() {
     return rowNumber.toString();
   }
@@ -36,7 +42,7 @@ public final class BatchRunTomoRowMetaData {
    * @return
    */
   public static boolean isRowNumberNull(final Properties props, String prepend,
-      final String stackID) {
+    final String stackID) {
     prepend = createPrepend(prepend, stackID);
     EtomoNumber number = new EtomoNumber(ROW_NUMBER_KEY);
     number.load(props, prepend);
@@ -72,11 +78,22 @@ public final class BatchRunTomoRowMetaData {
     dual.reset();
     bskip.reset();
     run.reset();
+    datasetStatus = null;
+    endingStep = null;
+    origStack.reset();
+    etomoEnabled.reset();
     prepend = createPrepend(prepend);
+    String group = prepend + ".";
     rowNumber.load(props, prepend);
     dual.load(props, prepend);
     bskip.load(props, prepend);
     run.load(props, prepend);
+    datasetStatus =
+      BatchRunTomoDatasetStatus
+        .getInstance(props.getProperty(group + DATASET_STATUS_KEY));
+    endingStep = EndingStep.getInstance(props.getProperty(group + ENDING_STEP_KEY));
+    origStack.load(props, prepend);
+    etomoEnabled.load(props, prepend);
     if (BatchRunTomoDatasetMetaData.exists(props, prepend)) {
       if (datasetMetaData == null) {
         datasetMetaData = new BatchRunTomoDatasetMetaData();
@@ -87,36 +104,64 @@ public final class BatchRunTomoRowMetaData {
 
   public void store(final Properties props, String prepend) {
     prepend = createPrepend(prepend);
+    String group = prepend + ".";
     rowNumber.store(props, prepend);
     if (!rowNumber.isNull()) {
       dual.store(props, prepend);
       bskip.store(props, prepend);
       run.store(props, prepend);
+      if (datasetStatus != null) {
+        props.setProperty(group + DATASET_STATUS_KEY, datasetStatus.getKey());
+      }
+      else {
+        props.remove(group + DATASET_STATUS_KEY);
+      }
+      if (endingStep != null) {
+        props.setProperty(group + ENDING_STEP_KEY, endingStep.getValue().toString());
+      }
+      else {
+        props.remove(group + ENDING_STEP_KEY);
+      }
+      origStack.store(props, prepend);
+      etomoEnabled.store(props, prepend);
       if (datasetMetaData != null) {
         datasetMetaData.store(props, prepend);
       }
     }
-    else {
-      // remove
-      rowNumber.remove(props, prepend);
-      dual.remove(props, prepend);
-      bskip.remove(props, prepend);
-      run.remove(props, prepend);
-      // reset
-      rowNumber.reset();
-      dual.reset();
-      bskip.reset();
-      run.reset();
-      if (datasetMetaData != null) {
-        // remove
-        datasetMetaData.remove(props, prepend);
-        // reset
-        datasetMetaData.reset();
-        datasetMetaData = null;
-      }
-    }
   }
-  
+
+  public void setEtomoEnabled(final boolean input) {
+    etomoEnabled.set(input);
+  }
+
+  public boolean isEtomoEnabled() {
+    return etomoEnabled.is();
+  }
+
+  public void setOrigStack(final String input) {
+    origStack.set(input);
+  }
+
+  public void setEndingStep(final EndingStep input) {
+    endingStep = input;
+  }
+
+  public void setDatasetStatus(final BatchRunTomoDatasetStatus input) {
+    datasetStatus = input;
+  }
+
+  public String getOrigStack() {
+    return origStack.toString();
+  }
+
+  public EndingStep getEndingStep() {
+    return endingStep;
+  }
+
+  public BatchRunTomoDatasetStatus getDatasetStatus() {
+    return datasetStatus;
+  }
+
   public String getStackID() {
     return stackID;
   }

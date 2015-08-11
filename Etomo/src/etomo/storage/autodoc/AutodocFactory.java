@@ -120,6 +120,7 @@ public final class AutodocFactory {
   public static final String IMODCHOPCONTS = "imodchopconts";
   public static final String DUALVOLMATCH = "dualvolmatch";
   public static final String RESTRICT_ALIGN = "restrictalign";
+  public static final String BATCH_RUN_TOMO = "batchruntomo";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -155,6 +156,7 @@ public final class AutodocFactory {
   private static Autodoc IMODCHOPCONTS_INSTANCE = null;
   private static Autodoc DUALVOLMATCH_INSTANCE = null;
   private static Autodoc RESTRICT_ALIGN_INSTANCE = null;
+  private static Autodoc BATCH_RUN_TOMO_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -640,7 +642,9 @@ public final class AutodocFactory {
     if (name.equals(RESTRICT_ALIGN)) {
       return RESTRICT_ALIGN_INSTANCE;
     }
-    new IllegalArgumentException("Illegal autodoc name: " + name + ".").printStackTrace();
+    if (name.equals(BATCH_RUN_TOMO)) {
+      return BATCH_RUN_TOMO_INSTANCE;
+    }
     return null;
   }
 
@@ -747,6 +751,9 @@ public final class AutodocFactory {
     else if (name.equals(RESTRICT_ALIGN)) {
       RESTRICT_ALIGN_INSTANCE = null;
     }
+    else if (name.equals(BATCH_RUN_TOMO)) {
+      BATCH_RUN_TOMO_INSTANCE = null;
+    }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
@@ -851,6 +858,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(RESTRICT_ALIGN)) {
       RESTRICT_ALIGN_INSTANCE = autodoc;
+    }
+    else if (name.equals(BATCH_RUN_TOMO)) {
+      BATCH_RUN_TOMO_INSTANCE = autodoc;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");

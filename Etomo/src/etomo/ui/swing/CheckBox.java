@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,7 +10,7 @@ import javax.swing.JCheckBox;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
@@ -118,7 +119,9 @@ import etomo.util.Utilities;
  *          <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
  *          <p> </p>
  */
-final class CheckBox extends JCheckBox implements Field, ActionListener {
+final class CheckBox implements Field, ActionListener {
+  private final JCheckBox checkBox;
+
   private boolean debug = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
@@ -128,12 +131,15 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   private BooleanFieldSetting checkpoint = null;
   private BooleanFieldSetting fieldHighlight = null;
 
-  public CheckBox() {
-    super();
+  private boolean enabled = true;
+  private boolean editable = true;
+
+  CheckBox() {
+    checkBox = new JCheckBox();
   }
 
-  public CheckBox(String text) {
-    super(text);
+  CheckBox(String text) {
+    checkBox = new JCheckBox(text);
     setName(text);
   }
 
@@ -145,6 +151,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return false;
   }
 
+  boolean isVisible() {
+    return checkBox.isVisible();
+  }
+
   public boolean isEmpty() {
     return false;
   }
@@ -153,12 +163,20 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return object == this;
   }
 
-  public boolean equals(final Document document) {
+  boolean equals(final Document document) {
     return false;
   }
 
   public boolean isRequired() {
     return false;
+  }
+
+  public boolean isSelected() {
+    return checkBox.isSelected();
+  }
+
+  public String getText() {
+    return checkBox.getText();
   }
 
   /**
@@ -177,22 +195,27 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public String getQuotedLabel() {
     String label = getText();
     if (label == null || label.matches("\\s*")) {
-      label = getName();
+      label = checkBox.getName();
     }
     return Utilities.quoteLabel(label);
   }
 
-  public void setText(String text) {
-    super.setText(text);
+  void setText(String text) {
+    checkBox.setText(text);
     setName(text);
   }
 
-  public void setName(String text) {
+  void setSelected(final boolean input) {
+    checkBox.setSelected(input);
+  }
+
+  void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(UITestFieldType.CHECK_BOX.toString() + AutodocTokenizer.SEPARATOR_CHAR
-      + name);
+    checkBox.setName(UITestFieldType.CHECK_BOX.toString()
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(checkBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+        + ' ');
     }
   }
 
@@ -209,12 +232,24 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
    */
   public void restoreFromBackup() {
     if (backup != null && backup.isSet()) {
-      setSelected(backup.isValue());
+      checkBox.setSelected(backup.isValue());
     }
   }
 
+  void setActionCommand(final String input) {
+    checkBox.setActionCommand(input);
+  }
+
+  void setAlignmentX(final float input) {
+    checkBox.setAlignmentX(input);
+  }
+
+  void setBackground(final Color color) {
+    checkBox.setBackground(color);
+  }
+
   public void clear() {
-    setSelected(false);
+    checkBox.setSelected(false);
   }
 
   /**
@@ -227,14 +262,18 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
       clear();
     }
     else {
-      setSelected(input.isSelected());
+      checkBox.setSelected(input.isSelected());
     }
   }
 
   public void setValue(final String value) {}
 
+  void setVisible(final boolean input) {
+
+  }
+
   public void setValue(final boolean value) {
-    setSelected(value);
+    checkBox.setSelected(value);
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
@@ -258,14 +297,14 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     // only search for default value once for this directiveDef
     if (defaultValue == null) {
       defaultValue = new BooleanFieldSetting();
-      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      String value = AutodocAttributeRetriever.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
         defaultValue.set(value);
       }
     }
     if (defaultValue.isSet()) {
-      setSelected(defaultValue.isValue());
+      checkBox.setSelected(defaultValue.isValue());
     }
   }
 
@@ -295,6 +334,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return checkpoint;
   }
 
+  Component getComponent() {
+    return checkBox;
+  }
+
   public void setCheckpoint(final FieldSettingInterface input) {
     if (checkpoint == null && input != null && input.isSet() && input.isBoolean()) {
       checkpoint = new BooleanFieldSetting();
@@ -311,7 +354,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     if (checkpoint == null || !checkpoint.isSet()) {
       return;
     }
-    setSelected(checkpoint.isValue());
+    checkBox.setSelected(checkpoint.isValue());
   }
 
   void setDebug(final boolean input) {
@@ -321,7 +364,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public void setFieldHighlight(final boolean value) {
     if (fieldHighlight == null) {
       fieldHighlight = new BooleanFieldSetting();
-      addActionListener(this);
+      checkBox.addActionListener(this);
     }
     fieldHighlight.set(value);
     updateFieldHighlight();
@@ -330,7 +373,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public void setFieldHighlight(final String input) {
     if (fieldHighlight == null && input != null) {
       fieldHighlight = new BooleanFieldSetting();
-      addActionListener(this);
+      checkBox.addActionListener(this);
     }
     if (fieldHighlight != null) {
       fieldHighlight.set(input);
@@ -345,7 +388,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public void setFieldHighlight(FieldSettingInterface input) {
     if (fieldHighlight == null && input != null && input.isSet() && input.isBoolean()) {
       fieldHighlight = new BooleanFieldSetting();
-      addActionListener(this);
+      checkBox.addActionListener(this);
     }
     if (fieldHighlight != null) {
       fieldHighlight.copy(input);
@@ -374,33 +417,62 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
       && fieldHighlight.equals(value);
   }
 
-  public void setEnabled(final boolean enabled) {
-    super.setEnabled(enabled);
-    if (enabled) {
+  String getActionCommand() {
+    return checkBox.getActionCommand();
+  }
+
+  void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    // Only visually enabled if both enabled and editable
+    checkBox.setEnabled(enabled && editable);
+    if (enabled && editable) {
       updateFieldHighlight();
     }
+  }
+
+  void setEditable(final boolean editable) {
+    this.editable = editable;
+    // Editable has no visible effect if the button is disabled.
+    if (enabled) {
+      checkBox.setEnabled(editable);
+    }
+    if (enabled && editable) {
+      updateFieldHighlight();
+    }
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+  
+  public boolean isEditable() {
+    return editable;
   }
 
   public void actionPerformed(ActionEvent e) {
     updateFieldHighlight();
   }
 
+  void addActionListener(final ActionListener listener) {
+    checkBox.addActionListener(listener);
+  }
+
   private void updateFieldHighlight() {
     if (fieldHighlight != null && fieldHighlight.equals(isSelected())) {
       if (origForeground == null) {
         // origForeground must be set if the foreground is going to be changed
-        origForeground = getForeground();
+        origForeground = checkBox.getForeground();
         if (origForeground == null) {
           origForeground = Color.black;
         }
       }
-      setForeground(Colors.FIELD_HIGHLIGHT);
+      checkBox.setForeground(Colors.FIELD_HIGHLIGHT);
       return;
     }
     if (origForeground != null) {
       // Field highlight value currently doesn't match the field text, or field highlight
       // was removed.
-      setForeground(origForeground);
+      checkBox.setForeground(origForeground);
     }
   }
 
@@ -423,24 +495,34 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
    * @return
    */
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+    if (!alwaysCheck && (!isEnabled() || !checkBox.isVisible())) {
       return false;
     }
     return checkpoint == null || !checkpoint.equals(isSelected());
   }
 
   public void setToolTipText(String text) {
-    super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    checkBox.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  public void setToolTipText(final String autodocName, final ReadOnlySection section,
+  void setToolTipText(final String autodocName, final ReadOnlySection section,
     final String enumValue) {
     setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, enumValue));
   }
 
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      checkBox.setToolTipText(field.getTooltip());
+    }
+  }
+
+  public String getTooltip() {
+    return checkBox.getToolTipText();
+  }
+
   void printInfo() {
-    System.out.println(getName());
-    printInfo(getParent());
+    System.out.println(checkBox.getName());
+    printInfo(checkBox.getParent());
   }
 
   private void printInfo(Container parent) {

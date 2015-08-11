@@ -35,6 +35,7 @@ final class ButtonCell extends InputCell implements TableComponent {
   private final AbstractButton button;
 
   private FontMetrics fontMetrics = null;
+  private boolean enabled = true;
 
   private ButtonCell(final Icon icon, final String title, final boolean toggle) {
     if (!toggle) {
@@ -64,7 +65,7 @@ final class ButtonCell extends InputCell implements TableComponent {
     return button;
   }
 
- public int getPreferredWidth() {
+  public int getPreferredWidth() {
     if (fontMetrics == null) {
       fontMetrics = UIUtilities.getFontMetrics(button);
     }
@@ -95,8 +96,13 @@ final class ButtonCell extends InputCell implements TableComponent {
     button.addActionListener(listener);
   }
 
-  public void setEnabled(boolean enable) {
-    button.setEnabled(enable);
+  void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    button.setEnabled(enabled && isEditable());
+  }
+
+  boolean isEnabled() {
+    return enabled;
   }
 
   public void setDisabledIcon(final Icon icon) {

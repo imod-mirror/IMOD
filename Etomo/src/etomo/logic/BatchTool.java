@@ -235,6 +235,13 @@ public final class BatchTool {
             return true;
           }
         }
+        else if (field.isBoolean() && !field.isText() && !directiveDef.isBoolean()) {
+          System.err.println("ERROR: " + field.getQuotedLabel() + " to "
+            + directiveDef.toString()
+            + ":  Unable to translate boolean field value to unknown directive string "
+            + "value.");
+          Thread.dumpStack();
+        }
       }
     }
     else {

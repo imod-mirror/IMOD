@@ -10,7 +10,7 @@ import javax.swing.ButtonGroup;
 
 import etomo.BaseManager;
 import etomo.storage.MatlabParam;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -90,7 +90,7 @@ final class SphericalSamplingForThetaAndPsiPanel implements UIComponent, SwingCo
     ltfSampleInterval.setPreferredWidth(60);
     // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
-    pnlRoot.setBorder(new EtchedBorder(FieldLabels.SAMPLE_SPHERE_LABEL).getBorder());
+    pnlRoot.setBorder(new EtchedBorder(SharedStrings.SAMPLE_SPHERE_LABEL).getBorder());
     pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlRoot.add(rbSampleSphereNone.getComponent());
     pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -178,7 +178,7 @@ final class SphericalSamplingForThetaAndPsiPanel implements UIComponent, SwingCo
     if ((rbSampleSphereFull.isSelected() || rbSampleSphereHalf.isSelected())
         && ltfSampleInterval.isEnabled() && ltfSampleInterval.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "In "
-          + FieldLabels.SAMPLE_SPHERE_LABEL + ", " + SAMPLE_INTERVAL_LABEL
+          + SharedStrings.SAMPLE_SPHERE_LABEL + ", " + SAMPLE_INTERVAL_LABEL
           + " is required when either " + MatlabParam.SampleSphere.FULL.getLabel()
           + " or " + MatlabParam.SampleSphere.HALF.getLabel() + " is selected.",
           "Entry Error");

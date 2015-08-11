@@ -45,6 +45,7 @@ final class FileButtonCell extends InputCell {
   private ActionTarget actionTarget = null;
   private String label = null;
   private FileFilter fileFilter = null;
+  private boolean enabled = true;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
     ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFilePeet.png"
@@ -134,8 +135,13 @@ final class FileButtonCell extends InputCell {
     return button.getSize().width;
   }
 
-  public void setEnabled(final boolean enabled) {
-    button.setEnabled(enabled);
+   void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    button.setEnabled(enabled && isEditable());
+  }
+  
+   boolean isEnabled() {
+    return enabled;
   }
 
   private void action() {

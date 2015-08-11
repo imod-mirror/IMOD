@@ -154,7 +154,7 @@ public final class LogWindow implements LogInterface, LogProperties {
     // Accelerators
     menuHide.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-        ActionEvent.CTRL_MASK));
+      ActionEvent.CTRL_MASK));
     // Bind the menu items to their listeners
     MenuActionListener actionListener = new MenuActionListener(this);
     menuSave.addActionListener(actionListener);
@@ -190,7 +190,7 @@ public final class LogWindow implements LogInterface, LogProperties {
    * @param current - true when interface is displayed
    */
   public final void msgCurrentManagerChanged(final boolean current,
-      final boolean startupPopupOpen) {
+    final boolean startupPopupOpen) {
     if (current && !startupPopupOpen && !EtomoDirector.INSTANCE.getArguments().isTest()) {
       if (visibleProperty.is() && !frame.isVisible()) {
         show();
@@ -215,19 +215,18 @@ public final class LogWindow implements LogInterface, LogProperties {
     try {
       Thread.sleep(50);
     }
-    catch (InterruptedException e) {
-    }
+    catch (InterruptedException e) {}
     if (!displayed) {
       displayed = true;
       if (!frameLocationXProperty.isNull()) {
         frame.setLocation(frameLocationXProperty.getInt(),
-            frameLocationYProperty.getInt());
+          frameLocationYProperty.getInt());
       }
       else {
         frame.setLocationByPlatform(true);
       }
       frame.setSize(new Dimension(frameSizeWidthProperty.getInt(),
-          frameSizeHeightProperty.getInt()));
+        frameSizeHeightProperty.getInt()));
     }
     frame.setVisible(true);
     visibleProperty.set(true);
@@ -261,7 +260,8 @@ public final class LogWindow implements LogInterface, LogProperties {
    * @param paramFile
    * @param metaData
    */
-  synchronized void setTitle(File paramFile, BaseMetaData metaData, String propertyUserDir) {
+  synchronized void
+    setTitle(File paramFile, BaseMetaData metaData, String propertyUserDir) {
     if (metaData != null && paramFile != null) {
       datasetName = metaData.getName();
       border.setTitle(datasetName + " " + TITLE);
@@ -284,12 +284,12 @@ public final class LogWindow implements LogInterface, LogProperties {
             catch (LogFile.LockException e) {
               e.printStackTrace();
               UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to load "
-                  + file.getAbsolutePath(), "System Error");
+                + file.getAbsolutePath(), "System Error");
             }
             catch (IOException e) {
               e.printStackTrace();
               UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to load "
-                  + file.getAbsolutePath(), "System Error");
+                + file.getAbsolutePath(), "System Error");
             }
           }
         }
@@ -363,7 +363,8 @@ public final class LogWindow implements LogInterface, LogProperties {
               // Preserve an empty line by calling newLine.
               if (lineArray[i].length() > 1) {
                 // Write a line which has a Windows line ending (strip \r).
-                file.write(lineArray[i].substring(0, lineArray[i].length() - 2), writerId);
+                file
+                  .write(lineArray[i].substring(0, lineArray[i].length() - 2), writerId);
               }
             }
             else {
@@ -381,7 +382,7 @@ public final class LogWindow implements LogInterface, LogProperties {
       if (!writeFailed) {
         writeFailed = true;
         UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
-            "Unabled to write to file " + file.getAbsolutePath(), "System Error");
+          "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -392,7 +393,7 @@ public final class LogWindow implements LogInterface, LogProperties {
       if (!writeFailed) {
         writeFailed = true;
         UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
-            "Unabled to write to file " + file.getAbsolutePath(), "System Error");
+          "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -419,7 +420,7 @@ public final class LogWindow implements LogInterface, LogProperties {
         if (!fileFailed) {
           fileFailed = true;
           UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
-              "Unabled to access file " + fileName + " in " + userDir, "System Error");
+            "Unabled to access file " + fileName + " in " + userDir, "System Error");
         }
         return false;
       }
@@ -438,9 +439,11 @@ public final class LogWindow implements LogInterface, LogProperties {
   public void logMessage(String title, AxisID axisID, ArrayList<String> message) {
     logger.logMessage(title, axisID, message);
   }
-  public void logMessage( AxisID axisID, ArrayList<String> message) {
-    logger.logMessage( axisID, message);
+
+  public void logMessage(AxisID axisID, ArrayList<String> message) {
+    logger.logMessage(axisID, message);
   }
+
   public void logMessage(String title, AxisID axisID) {
     logger.logMessage(title, axisID);
   }
@@ -449,8 +452,17 @@ public final class LogWindow implements LogInterface, LogProperties {
     logger.logMessage(message);
   }
 
+  public void logMessage(final String message, final boolean timestamp,
+    final boolean newline) {
+    logger.logMessage(message, timestamp, newline);
+  }
+
   public void logMessage(final File file) {
     logger.logMessage(file);
+  }
+
+  public void logMessage(final File file, final boolean newline) {
+    logger.logMessage(file, newline);
   }
 
   public void msgChanged() {
@@ -523,11 +535,9 @@ public final class LogWindow implements LogInterface, LogProperties {
       this.adaptee = adaptee;
     }
 
-    public void keyPressed(KeyEvent event) {
-    }
+    public void keyPressed(KeyEvent event) {}
 
-    public void keyReleased(KeyEvent event) {
-    }
+    public void keyReleased(KeyEvent event) {}
 
     public void keyTyped(KeyEvent event) {
       adaptee.msgChanged();

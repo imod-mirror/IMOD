@@ -285,7 +285,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     // One surface panel
     pnlOneSurface.setLayout(new BoxLayout(pnlOneSurface, BoxLayout.Y_AXIS));
     pnlOneSurface.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlOneSurface.add(cbOneSurface);
+    pnlOneSurface.add(cbOneSurface.getComponent());
     pnlOneSurface.add(Box.createHorizontalGlue());
     // Warp Spacing panel
     pnlWarpSpacing.setLayout(new BoxLayout(pnlWarpSpacing, BoxLayout.X_AXIS));
@@ -301,7 +301,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     pnlInterpolationOrder
         .setLayout(new BoxLayout(pnlInterpolationOrder, BoxLayout.X_AXIS));
     pnlInterpolationOrder.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlInterpolationOrder.add(cbInterpolationOrderLinear);
+    pnlInterpolationOrder.add(cbInterpolationOrderLinear.getComponent());
     pnlInterpolationOrder.add(Box.createHorizontalGlue());
     // Flatten panel
     pnlFlatten.setBoxLayout(BoxLayout.X_AXIS);

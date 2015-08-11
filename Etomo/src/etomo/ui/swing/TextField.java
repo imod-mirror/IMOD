@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.logic.FieldValidator;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -91,8 +91,22 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     return true;
   }
 
-  void setToolTipText(String text) {
+  public void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      textField.setToolTipText(field.getTooltip());
+    }
+  }
+
+  public String getTooltip() {
+    return textField.getToolTipText();
+  }
+
+  void setPreformattedTooltip(final String tooltip) {
+    textField.setToolTipText(tooltip);
   }
 
   public SwingComponent getUIComponent() {
@@ -116,6 +130,14 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   void setEditable(boolean editable) {
     textField.setEditable(editable);
+  }
+
+  public boolean isEnabled() {
+    return textField.isEnabled();
+  }
+
+  boolean isEditable() {
+    return textField.isEditable();
   }
 
   /**
@@ -173,7 +195,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     // only search for default value once
     if (defaultValue == null) {
       defaultValue = new TextFieldSetting(fieldType);
-      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      String value = AutodocAttributeRetriever.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
         defaultValue.set(value);
@@ -406,14 +428,6 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   String getName() {
     return textField.getName();
-  }
-
-  public boolean isEnabled() {
-    return textField.isEnabled();
-  }
-
-  boolean isEditable() {
-    return textField.isEditable();
   }
 
   boolean isVisible() {

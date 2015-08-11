@@ -270,6 +270,8 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
 
   abstract void reloadWatchedFile();
+  
+ public void halt() {}
 
   public void run() {
     running = true;

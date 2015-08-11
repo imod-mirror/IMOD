@@ -1518,7 +1518,7 @@ public class ImodProcess {
       errorMessage.add(line.substring(index));
       return true;
     }
-    index = line.indexOf(ProcessMessages.WARNING_TAG);
+    index = line.indexOf(ProcessMessages.MessageType.WARNING.getTag());
     if (index != -1) {
       errorMessage.add(line.substring(index));
       return true;
@@ -2293,7 +2293,7 @@ public class ImodProcess {
         userMessages.append(line + "\n");
         return true;
       }
-      index = line.indexOf(ProcessMessages.WARNING_TAG);
+      index = line.indexOf(ProcessMessages.MessageType.WARNING.getTag());
       if (index != -1) {
         userMessages.append(line + "\n");
         return true;

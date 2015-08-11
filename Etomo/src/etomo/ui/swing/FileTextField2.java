@@ -79,6 +79,9 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   private boolean originEtomoRunDir = false;
   private DirectiveDef directiveDef = null;
   private FontMetrics fontMetrics = null;
+  private boolean textEntryPolicy = true;
+  private boolean enabled = true;
+  private boolean editable = true;
 
   public String toString() {
     return super.toString() + ":[text:" + field.getText() + ",label:" + label.getText();
@@ -196,7 +199,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
       panel.add(Box.createHorizontalGlue());
     }
   }
-  
+
   void setBackground(final Color color) {
     panel.setBackground(color);
   }
@@ -336,10 +339,6 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   public boolean isEmpty() {
     String text = field.getText();
     return text == null || text.matches("\\s*");
-  }
-
-  public boolean isEnabled() {
-    return button.isEnabled();
   }
 
   boolean exists() {
@@ -568,25 +567,56 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     return false;
   }
 
-  void setEnabled(final boolean enabled) {
-    field.setEnabled(enabled);
-    button.setEnabled(enabled);
+  void setTextEntryPolicy(final boolean input) {
+    if (!input) {
+      field.setEditable(false);
+      textEntryPolicy = false;
+    }
+    else {
+      textEntryPolicy = true;
+    }
   }
 
-  void setEditable(final boolean editable) {
-    field.setEditable(editable);
-    button.setEnabled(editable);
+  public void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    field.setEnabled(enabled);// field handles enabled versus editable
+    // Only visually enabled if both enabled and editable
+    button.setEnabled(enabled && editable);
   }
 
-  void setFieldEditable(final boolean editable) {
-    field.setEditable(editable);
+  public void setEditable(final boolean editable) {
+    if (textEntryPolicy) {
+      this.editable = editable;
+      field.setEditable(editable);// field handles enabled versus editable
+    }
+    // Editable has no visible effect if the field is disabled.
+    if (enabled) {
+      button.setEnabled(editable);
+    }
   }
 
-  void setToolTipText(String text) {
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setToolTipText(String text) {
     field.setToolTipText(text);
     text = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(text);
     button.setToolTipText(text);
+  }
+
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      String tooltip = field.getTooltip();
+      this.field.setPreformattedTooltip(tooltip);
+      panel.setToolTipText(tooltip);
+      button.setToolTipText(tooltip);
+    }
+  }
+
+  public String getTooltip() {
+    return field.getTooltip();
   }
 
   void setFieldToolTipText(final String text) {
