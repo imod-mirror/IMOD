@@ -517,11 +517,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
         fcDatasetStatus.setRunHighlight(true);
       }
       // Monitor has found information on the state of the current dataset being run up
-
       if (status == BatchRunTomoDatasetStatus.DONE
         || status == BatchRunTomoDatasetStatus.RUNNING) {
         // Remove ending step.
         fcEndingStep.setValue();
+        endingStep = null;
         if (status == BatchRunTomoDatasetStatus.DONE) {
           // Keep user from mistakenly rerunning a finished dataset
           cbcRun.setSelected(false);
