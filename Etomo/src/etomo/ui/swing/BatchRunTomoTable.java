@@ -27,6 +27,7 @@ import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
 import etomo.type.BatchRunTomoStatus;
@@ -668,11 +669,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           // Decide how to set the "dual" checkbox.
           dual = stackInfo.isMatched();
           overridePrevRow = dual || stackInfo.isSingleAxis();
+          AxisType axisType = null;
+          if (stackInfo.isSingleAxis()) {
+            axisType = AxisType.SINGLE_AXIS;
+          }
+          else if (stackInfo.isMatched()) {
+            axisType = AxisType.DUAL_AXIS;
+          }
           // Add the row.
           BatchRunTomoRow row =
             BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints, index + 1,
-              stack, prevRow, overridePrevRow, dual, manager, stackID,
-              preferredTableSize, tableReference);
+              stack, prevRow, axisType, manager, stackID, preferredTableSize,
+              tableReference);
           row.addStatusChangeListener(this);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
@@ -723,8 +731,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
             String stackID = rowMetaData.getStackID();
             BatchRunTomoRow row =
               BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints,
-                index + 1, new File(tableReference.getUniqueString(stackID)), null,
-                false, false, manager, stackID, preferredTableSize, tableReference);
+                index + 1, new File(tableReference.getUniqueString(stackID)), null, null,
+                manager, stackID, preferredTableSize, tableReference);
             row.addStatusChangeListener(this);
             row.expandStack(btnStack.isExpanded());
             list.add(row);
