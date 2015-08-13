@@ -111,6 +111,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   private final BatchRunTomoManager manager;
   private final String stackID;
   private final TableReference tableReference;
+  private final AxisType axisType;
 
   private int imodIndexA = -1;
   private int imodIndexB = -1;
@@ -124,8 +125,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
-    final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-    final boolean dual, final BatchRunTomoManager manager, final String stackID,
+    final File stack, final BatchRunTomoRow prevRow, final AxisType axisType,
+    final BatchRunTomoManager manager, final String stackID,
     final PreferredTableSize preferredTableSize, final TableReference tableReference) {
     this.panel = panel;
     this.layout = layout;
@@ -133,6 +134,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     this.manager = manager;
     this.stackID = stackID;
     this.tableReference = tableReference;
+    this.axisType = axisType;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableIneditableInstance(null);
@@ -168,12 +170,15 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     }
     // init
     fcEndingStep.setHorizontalAlignment(JTextField.CENTER);
-    setDefaults();
     copy(prevRow);
     setTooltips(prevRow);
-    // When overridePrevRow is true, overrideDual will replace prevRow dual axis.
-    if (overridePrevRow) {
-      cbcDual.setSelected(dual);
+    // If axisType is set, use it to set dual checkbox, otherwise keep the default
+    // axisType from the previous row.
+    if (axisType == AxisType.DUAL_AXIS) {
+      cbcDual.setSelected(true);
+    }
+    else if (axisType == AxisType.SINGLE_AXIS) {
+      cbcDual.setSelected(false);
     }
     cbcRun.setSelected(true);
     // directives
@@ -192,24 +197,26 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
 
   static BatchRunTomoRow getInstance(final BatchRunTomoTable table, final JPanel panel,
     final GridBagLayout layout, final GridBagConstraints constraints, final int number,
-    final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-    final boolean dual, final BatchRunTomoManager manager, final String stackID,
+    final File stack, final BatchRunTomoRow prevRow, final AxisType axisType,
+    final BatchRunTomoManager manager, final String stackID,
     final PreferredTableSize datasetWidth, final TableReference tableReference) {
     BatchRunTomoRow instance =
       new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
-        overridePrevRow, dual, manager, stackID, datasetWidth, tableReference);
+        axisType, manager, stackID, datasetWidth, tableReference);
     instance.addListeners();
     return instance;
   }
 
   static BatchRunTomoRow getDefaultsInstance() {
-    return new BatchRunTomoRow(null, null, null, null, -1, null, null, false, false,
-      null, null, null, null);
+    return new BatchRunTomoRow(null, null, null, null, -1, null, null, null, null, null,
+      null, null);
   }
 
   void copy(final BatchRunTomoRow prevRow) {
     if (prevRow != null) {
-      cbcDual.setSelected(prevRow.cbcDual.isSelected());
+      if (axisType == null) {
+        cbcDual.setSelected(prevRow.cbcDual.isSelected());
+      }
       cbcMontage.setSelected(prevRow.cbcMontage.isSelected());
       cbcSurfacesToAnalyze.setSelected(prevRow.cbcSurfacesToAnalyze.isSelected());
     }
@@ -856,7 +863,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     cbcDual.clear();
     cbcMontage.clear();
     cbcSurfacesToAnalyze.clear();
-    setDefaults();
     // no default values to apply to table
     // Apply settings values
     setValues(userConfiguration);
@@ -884,11 +890,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
 
   void setNumber(final int input) {
     hcNumber.setText(input);
-  }
-
-  private void setDefaults() {
-    cbcDual.setSelected(true);
-    updateDisplay();
   }
 
   /**
@@ -921,7 +922,10 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
   }
 
   void setValues(final UserConfiguration userConfiguration) {
-    cbcDual.setSelected(!userConfiguration.getSingleAxis());
+    // Only use this if the settings checkbox is checked. Otherwise ignore it.
+    if (userConfiguration.getSingleAxis()) {
+      cbcDual.setSelected(false);
+    }
     cbcMontage.setSelected(userConfiguration.getMontage());
     updateDisplay();
   }
