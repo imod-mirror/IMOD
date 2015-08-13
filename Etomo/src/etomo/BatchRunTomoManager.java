@@ -356,7 +356,9 @@ public final class BatchRunTomoManager extends BaseManager {
       // setting the param file failed
       return null;
     }
+    loadedParamFile = true;
     dialog.disableDatasetFields();
+    UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(true);
     dialog.getParameters(userConfig);
     dialog.getParameters(metaData);
     if (!dialog.saveAutodocs(doValidation)) {
