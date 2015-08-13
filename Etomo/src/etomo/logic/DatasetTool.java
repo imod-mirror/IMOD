@@ -1,6 +1,7 @@
 package etomo.logic;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
@@ -400,7 +401,9 @@ public final class DatasetTool {
     // Check for embedded spaces
     if (inputFileName.matches("\\s*\\S+\\s+\\S+(\\s+\\S+)*\\s*")) {
       UIHarness.INSTANCE
-        .openMessageDialog(manager, uiComponent,
+        .openMessageDialog(
+          manager,
+          uiComponent,
           "The dataset name cannot contain embedded spaces: "
             + inputFile.getAbsolutePath(), MESSAGE_TITLE, axisID);
       return false;
@@ -979,6 +982,21 @@ public final class DatasetTool {
     return null;
   }
 
+  private static final class StackNameFilter implements FilenameFilter {
+    private final String stackName;
+
+    StackNameFilter(final String stackName) {
+      this.stackName = stackName;
+    }
+
+    public boolean accept(final File dir, final String name) {
+      if (stackName == null) {
+        return false;
+      }
+      return stackName.equals(name);
+    }
+  }
+
   /**
    * Stores a stack file and information about other stack file with the same root name,
    * path, and axis type.  For axis type, any stack ending in the axis letters "a" or "b"
@@ -995,6 +1013,8 @@ public final class DatasetTool {
     // axis letter (for dual axis type), but a different extension.
     private boolean collision = false;
     private StackInfo matchingStack = null;
+    private boolean dirChecked = false;
+    private boolean dirMatchingStack = false;
 
     private StackInfo(final File stack) {
       this.stack = stack;
@@ -1074,8 +1094,45 @@ public final class DatasetTool {
       return null;
     }
 
+    /**
+     * Returns true if a matching stack was found in the selection list, or if a matching
+     * is in the same directory as the stack.
+     * @return
+     */
     public boolean isMatched() {
-      return matchingStack != null;
+      if (matchingStack != null) {
+        return true;
+      }
+      return isDirMatchingStack();
+    }
+
+    private boolean isDirMatchingStack() {
+      if (dirChecked) {
+        return dirMatchingStack;
+      }
+      dirChecked = true;
+      if (stack == null) {
+        return false;
+      }
+      // Check for the matching stack name in the directory containing the stack.
+      String stackName = stack.getName();
+      AxisID axisID = getAxisID(stackName);
+      if (axisID == null || axisID == AxisID.ONLY) {
+        return false;
+      }
+      String datasetName = getDatasetName(stack.getName(), true);
+      String ext = getExtension(stackName);
+      String matchingStackName =
+        datasetName
+          + (axisID == AxisID.FIRST ? AxisID.SECOND.getExtension() : AxisID.FIRST
+            .getExtension()) + ext;
+      File parent = stack.getParentFile();
+      String[] list = parent.list(new StackNameFilter(matchingStackName));
+      if (list == null || list.length == 0) {
+        return false;
+      }
+      dirMatchingStack = true;
+      return true;
     }
 
     public boolean isSingleAxis() {
