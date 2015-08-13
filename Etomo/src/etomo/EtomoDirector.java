@@ -755,10 +755,10 @@ public class EtomoDirector {
     BatchRunTomoManager manager;
     if (batchRunTomoFileName == null) {
       manager = new BatchRunTomoManager();
+      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
     }
     else {
       manager = new BatchRunTomoManager(batchRunTomoFileName);
-      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
     }
     ManagerKey key = setManager(manager, makeCurrent);
     if (!manager.isValid()) {
