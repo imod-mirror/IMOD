@@ -1,6 +1,6 @@
 .na
 .nh
-.TH contourmod 1 4.6.34 BL3DEMC
+.TH contourmod 1 4.6.34 IMOD
 .SH NAME
 contourmod - to generate contour maps as a model file
 .SH SYNOPSIS

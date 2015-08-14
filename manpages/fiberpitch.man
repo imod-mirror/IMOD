@@ -1,6 +1,6 @@
 .na
 .nh
-.TH fiberpitch 1 4.6.34 BL3DEMC
+.TH fiberpitch 1 4.6.34 IMOD
 .SH NAME
 fiberpitch - measure pitch of fibers and position relative to an axis
 .SH SYNOPSIS

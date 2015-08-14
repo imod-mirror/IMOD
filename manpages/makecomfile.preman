@@ -1,6 +1,6 @@
 .na
 .nh
-.TH makecomfile 1 4.6.18 BL3DEMC
+.TH makecomfile 1 4.6.18 IMOD
 .SH NAME
 makecomfile \- Create single command file for optional step in tomogram generation
 .SH SYNOPSIS

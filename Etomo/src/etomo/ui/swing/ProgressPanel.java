@@ -102,7 +102,9 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
@@ -122,7 +124,7 @@ public final class ProgressPanel {
   private final AxisID axisID;
 
   // Keep these around so that SwingUtilities.invokeLater can update the
-  // the UI status 
+  // the UI status
   private int counter = 0;
   private int value;
   private int maximum;
@@ -130,12 +132,13 @@ public final class ProgressPanel {
   private long startTime;
   private String barString;
   private String label;
-  //stopped: IMPORTANT: The stop action should turn this boolean on, all other
-  //actions, except increment should turn this off.
+  // stopped: IMPORTANT: The stop action should turn this boolean on, all other
+  // actions, except increment should turn this off.
   private boolean stopped = true;
   private int nPacked = 0;
+  private DebugLevel debugLevel = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
-  //required - instantiate once
+  // required - instantiate once
   private ProgressTimerActionListener progressTimerActionListener;
   private Timer timer;
 
@@ -196,7 +199,7 @@ public final class ProgressPanel {
 
   void start() {
     stopped = false;
-    //  Setting the progress bar indeterminate causes it to move on its own
+    // Setting the progress bar indeterminate causes it to move on its own
     counter = 0;
     startTime = System.currentTimeMillis();
     SwingUtilities.invokeLater(new StartLater());
@@ -258,19 +261,19 @@ public final class ProgressPanel {
     }
 
     public void run() {
-      //Fixing a bug during kill process where the timer doesn't stop:  the 
-      //progress bar goes to determinate mode and increments based on the timer.
+      // Fixing a bug during kill process where the timer doesn't stop: the
+      // progress bar goes to determinate mode and increments based on the timer.
       //
-      //If the progress bar is stopped this call should never happen.
-      //If the timer did not stop before it generated the event that caused
-      //increment to be called, then the timer will never stop.
+      // If the progress bar is stopped this call should never happen.
+      // If the timer did not stop before it generated the event that caused
+      // increment to be called, then the timer will never stop.
       //
-      //Tell the timer to stop each time this function is called incorrectly.
+      // Tell the timer to stop each time this function is called incorrectly.
       if (stopped) {
         return;
       }
       setProgressBarValue();
-      //  Put the elapsed time into the progress bar string
+      // Put the elapsed time into the progress bar string
       getProgressBar()
           .setString(
               "Elapsed time: "

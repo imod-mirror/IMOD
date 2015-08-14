@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
@@ -23,15 +22,11 @@ import etomo.type.ProcessName;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.18  2011/05/10 16:49:36  sueh
@@ -97,8 +92,6 @@ import etomo.type.ProcessName;
  * <p> </p>
  */
 public final class SqueezevolParam implements ConstSqueezevolParam {
-  public static final String rcsid = "$Id$";
-
   private static final String GROUP_STRING = "Squeezevol";
   private static final String LINEAR_INTERPOLATION_STRING = "LinearInterpolation";
   private static final boolean DEFAULT_LINEAR_INTERPOLATION = false;
@@ -322,7 +315,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

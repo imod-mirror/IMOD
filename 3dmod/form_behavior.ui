@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>415</width>
-    <height>559</height>
+    <height>587</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -235,6 +235,16 @@
       </spacer>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="keyHWstereoBox">
+     <property name="toolTip">
+      <string>Allows hot key to turn on hardware stereo; needs to be off for Mac without hardware stereo</string>
+     </property>
+     <property name="text">
+      <string>Hot key S can turn on hardware stereo in Model View</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="GroupBox5">

@@ -45,7 +45,7 @@ int percentileStretch(unsigned char **image, int type, int nx, int ny, float sam
   
   int ixUse, iyUse, dxSample;
   int i, j, val;
-  int nbins, cum, base, factor;
+  int nbins, cum, base, factor, shift = SHORT_SHIFT;
   int *hist;
   float minVal, maxVal, fval, fRange, fPad, fFactor, fBase; 
   
@@ -75,6 +75,7 @@ int percentileStretch(unsigned char **image, int type, int nx, int ny, float sam
     nbins = 256;
     base = 0;
     factor = 1;
+    shift = 0;
     break;
     
   case SIGNED_SHORT :
@@ -213,7 +214,7 @@ int percentileStretch(unsigned char **image, int type, int nx, int ny, float sam
       break;
     }
   }
-  
+
   /* At the top end, add back most of the bin width to get the whole bin */
   for (cum = 0, i = nbins - 1; i >= 0; i--) {
     cum += hist[i];
@@ -221,7 +222,7 @@ int percentileStretch(unsigned char **image, int type, int nx, int ny, float sam
       if (type == FLOAT)
         *scaleHi = ((float)i / fFactor - fBase);
       else
-        *scaleHi = (float)(i * factor - base + (1 << SHORT_SHIFT) - 1);
+        *scaleHi = (float)(i * factor - base + (1 << shift) - 1);
       break;
     }
   }

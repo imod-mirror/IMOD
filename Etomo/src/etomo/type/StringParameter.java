@@ -69,7 +69,7 @@ public final class StringParameter implements ConstStringParameter {
   }
 
   public boolean isEmpty() {
-    return value == null;
+    return value == null || value.matches("\\s*");
   }
 
   private boolean isEmpty(String string) {

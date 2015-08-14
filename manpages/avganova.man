@@ -1,6 +1,6 @@
 .na
 .nh
-.TH avganova 1 4.6.34 BL3DEMC
+.TH avganova 1 4.6.34 IMOD
 .SH NAME
 avganova - compare images using nested analysis of variance
 .SH SYNOPSIS

@@ -46,15 +46,15 @@
  * Test whether [numCuts] has reached a desired limit, and break the loop with 
  * completion, ^
  * Assign [nextPosition] to [curPosition] or pass [curPosition] for that argument.  ^
- * The position that gives the minimum is maintained in brackets[1] and the minimum 
- * value is in brackets[8].  The return value is 1 if brackets[13] is not -1, 0, or 2, 
- * or if the current position is out of range for a scan.
+ * The position that gives the minimum is maintained in brackets\[1\] and the minimum 
+ * value is in brackets\[8\].  The return value is 1 if brackets\[13\] is not -1, 0, or 
+ * 2, or if the current position is out of range for a scan.
  * The return value is 2 if an initial scan fails to find an absolute minimum.
  */
 int minimize1D(float curPosition, float curValue, float initialStep, int numScanSteps,
                int *numCutsDone, float *brackets, float *nextPosition)
 {
-  int i, stepNum, walking = *numCutsDone ? 0 : 1;
+  int i, stepNum, walking = (*numCutsDone) ? 0 : 1;
   float step = initialStep;
   float *positions = brackets;
   float *values = brackets + 7;

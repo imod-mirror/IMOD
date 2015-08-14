@@ -69,9 +69,12 @@ if len(sys.argv) > 1:
 
       # Extract base names and prune duplicates
       if numexes:
+         exactMatch = False
          baselist = []
          for ind in range(numexes):
             (base, ext) = os.path.splitext(os.path.basename(exelist[ind]))
+            if base == entered:
+               exactMatch = True
             if base not in baselist:
                baselist.append(base)
          numexes = len(baselist)
@@ -86,18 +89,21 @@ if len(sys.argv) > 1:
          for ind in range(numexes):
             prnstr('   ' + str(ind+1) + ': ' + baselist[ind])
 
-         if sys.version_info[0] > 2:
-            selectstr = input('Enter desired number or 0 to use your original entry: ')
+         if exactMatch:
+            prnstr('Using entered name.  Enter more letters to pick a different program.')
          else:
-             selectstr = raw_input('Enter desired number or 0 to use your original ' +\
-                                      'entry: ')
-         selection = 0
-         try:
-            selection = int(selectstr)
-         except:
-            pass
-         if selection > 0 and selection <= len(baselist):
-            entered = baselist[selection-1]
+            if sys.version_info[0] > 2:
+               selectstr = input('Enter desired number or 0 to use your original entry: ')
+            else:
+                selectstr = raw_input('Enter desired number or 0 to use your original ' +\
+                                         'entry: ')
+            selection = 0
+            try:
+               selection = int(selectstr)
+            except:
+               pass
+            if selection > 0 and selection <= len(baselist):
+               entered = baselist[selection-1]
          
       url = 'qthelp://bl3demc/IMOD/man/' + entered + '.html#TOP'
 

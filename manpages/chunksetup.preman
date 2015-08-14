@@ -1,6 +1,6 @@
 .na
 .nh
-.TH chunksetup 1 3.2.19 BL3DEMC
+.TH chunksetup 1 3.2.19 IMOD
 .SH NAME
 chunksetup \- Set up command files to process a volume in chunks
 .SH SYNOPSIS

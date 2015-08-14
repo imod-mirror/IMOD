@@ -5,19 +5,14 @@ package etomo.type;
  * process.  The display is assumed to binary:  done or not done.  This class can
  * handle a single process or a sequence of processes.</p>
  * 
- * <p>Copyright: Copyright (c) 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public interface ProcessResultDisplay {
-  public static final String rcsid = "$Id$";
-
+  public void setDebug(boolean input);
   public void dumpState();
 
   /**

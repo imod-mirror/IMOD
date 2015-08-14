@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtk 1 4.6.34 BL3DEMC
+.TH mtk 1 4.6.34 IMOD
 .SH NAME
 mtk - to analyze spatial relationship between objects in 3D
 .SH SYNOPSIS
@@ -120,6 +120,11 @@ the next three entries are required:
    Scale, in microns per pixel, at which negatives were digitized
 .P
    Section thickness in nanometers
+.P
+These are obsolete specifications and, if possible, you should add a pixel
+size to the model header in the 3dmod Edit-Model-Header dialog.  If
+not, enter 1000, 1, and 1 to get isotropic pixels with a nominal size
+of 1 nm.
 .P
 Next enter a list of Z values (numbered from zero) specifying gaps in the
 data across which meshed objects should be connected to form one surface

@@ -29,7 +29,8 @@ i - Zap - toggles the modeling direction.
 I - Zap - prints information about the window and image size and 
 
 J - Join selected contours.
-k - Copy contour if contour copy dialog open; center in Slicer and XYZ
+k - (Toggle) center in Zap, Slicer and XYZ
+K - Copy contour if contour copy dialog open
 m - Toggle model edit mode and movie mode.
 M - Move contour to selected object or surface.
 n - Create a new contour.
@@ -38,7 +39,7 @@ o - Go to previous object.
 O - Toggle contour open/closed
 p - Go to next object.
 q - Zap & Slicer & XYZ - Report 2D distance from current point to cursor
-P - Zap - Toggles a mode in which you can shift, rotate, stretch, or scale
+P - Zap - Toggles a contour transform mode; XYZ - toggles projections
 R - Zap - resizes the window.  With the rubber band off, the window 
 Ctrl+R - Raise all 3dmod windows above other windows.
 Ctrl+Shift+R - resize image in rubber band to window
@@ -55,9 +56,14 @@ v - Open Model View window.
 w - Grab with Note to database
 Shift+W - Grab to image
 Ctrl+Shift+W - Grab to image and to database  (Ctrl-W closes windows on Mac)
+x - Align to x axis in slicer
+X - Align to x axis in slicer
+Crtl-X - Open XYZ window
+y - Align to y axis in slicer
+Y - Align to y axis in slicer
 Ctrl-Y - Redo model changes that were undone.
-z - Open Zap window.
-Z - Zap - toggles auto section advance on and off.  When this is on, 
+z - Open Zap window, or align to z axis in Slicer
+Z - Zap - toggles auto section advance on and off; align to Z axis in slicer
 Ctrl-Z - Undo changes to the model.
 
 0 - Create a new object.

@@ -7,15 +7,11 @@ import etomo.storage.LogFile;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.3  2009/01/20 19:40:22  sueh
@@ -36,21 +32,22 @@ import etomo.storage.LogFile;
  * <p> </p>
  */
 public abstract class Statement extends WritableStatement {
-  public static final String rcsid = "$Id$";
+  private final int lineNum;
 
   private Statement previous = null;
   private Statement next = null;
 
-  public Statement(Statement previousStatement) {
+  public Statement(Statement previousStatement, final int lineNum) {
+    this.lineNum = lineNum;
     if (previousStatement != null) {
-      //set up link list
+      // set up link list
       previous = previousStatement;
       previous.next = this;
     }
   }
 
   abstract void write(LogFile file, LogFile.WriterId writerId)
-      throws LogFile.LockException, IOException;
+    throws LogFile.LockException, IOException;
 
   abstract void print(int level);
 
@@ -60,7 +57,7 @@ public abstract class Statement extends WritableStatement {
    * @return previous
    */
   WritableStatement remove() {
-    //remove this instance from the link list
+    // remove this instance from the link list
     if (previous != null) {
       previous.next = next;
     }
@@ -68,6 +65,10 @@ public abstract class Statement extends WritableStatement {
       next.previous = previous;
     }
     return previous;
+  }
+
+  public int getLineNum() {
+    return lineNum;
   }
 
   public static final class Type {

@@ -374,7 +374,7 @@ void mvMovieSetSegment(MovieSegment &segment)
   
   // First set the trans for all objects, then modify the ones in the segment
   for (obNum = 0; obNum < numObj; obNum++)
-    sStartObjTrans[i] = sEndObjTrans[i] = Imodv->imod->obj[obNum].trans;
+    sStartObjTrans[obNum] = sEndObjTrans[obNum] = Imodv->imod->obj[obNum].trans;
   for (i = 0; i < segment.transChangeObjs.size(); i++) {
     obNum = segment.transChangeObjs[i];
     if (obNum < numObj) {

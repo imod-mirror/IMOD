@@ -165,11 +165,19 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   }
 
   public void setRawStringEnd(final String input) {
-    setRawString(END_INDEX, input);
+    setRawStringEnd(input, 0);
+  }
+
+  void setRawStringEnd(final String input, final int lineNum) {
+    setRawString(END_INDEX, input, lineNum);
   }
 
   public void setRawStringStart(final String input) {
-    setRawString(START_INDEX, input);
+    setRawStringStart(input, 0);
+  }
+
+  void setRawStringStart(final String input, final int lineNum) {
+    setRawString(START_INDEX, input, lineNum);
   }
 
   Character getDividerSymbol() {
@@ -177,7 +185,11 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   }
 
   public void setRawStringIncrement(final String input) {
-    setRawString(INCREMENT_INDEX, input);
+    setRawStringIncrement(input, 0);
+  }
+
+  void setRawStringIncrement(final String input, final int lineNum) {
+    setRawString(INCREMENT_INDEX, input, lineNum);
   }
 
   public String getRawStringEnd() {
@@ -244,16 +256,16 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   /**
    * Set string at index if index between 0 and 2.
    */
-  void setRawString(final int index, String string) {
+  void setRawString(final int index, final String string, final int lineNum) {
     if (index < 0) {
       return;
     }
     if (index > END_INDEX) {
       fail("Unable to add element " + index + 1 + ".  No more then " + END_INDEX + 1
-          + " elements are allowed in an array descriptor.");
+          + " elements are allowed in an array descriptor.", lineNum);
       return;
     }
-    super.setRawString(index, string);
+    super.setRawString(index, string, lineNum);
   }
 
   public ParsedElement getStart() {
@@ -275,12 +287,12 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     return null;
   }
 
-  public String validate() {
+  public String validate(final int lineNum) {
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       String errorMessage = null;
       if (element != null) {
-        errorMessage = element.validate();
+        errorMessage = element.validate(lineNum);
       }
       if (errorMessage != null) {
         return errorMessage;
@@ -302,7 +314,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
       return "Array descriptors must contain at least a start and an end.";
     }
-    return super.validate();
+    return super.validate(lineNum);
   }
 
   /**
@@ -310,7 +322,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
    * descriptor.  If the descriptor only contains two elements move the second
    * one; treat it as the end element rather then the increment element.
    */
-  Token parse(Token token, PrimativeTokenizer tokenizer) {
+  Token parse(Token token, final PrimativeTokenizer tokenizer, final int lineNum) {
     clear();
     if (token == null) {
       return null;
@@ -327,7 +339,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
           && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL.charValue())
           && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL.charValue())) {
         // parse an element
-        token = parseElement(token, tokenizer);
+        token = parseElement(token, tokenizer, lineNum);
         // Find the divider.
         dividerFound = false;
         if (token != null && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
@@ -340,15 +352,15 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     // If there are 2 elements, then assume that the increment is one and put the
     // second element in the end slot.
     if (descriptor.size() == END_INDEX) {
       ParsedElement increment = getElement(INCREMENT_INDEX);
       if (increment != null) {
-        setRawString(END_INDEX, increment.getRawString());
-        increment.setRawString("1");
+        setRawString(END_INDEX, increment.getRawString(), lineNum);
+        increment.setRawString("1", lineNum);
       }
     }
     return token;

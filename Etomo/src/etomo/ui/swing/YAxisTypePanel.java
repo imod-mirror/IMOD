@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,7 +10,6 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -22,19 +22,16 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldLabels;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -52,8 +49,6 @@ import etomo.ui.FieldLabels;
  */
 
 final class YAxisTypePanel {
-  public static final String rcsid = "$Id$";
-
   private static final String Y_AXIS_CONTOUR_LABEL = "End points of contour";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
@@ -63,7 +58,9 @@ final class YAxisTypePanel {
   private final RadioButton rbYAxisTypeParticleModel = new RadioButton(
       MatlabParam.YAxisType.PARTICLE_MODEL, bgYAxisType);
   private final RadioButton rbYAxisTypeContour = new RadioButton(
-      MatlabParam.YAxisType.CONTOUR, bgYAxisType, ":  ");
+      MatlabParam.YAxisType.CONTOUR, bgYAxisType);
+  private final RadioButton rbYAxisTypeCsvFiles = new RadioButton(
+      MatlabParam.YAxisType.CSV_FILES, bgYAxisType);
 
   private final YAxisTypeParent parent;
   private final BaseManager manager;
@@ -87,12 +84,17 @@ final class YAxisTypePanel {
     rbYAxisTypeYAxis.addActionListener(actionListener);
     rbYAxisTypeParticleModel.addActionListener(actionListener);
     rbYAxisTypeContour.addActionListener(actionListener);
+    rbYAxisTypeCsvFiles.addActionListener(actionListener);
   }
 
   private void createPanel() {
     // local panels
-    JPanel pnlYAxisContour = new JPanel();
     SpacedPanel pnlYaxisType = SpacedPanel.getInstance();
+    if (Utilities.APRIL_FOOLS) {
+      Color  background = new Color(255,239,148);
+      pnlRoot.setBackground(background);
+      pnlYaxisType.setBackground(background);
+    }
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.setBorder(new EtchedBorder(FieldLabels.YAXIS_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlYaxisType);
@@ -102,11 +104,9 @@ final class YAxisTypePanel {
     pnlYaxisType.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlYaxisType.add(rbYAxisTypeYAxis);
     pnlYaxisType.add(rbYAxisTypeParticleModel);
-    pnlYaxisType.add(pnlYAxisContour);
-    pnlYaxisType.add(Box.createRigidArea(FixedDim.x0_y23));
-    // YaxisContour
-    pnlYAxisContour.setLayout(new BoxLayout(pnlYAxisContour, BoxLayout.X_AXIS));
-    pnlYAxisContour.add(rbYAxisTypeContour.getComponent());
+    pnlYaxisType.add(rbYAxisTypeContour.getComponent());
+    pnlYaxisType.add(rbYAxisTypeCsvFiles.getComponent());
+    pnlYaxisType.add(Box.createRigidArea(FixedDim.x0_y1));
   }
 
   Component getComponent() {
@@ -135,6 +135,9 @@ final class YAxisTypePanel {
     else if (yaxisType == MatlabParam.YAxisType.CONTOUR) {
       rbYAxisTypeContour.setSelected(true);
     }
+    else if (yaxisType == MatlabParam.YAxisType.CSV_FILES) {
+      rbYAxisTypeCsvFiles.setSelected(true);
+    }
   }
 
   void getParameters(final MatlabParam matlabParam) {
@@ -151,13 +154,15 @@ final class YAxisTypePanel {
     rbYAxisTypeYAxis.setSelected(false);
     rbYAxisTypeParticleModel.setSelected(false);
     rbYAxisTypeContour.setSelected(false);
+    rbYAxisTypeCsvFiles.setSelected(false);
   }
 
   private void action(final String actionCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(rbYAxisTypeYAxis.getActionCommand())
         || actionCommand.equals(rbYAxisTypeParticleModel.getActionCommand())
-        || actionCommand.equals(rbYAxisTypeContour.getActionCommand())) {
+        || actionCommand.equals(rbYAxisTypeContour.getActionCommand())
+        || actionCommand.equals(rbYAxisTypeCsvFiles.getActionCommand())) {
       parent.updateDisplay();
     }
   }
@@ -165,7 +170,8 @@ final class YAxisTypePanel {
   private void setTooltips() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -182,6 +188,7 @@ final class YAxisTypePanel {
     rbYAxisTypeYAxis.setToolTipText(autodocName, section);
     rbYAxisTypeParticleModel.setToolTipText(autodocName, section);
     rbYAxisTypeContour.setToolTipText(autodocName, section);
+    rbYAxisTypeCsvFiles.setToolTipText("Read particle rotation axes from file(s) [fnOutput]_Tom[n]_RotAxes.csv");
   }
 
   private static final class YAxisTypeActionListener implements ActionListener {

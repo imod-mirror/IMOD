@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #ifndef ISTORE_H
@@ -45,6 +44,15 @@
 #define GEN_STORE_VALUE1  10   /* Arbitrary value */
 #define GEN_STORE_MINMAX1 11   /* Min and max of value1 */
 #define GEN_STORE_VALUE2  12   /* Arbitrary value 2 */
+#define GEN_STORE_MINMAX2 13   /* Min and max of value2 */
+#define GEN_STORE_VALUE3  14   /* Arbitrary value 3 */
+#define GEN_STORE_MINMAX3 15   /* Min and max of value3 */
+#define GEN_STORE_VALUE4  16   /* Arbitrary value 4 */
+#define GEN_STORE_MINMAX4 17   /* Min and max of value4 */
+#define GEN_STORE_VALUE5  18   /* Arbitrary value 5 */
+#define GEN_STORE_MINMAX5 19   /* Min and max of value5 */
+#define GEN_STORE_VALUE6  20   /* Arbitrary value 6 */
+#define GEN_STORE_MINMAX6 21   /* Min and max of value6 */
 
 /* Defined flags for indicating changes */
 #define CHANGED_COLOR     (1l << 0)    /* Color change */
@@ -165,49 +173,10 @@ extern "C" {
   int istoreAddMinMax(Ilist **list, int type, float min, float max);
   int istoreGetMinMax(Ilist *list, int size, int type, float *min, float *max);
   int istoreFindAddMinMax1(Iobj *obj);
+  int istoreFindAddMinMax(Iobj *obj, int type);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-/*    
-$Log$
-Revision 3.13  2009/09/03 04:34:33  mast
-Added definition of general value2
-
-Revision 3.12  2008/11/12 03:43:24  mast
-Added function for find/set min/min
-
-Revision 3.11  2006/09/12 15:11:06  mast
-Added some missing declarations
-
-Revision 3.10  2006/08/31 22:50:56  mast
-value and minmax stuff, and documentation
-
-Revision 3.9  2006/08/31 21:10:36  mast
-Added value and minmax
-
-Revision 3.8  2006/05/08 16:38:24  mast
-Added function to look up connection #
-
-Revision 3.7  2005/10/13 20:02:13  mast
-Added checksum function
-
-Revision 3.6  2005/09/12 14:17:04  mast
-Fixed return value, added function to clear range
-
-Revision 3.5  2005/09/11 19:19:27  mast
-Added various functions
-
-Revision 3.4  2005/06/29 05:34:33  mast
-More fiddling
-
-Revision 3.3  2005/06/26 19:34:16  mast
-Added some functions
-
-Revision 3.2  2005/06/20 22:23:30  mast
-Preliminary checkin
-
-*/

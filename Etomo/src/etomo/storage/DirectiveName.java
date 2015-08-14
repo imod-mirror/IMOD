@@ -67,21 +67,14 @@ public final class DirectiveName {
    * @return the name with no axis ID
    */
   public String getKey() {
-    if (isNull()) {
-      return null;
-    }
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < key.length; i++) {
-      buffer.append((i > 0 ? "." : "") + key[i]);
-    }
-    return buffer.toString();
+    return convertKeyToString(key);
   }
 
   public String getKeyDescription() {
     String key = getKey();
-    if (type == DirectiveType.RUNTIME) {
-      return key.replace(AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.ANY_AXIS_NAME,
-          "");
+    if (type == DirectiveType.RUN_TIME) {
+      return key.replace(AutodocTokenizer.SEPARATOR_CHAR
+          + DirectiveDef.RUN_TIME_ANY_AXIS_TAG, "");
     }
     return key;
   }
@@ -105,7 +98,7 @@ public final class DirectiveName {
       if (key.length < 2) {
         return null;
       }
-      boolean copyarg = key[1].equals(DirectiveFile.COPY_ARG_NAME);
+      boolean copyarg = DirectiveType.COPY_ARG.equals(key[1]);
       if (copyarg) {
         if (key.length > 2) {
           return key[2];
@@ -115,7 +108,7 @@ public final class DirectiveName {
         return key[1];
       }
     }
-    else if ((type == DirectiveType.COM_PARAM || type == DirectiveType.RUNTIME)
+    else if ((type == DirectiveType.COM_PARAM || type == DirectiveType.RUN_TIME)
         && key.length > PARAMETER_NAME_INDEX) {
       return key[PARAMETER_NAME_INDEX];
     }
@@ -180,30 +173,33 @@ public final class DirectiveName {
   void setKey(DirectiveDescr descr) {
     // The a and b axes are not included for comparam and runtime directives in the
     // directive.csv file, so no need to remove them.
-    splitKey(descr.getName());
+    key = splitKey(descr.getName());
+    type = getType(key);
   }
 
-  private void splitKey(String input) {
-    key = null;
-    type = null;
+  static String makeKey(final String input) {
+    String[] staticKey = splitKey(input);
+    DirectiveType staticType = getType(staticKey);
+    stripAxis(staticKey, staticType);
+    return convertKeyToString(staticKey);
+  }
+
+  private static String[] splitKey(final String input) {
     if (input != null && !input.matches("\\s*")) {
-      key = input.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
-      if (key != null && key.length > TYPE_INDEX) {
-        type = DirectiveType.getInstance(key[TYPE_INDEX]);
-      }
+      return input.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
     }
+    return null;
   }
 
-  /**
-   * Strips axis information and saves a key containing the "any" form of the directive
-   * name.  For a directive with no axis information or an "any" directive name, the key
-   * is the same as the input string, and null is returned.
-   * @param input
-   * @return the axisID that was removed from the name (or null for "any").
-   */
-  public AxisID setKey(String input) {
-    splitKey(input);
-    if (type != DirectiveType.COM_PARAM && type != DirectiveType.RUNTIME) {
+  private static DirectiveType getType(String[] key) {
+    if (key != null && key.length > TYPE_INDEX) {
+      return DirectiveType.getFirstSectionInstance(key[TYPE_INDEX]);
+    }
+    return null;
+  }
+
+  private static AxisID stripAxis(final String[] key, final DirectiveType type) {
+    if (type != DirectiveType.COM_PARAM && type != DirectiveType.RUN_TIME) {
       return null;
     }
     // Remove axisID from the name to create a key. Standardize the key to the Any form of
@@ -224,7 +220,7 @@ public final class DirectiveName {
         // Strip off the a or b
         key[i] = key[i].substring(0, key[i].length() - 1);
       }
-      else if (type == DirectiveType.RUNTIME
+      else if (type == DirectiveType.RUN_TIME
           && i == RUNTIME_AXIS_INDEX
           && key[i] != null
           && (key[i].equals(AxisID.FIRST.getExtension()) || key[i].equals(AxisID.SECOND
@@ -236,10 +232,34 @@ public final class DirectiveName {
           axisID = AxisID.SECOND;
         }
         // Replace with "any".
-        key[i] = DirectiveFile.ANY_AXIS_NAME;
+        key[i] = DirectiveDef.RUN_TIME_ANY_AXIS_TAG;
       }
     }
     return axisID;
+  }
+
+  private static String convertKeyToString(final String[] key) {
+    if (key == null || key.length == 0) {
+      return null;
+    }
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < key.length; i++) {
+      buffer.append((i > 0 ? "." : "") + key[i]);
+    }
+    return buffer.toString();
+  }
+
+  /**
+   * Strips axis information and saves a key containing the "any" form of the directive
+   * name.  For a directive with no axis information or an "any" directive name, the key
+   * is the same as the input string, and null is returned.
+   * @param input
+   * @return the axisID that was removed from the name (or null for "any").
+   */
+  public AxisID setKey(String input) {
+    key = splitKey(input);
+    type = getType(key);
+    return stripAxis(key, type);
   }
 
   private boolean isNull() {
@@ -248,7 +268,7 @@ public final class DirectiveName {
 
   private static boolean mayContainAxisID(final String name) {
     return name != null
-        && (name.startsWith(DirectiveType.RUNTIME.toString()
+        && (name.startsWith(DirectiveType.RUN_TIME.toString()
             + AutodocTokenizer.SEPARATOR_CHAR) || name.startsWith(DirectiveType.COM_PARAM
             .toString() + AutodocTokenizer.SEPARATOR_CHAR))
         && (name.indexOf(AxisID.FIRST.getExtension() + AutodocTokenizer.SEPARATOR_CHAR) != -1 || name
@@ -266,8 +286,8 @@ public final class DirectiveName {
     }
     // Set ext to the correct form
     String ext = "";
-    if (type == DirectiveType.RUNTIME) {
-      ext = DirectiveFile.ANY_AXIS_NAME;
+    if (type == DirectiveType.RUN_TIME) {
+      ext = DirectiveDef.RUN_TIME_ANY_AXIS_TAG;
     }
     // Create a string version of the directive name with the correct axisID string
     StringBuffer buffer = new StringBuffer();
@@ -275,7 +295,7 @@ public final class DirectiveName {
       if (type == DirectiveType.COM_PARAM && i == COM_FILE_NAME_INDEX) {
         buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + key[i] + ext);
       }
-      else if (type == DirectiveType.RUNTIME && i == RUNTIME_AXIS_INDEX) {
+      else if (type == DirectiveType.RUN_TIME && i == RUNTIME_AXIS_INDEX) {
         buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + ext);
       }
       else {

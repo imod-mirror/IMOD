@@ -24,6 +24,16 @@ tooltip =
 manpage = First and last Z values in the file to filter.  Values are
 numbered from 1 and the default is to do all sections.
 
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
+tooltip = 
+manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
+signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
+The default is the mode of the input file.  This entry is allowed only when
+writing to a new output file and when the input is not an FFT.
+
 [Field = FilterIn3D]
 short = 3dfilter
 type = B
@@ -34,6 +44,13 @@ filtered, so it must fit into memory and -zrange cannot be entered.  If the
 volume will not fit in memory, use "clip fft -3d" to get an FFT, run Mtffilter
 on the 3D FFT, then inverse transform with "clip fft -3d -m mode", where
 mode is the desired output mode, typically the same as the input.
+
+[Field = OneDimensionalFilter]
+short = 1dfilter
+type = B
+usage = Filter data in 1D (in X direction) instead of in 2D
+tooltip = 
+manpage = 
 
 [Field = LowPassRadiusSigma]
 short = lowpass
@@ -119,6 +136,21 @@ type = F
 usage = Density scaling factor (default 1.0)
 tooltip =
 manpage = Scaling factor for image intensities after filtering.
+
+[Field = RWeightedFilter]
+short = rweight
+type = B
+usage = Apply an R-weighted filter in the X-dimension, as in back-projection
+tooltip = 
+manpage = Apply an R-weighted filter in the X-dimension, as in
+back-projection.  This option implies \fB-1dfilter\fR.  It cannot be used
+along with an inverse MTF filter.  The filter will be scaled to be 1.0 at the
+cutoff radius specified with the \fB-lowpass\fR option, if any, or at a
+frequency of 0.5.  This will likely result in a smaller range for
+the output values, which could lose intensity resolution by making integer
+values occupy too few gray levels.  To overcome this problem, use the
+\fB-denscale\fR option to scale the data up, or change the output mode to
+floating point with "-mode 2".
 
 [Field = AmplifierFactorAndPower]
 short = amplifier

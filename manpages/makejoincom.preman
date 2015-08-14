@@ -1,6 +1,6 @@
 .na
 .nh
-.TH makejoincom 1 4.2.18 BL3DEMC
+.TH makejoincom 1 4.2.18 IMOD
 .SH NAME
 makejoincom \- Create files for joining tomograms
 .SH SYNOPSIS

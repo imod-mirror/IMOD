@@ -235,13 +235,7 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
     return pnlRoot.getContainer();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
       ImageFileType imageFileType;

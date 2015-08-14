@@ -1,6 +1,6 @@
 .na
 .nh
-.TH joinwarp2model 1 4.6.12 BL3DEMC
+.TH joinwarp2model 1 4.6.12 IMOD
 .SH NAME
 joinwarp2model \- Make starting model for refining tomogram join from initial warping
 .SH SYNOPSIS

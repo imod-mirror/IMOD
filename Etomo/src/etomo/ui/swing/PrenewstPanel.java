@@ -228,7 +228,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     // Construct the binning spinner
     spinBinning = LabeledSpinner.getInstance("Coarse aligned image stack binning ", 1, 1,
         8, 1);
-    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning.setTextMaxmimumSize(UIParameters.getInstance().getSpinnerDimension());
     JPanel pnlBinning = new JPanel();
     pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
     pnlBinning.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -453,10 +453,6 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
   }
 
-  public void action(final Run3dmodButton button, final Run3dmodMenuOptions menuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
-  }
-
   public boolean validate() {
     return true;
   }
@@ -470,8 +466,8 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void buttonAction(final String command, final Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions menuOptions) {
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign, null, deferred3dmodButton,
           menuOptions, dialogType, this, this);
@@ -489,7 +485,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 

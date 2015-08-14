@@ -433,7 +433,7 @@ void MidasGL::draw_image(MidasView *vw, b3dUInt32 *image,
 int MidasGL::fill_viewdata( MidasView *vw)
 {
   int i;
-  int refz = vw->refz;
+  int refz = VW->xtype == XTYPE_XREF ? vw->zsize : vw->refz;
 
   Islice *curSlice  = midasGetSlice(vw, MIDAS_SLICE_CURRENT);
 

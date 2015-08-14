@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
@@ -23,15 +22,11 @@ import etomo.util.MRCHeader;
 /**
  * <p>Description: Runs clip command.  Currently always uses the rotx option.</p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.10  2011/02/21 21:12:08  sueh
@@ -68,8 +63,6 @@ import etomo.util.MRCHeader;
  * <p> </p>
  */
 public final class ClipParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   public static final ProcessName PROCESS_NAME = ProcessName.CLIP;
   private static final int commandSize = 1;
   private File outputFile;
@@ -205,7 +198,7 @@ public final class ClipParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

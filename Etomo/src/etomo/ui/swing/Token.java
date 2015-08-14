@@ -56,18 +56,12 @@ import etomo.storage.LogFile;
  * 
  * Drawbacks:
  * The static function typeToString(int type) could not return the new types.
- *
  * </p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Copyright: Copyright 2002 - 2006</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$$
+ * @version $Id$
  *
  * <p> $$Log$
  * <p> $Revision 1.1  2010/11/13 16:07:34  sueh
@@ -163,8 +157,6 @@ import etomo.storage.LogFile;
  * <p> $$ </p>
  */
 public final class Token {
-  public static final String rcsid = "$$Id$$";
-
   private Type type = Type.NULL;
   private String value = null;
   private String key = null;
@@ -278,7 +270,7 @@ public final class Token {
    * @return
    */
   public String getKey() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     if (key == null) {
       buffer.append(' ');
     }

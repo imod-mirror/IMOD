@@ -21,9 +21,12 @@
 #include <qsignalmapper.h>
 #include <qtoolbutton.h>
 #include <qfont.h>
+#include <qfile.h>
 #include <qspinbox.h>
 #include <qtooltip.h>
+#include <qtoolbutton.h>
 #include <qpushbutton.h>
+#include <qtextstream.h>
 //Added by qt3to4:
 #include <QHBoxLayout>
 #include <QKeyEvent>
@@ -49,23 +52,22 @@
 
 #define XGRAPH_WIDTH 320
 #define XGRAPH_HEIGHT 160
-
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 
 static void graphClose_cb(ImodView *vi, void *client, int junk);
 static void graphDraw_cb(ImodView *vi, void *client, int drawflag);
-static void graphKey_cb(ImodView *vi, void *client, int released,
-			QKeyEvent *e);
-static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
-                              int iy1, int iy2, Ipoint *newpt);
+static void graphKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 
-static const char *fileList[MAX_GRAPH_TOGGLES][2] =
+static const char *sFileList[MAX_GRAPH_TOGGLES][2] =
   { {":/images/lowres.png", ":/images/highres.png"},
     {":/images/unlock.png", ":/images/lock.png"}};
 
-static QIcon *icons[MAX_GRAPH_TOGGLES];
-static int firstTime = 1;
-static const char *toggleTips[] = {"Display file values instead of scaled bytes",
+static QIcon *sIcons[MAX_GRAPH_TOGGLES];
+static int sFirstTime = 1;
+static const char *sToggleTips[] = {"Display file values instead of scaled bytes",
                              "Lock X/Y/Z position being displayed"};
+static QIcon *sExportIcon;
 
 enum {GRAPH_XAXIS = 0, GRAPH_YAXIS, GRAPH_ZAXIS, GRAPH_CONTOUR, 
       GRAPH_HISTOGRAM};
@@ -73,47 +75,28 @@ enum {GRAPH_XAXIS = 0, GRAPH_YAXIS, GRAPH_ZAXIS, GRAPH_CONTOUR,
 // Open a graph dialog
 int xgraphOpen(struct ViewInfo *vi)
 {
-  GraphStruct *xg;
+  GraphWindow *xg;
 
-  xg = (GraphStruct *)malloc (sizeof(GraphStruct));
-  if (!xg)
-    return(-1);
-
-  xg->vi      = vi;
-  xg->axis    = 0;
-  xg->zoom    = 1.0;
-  xg->data    = NULL;
-  xg->dsize   = 0;
-  xg->allocSize = 0;
-  xg->locked  = 0;
-  xg->highres = 0;
-  xg->nlines = 1;
-  xg->mean = 0.;
-  xg->closing = 0;
-
-  xg->dialog = new GraphWindow(xg, App->rgba, App->doublebuffer,
-			       App->qtEnableDepth, 
-                               imodDialogManager.parent(IMOD_IMAGE),
-                               "graph window");
-  if (!xg->dialog){
-    free(xg);
+  xg = new GraphWindow(vi, App->rgba, App->doublebuffer, App->qtEnableDepth, 
+                       imodDialogManager.parent(IMOD_IMAGE));
+  if (!xg){
     wprint("Error opening graph window.");
     return(-1);
   }
 
   if (!App->rgba)
-    xg->dialog->mGLw->setColormap(*(App->qColormap));
+    xg->mGLw->setColormap(*(App->qColormap));
 
-  xg->dialog->setWindowTitle(imodCaption("3dmod Graph"));
+  xg->setWindowTitle(imodCaption("3dmod Graph"));
 
-  xg->ctrl = ivwNewControl (xg->vi, graphDraw_cb, graphClose_cb, graphKey_cb,
+  xg->mCtrl = ivwNewControl(vi, graphDraw_cb, graphClose_cb, graphKey_cb,
 			    (void *)xg);
-  imodDialogManager.add((QWidget *)xg->dialog, IMOD_IMAGE, GRAPH_WINDOW_TYPE, xg->ctrl);
+  imodDialogManager.add((QWidget *)xg, IMOD_IMAGE, GRAPH_WINDOW_TYPE, xg->mCtrl);
 
   imod_info_input();
-  QSize size = xg->dialog->sizeHint();
-  xg->dialog->resize(size.width(), (int)(0.65 * size.width()));
-  adjustGeometryAndShow((QWidget *)xg->dialog, IMOD_IMAGE, false);
+  QSize size = xg->sizeHint();
+  xg->resize(size.width(), (int)(0.65 * size.width()));
+  adjustGeometryAndShow((QWidget *)xg, IMOD_IMAGE, false);
 
   return(0);
 }
@@ -121,49 +104,46 @@ int xgraphOpen(struct ViewInfo *vi)
 // The close signal back from the controller
 static void graphClose_cb(ImodView *vi, void *client, int junk)
 {
-  GraphStruct *xg = (GraphStruct *)client;
-  xg->dialog->close();
+  GraphWindow *xg = (GraphWindow *)client;
+  xg->close();
 }
 
 // The draw signal from the controller
 static void graphDraw_cb(ImodView *vi, void *client, int drawflag)
 {
-  GraphStruct *xg = (GraphStruct *)client;
-
-  if (!xg) 
-    return;
+  GraphWindow *xg = (GraphWindow *)client;
 
   if (drawflag & IMOD_DRAW_COLORMAP) {
-    xg->dialog->mGLw->setColormap(*(App->qColormap));
+    xg->mGLw->setColormap(*(App->qColormap));
     return;
   }
 
   if (drawflag & IMOD_DRAW_XYZ){
-    if (!xg->locked){
-      if ((xg->cx != xg->vi->xmouse) ||
-          (xg->cy != xg->vi->ymouse) ||
-          (xg->cz != xg->vi->zmouse)){
-        xg->dialog->xgraphDraw();
+    if (!xg->mLocked){
+      if ((xg->mXcur != xg->mVi->xmouse) ||
+          (xg->mYcur != xg->mVi->ymouse) ||
+          (xg->mZcur != xg->mVi->zmouse)){
+        xg->draw();
         return;
       }
     }
   }
 
   if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
-    xg->dialog->xgraphDraw();
+    xg->draw();
     return;
   }
 
-  if ((drawflag & IMOD_DRAW_MOD) && xg->axis == GRAPH_CONTOUR){
-    xg->dialog->xgraphDraw();
+  if ((drawflag & IMOD_DRAW_MOD) && xg->mAxis == GRAPH_CONTOUR){
+    xg->draw();
   }
 }
 
 static void graphKey_cb(ImodView *vi, void *client, int released,
 			QKeyEvent *e)
 {
-  GraphStruct *xg = (GraphStruct *)client;
-  xg->dialog->externalKeyEvent (e, released);
+  GraphWindow *xg = (GraphWindow *)client;
+  xg->externalKeyEvent (e, released);
 }
 
 /*
@@ -171,21 +151,35 @@ static void graphKey_cb(ImodView *vi, void *client, int released,
  *
  * Constructor to build the window
  */
-GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
-            bool doubleBuffer, bool enableDepth, QWidget * parent,
-            const char * name, Qt::WFlags f)
+GraphWindow::GraphWindow(ImodView *vi, bool rgba, bool doubleBuffer, bool enableDepth,
+                         QWidget * parent, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   int j;
   ArrowButton *arrow;
-  mGraph = graph;
+  mVi      = vi;
+  mAxis    = 0;
+  mZoom    = 1.0;
+  mData    = NULL;
+  mDataSize   = 0;
+  mAllocSize = 0;
+  mLocked  = 0;
+  mHighRes = 0;
+  mNumLines = 1;
+  mMean = 0.;
+  mClosing = 0;
+
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
   setAnimated(false);
 
-  if (firstTime) 
-    utilFileListsToIcons(fileList, icons, MAX_GRAPH_TOGGLES);
-  firstTime = 0;
+  if (sFirstTime)  {
+    utilFileListsToIcons(sFileList, sIcons, MAX_GRAPH_TOGGLES);
+    sExportIcon = new QIcon();
+    sExportIcon->addFile(QString(":/images/exportToFile.png"), 
+                         QSize(BM_WIDTH, BM_HEIGHT));
+  }
+  sFirstTime = 0;
 
   // Make central vbox and top frame containing an hbox
   QWidget *central = new QWidget(this);
@@ -222,12 +216,20 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   QSignalMapper *toggleMapper = new QSignalMapper(topFrame);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
   for (j = 0; j < 2; j++) {
-    utilSetupToggleButton(topFrame, NULL, topLayout, toggleMapper, icons, 
-                          toggleTips, mToggleButs, mToggleStates, j);
+    utilSetupToggleButton(topFrame, NULL, topLayout, toggleMapper, sIcons, 
+                          sToggleTips, mToggleButs, mToggleStates, j);
     connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
   }
 
   mToggleButs[0]->setEnabled(App->cvi->noReadableImage == 0);
+  
+  QToolButton *button = new QToolButton(topFrame);
+  topLayout->addWidget(button);
+  button->setAutoRaise(TB_AUTO_RAISE);
+  button->setFocusPolicy(Qt::NoFocus);
+  button->setIcon(*sExportIcon);
+  connect(button, SIGNAL(clicked()), this, SLOT(exportToFile()));
+  button->setToolTip("Export the graph to a text file");
 
   // The axis combo box
   QComboBox *axisCombo = new QComboBox(topFrame);
@@ -239,12 +241,10 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   if (!App->cvi->pyrCache)
     axisCombo->addItem("Histogram");
   axisCombo->setFocusPolicy(Qt::NoFocus);
-  connect(axisCombo, SIGNAL(currentIndexChanged(int)), this, 
-          SLOT(axisSelected(int)));
+  connect(axisCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(axisSelected(int)));
   axisCombo->setToolTip("Select axis to graph");
 
-  mWidthBox = (QSpinBox *)diaLabeledSpin(0, 1., 100., 1., "Width", topFrame,
-                                         topLayout);
+  mWidthBox = (QSpinBox *)diaLabeledSpin(0, 1., 100., 1., "Width", topFrame, topLayout);
   mWidthBox->setValue(1);
   connect(mWidthBox, SIGNAL(valueChanged(int)), this, SLOT(widthChanged(int)));
   mWidthBox->setToolTip("Set number of lines to average over");
@@ -280,7 +280,7 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
   glFormat.setDepth(enableDepth);
-  mGLw = new GraphGL(graph, glFormat, graphFrame);
+  mGLw = new GraphGL(this, glFormat, graphFrame);
   graphLayout->addWidget(mGLw);
 
   // Get a bigger font for the labels
@@ -326,14 +326,14 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
  */
 void GraphWindow::zoomUp()
 {
-  mGraph->zoom = b3dStepPixelZoom(mGraph->zoom, 1);
-  xgraphDraw();
+  mZoom = b3dStepPixelZoom(mZoom, 1);
+  draw();
 }
 
 void GraphWindow::zoomDown()
 {
-  mGraph->zoom = b3dStepPixelZoom(mGraph->zoom, -1);
-  xgraphDraw();
+  mZoom = b3dStepPixelZoom(mZoom, -1);
+  draw();
 }
 
 void GraphWindow::help()
@@ -349,23 +349,23 @@ void GraphWindow::toggleClicked(int index)
   if (!index) {
 
     // High res button toggled
-    mGraph->highres = state;
-    xgraphDraw();
+    mHighRes = state;
+    draw();
   } else {
 
     // Lock button toggled: draw if unlocking
-    mGraph->locked = state;
+    mLocked = state;
     if (!state)
-      xgraphDraw();
+      draw();
   }
 }
 
 // Axis selection
 void GraphWindow::axisSelected(int item)
 {
-  mGraph->axis = item;
+  mAxis = item;
   mWidthBox->setEnabled(item != GRAPH_ZAXIS && item != GRAPH_HISTOGRAM);
-  xgraphDraw();
+  draw();
 }
 
 // For the program to set toggle states
@@ -378,11 +378,32 @@ void GraphWindow::setToggleState(int index, int state)
 // Width change
 void GraphWindow::widthChanged(int value)
 {
-  if (mGraph->closing)
+  if (mClosing)
     return;
-  mGraph->nlines = value;
-  xgraphDraw();
+  mNumLines = value;
+  draw();
   setFocus();
+}
+
+void GraphWindow::exportToFile()
+{
+  int ind;
+  QString str;
+  QString filename = imodPlugGetSaveName(this, "Text file to export graph values into:");
+  if (filename.isEmpty())
+    return;
+  QFile file(filename);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    wprint("\aCould not open %s\n", LATIN1(filename));
+    return;
+  }
+  QTextStream stream(&file);
+  
+  for (ind = 0; ind < mDataSize; ind++) {
+    str.sprintf("%6d %12.6g", ind + mSubStart, mData[ind]);
+    stream << str << "\n";
+  }
+  file.close();
 }
 
 /*
@@ -392,7 +413,7 @@ void GraphWindow::widthChanged(int value)
  */
 void GraphWindow::keyPressEvent ( QKeyEvent * e )
 {
-  ivwControlPriority(mGraph->vi, mGraph->ctrl);
+  ivwControlPriority(mVi, mCtrl);
   int key = e->key();
   if (utilCloseKey(e))
     close();
@@ -404,7 +425,7 @@ void GraphWindow::keyPressEvent ( QKeyEvent * e )
     zoomDown();
 
   else
-    inputQDefaultKeys(e, mGraph->vi);
+    inputQDefaultKeys(e, mVi);
 }
 
 // Pass on a key press to event processor
@@ -417,12 +438,11 @@ void GraphWindow::externalKeyEvent ( QKeyEvent * e, int released)
 // When close event comes in, clean up and accept the event
 void GraphWindow::closeEvent ( QCloseEvent * e )
 {
-  mGraph->closing = 1;
-  ivwRemoveControl(mGraph->vi, mGraph->ctrl);
+  mClosing = 1;
+  ivwRemoveControl(mVi, mCtrl);
   imodDialogManager.remove((QWidget *)this);
-  if (mGraph->data)
-    free(mGraph->data);
-  free(mGraph);
+  if (mData)
+    free(mData);
   e->accept();
 }
 
@@ -431,7 +451,7 @@ void GraphWindow::closeEvent ( QCloseEvent * e )
  *
  * The called drawing routine just calls an update on the GL widget
  */
-void GraphWindow::xgraphDraw()
+void GraphWindow::draw()
 {
   mGLw->updateGL();
 }
@@ -440,22 +460,22 @@ void GraphWindow::xgraphDraw()
 int GraphWindow::allocDataArray(int dsize)
 {
   int i;
-  if (dsize > mGraph->allocSize) {
-    if (mGraph->data)
-      free(mGraph->data);
-    mGraph->data  = (float *)malloc(dsize * sizeof(float));
-    if (!mGraph->data) 
+  if (dsize > mAllocSize) {
+    if (mData)
+      free(mData);
+    mData  = (float *)malloc(dsize * sizeof(float));
+    if (!mData) 
       return 1;
-    mGraph->allocSize = dsize;
+    mAllocSize = dsize;
   }
-  mGraph->dsize = dsize;
+  mDataSize = dsize;
   for (i = 0; i < dsize; i++)
-    mGraph->data[i] = 0.0f;
+    mData[i] = 0.0f;
   return 0;
 }
 
 // Fill the data structure for drawing
-void GraphWindow::xgraphFillData(GraphStruct *xg)
+void GraphWindow::fillData()
 {
   int dsize;
   unsigned char **image = NULL;
@@ -472,36 +492,36 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
   float frac, totlen, curint, dx, dy, smin, smax;
   Ipoint scale, startPt, endPt, pmin, pmax;
   double sum, lensq;
-  ImodView *vi = xg->vi;
+  ImodView *vi = mVi;
   int cacheInd = vi->pyrCache ? vi->pyrCache->getBaseIndex() : -1;
 
   if (!vi)
     return;
 
-  if (! (xg->data))
-    xg->allocSize = 0;
+  if (! (mData))
+    mAllocSize = 0;
 
-  xg->cx = vi->xmouse;
-  cx = (int)xg->cx;
-  xg->cy = vi->ymouse;
-  cy = (int)xg->cy;
-  xg->cz = vi->zmouse;
-  cz = (int)(xg->cz + 0.5);
+  mXcur = vi->xmouse;
+  cx = (int)mXcur;
+  mYcur = vi->ymouse;
+  cy = (int)mYcur;
+  mZcur = vi->zmouse;
+  cz = (int)(mZcur + 0.5);
 
   ixStart = 0;
   iyStart = 0;
   nxUse = vi->xsize;
   nyUse = vi->ysize;
   zapSubsetLimits(vi, ixStart, iyStart, nxUse, nyUse);
-  if (xg->axis != GRAPH_HISTOGRAM && !xg->highres && cacheInd < 0) {
+  if (mAxis != GRAPH_HISTOGRAM && !mHighRes && cacheInd < 0) {
     if (ivwSetupFastAccess(vi, &imdata, 0, &istr, vi->curTime))
       return;
   }
 
-  switch(xg->axis){
+  switch(mAxis){
   case GRAPH_XAXIS:
     dsize = nxUse;
-    xg->subStart = ixStart;
+    mSubStart = ixStart;
     if (allocDataArray(dsize))
       return;
 
@@ -510,42 +530,42 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       break;
 
     if (cx < ixStart || cx > ixStart + nxUse - 1) {
-      cx = xg->cx = vi->xmouse = 
+      cx = mXcur = vi->xmouse = 
         B3DMIN(ixStart + nxUse - 1, B3DMAX(ixStart, cx));
       imodDraw(vi, IMOD_DRAW_XYZ);
     }
-    xg->cpt = cx;
+    mCenterPt = cx;
 
     // For tile cache, get the tiles needed from base cache and then set up fast access
-    if (cacheInd >= 0 && !xg->highres) {
-      vi->pyrCache->loadTilesContainingArea(cacheInd, ixStart, cy - xg->nlines / 2 - 1,
-                                            dsize, xg->nlines + 3, cz);
+    if (cacheInd >= 0 && !mHighRes) {
+      vi->pyrCache->loadTilesContainingArea(cacheInd, ixStart, cy - mNumLines / 2 - 1,
+                                            dsize, mNumLines + 3, cz);
       if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
         return;
     }
 
     nlines = 0;
-    for (j = 0; j < xg->nlines; j++) {
-      jy = cy + j - (xg->nlines - 1) / 2;
+    for (j = 0; j < mNumLines; j++) {
+      jy = cy + j - (mNumLines - 1) / 2;
       if (jy < 0 || jy >= vi->ysize)
         continue;
       nlines++;
-      if (xg->highres)
+      if (mHighRes)
         for(i = 0; i < dsize; i++)
-          xg->data[i] += ivwGetFileValue(vi, i + ixStart, jy, cz);
+          mData[i] += ivwGetFileValue(vi, i + ixStart, jy, cz);
       else
         for(i = 0; i < dsize; i++)
-          xg->data[i] += ivwFastGetValue(i + ixStart, jy, cz);
+          mData[i] += ivwFastGetValue(i + ixStart, jy, cz);
     }
     if (nlines > 1)
       for(i = 0; i < dsize; i++)
-        xg->data[i] /= nlines;
+        mData[i] /= nlines;
     break;
 
 
   case GRAPH_YAXIS:
     dsize = nyUse;
-    xg->subStart = iyStart;
+    mSubStart = iyStart;
     if (allocDataArray(dsize))
       return;
 
@@ -554,64 +574,64 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       break;
 
     if (cy < iyStart || cy > iyStart + nyUse - 1) {
-      cy = xg->cy = vi->ymouse = 
+      cy = mYcur = vi->ymouse = 
         B3DMIN(iyStart + nyUse - 1, B3DMAX(iyStart, cy));
       imodDraw(vi, IMOD_DRAW_XYZ);
     }
-    xg->cpt = cy;
+    mCenterPt = cy;
 
     // For tile cache, get the tiles needed from base cache and then set up fast access
-    if (cacheInd >= 0 && !xg->highres) {
-      vi->pyrCache->loadTilesContainingArea(cacheInd, cx - xg->nlines / 2 - 1, iyStart, 
-                                            xg->nlines + 3, dsize, cz);
+    if (cacheInd >= 0 && !mHighRes) {
+      vi->pyrCache->loadTilesContainingArea(cacheInd, cx - mNumLines / 2 - 1, iyStart, 
+                                            mNumLines + 3, dsize, cz);
       if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
         return;
     }
 
     nlines = 0;
-    for (j = 0; j < xg->nlines; j++) {
-      jy = cx + j - (xg->nlines - 1) / 2;
+    for (j = 0; j < mNumLines; j++) {
+      jy = cx + j - (mNumLines - 1) / 2;
       if (jy < 0 || jy >= vi->xsize)
         continue;
       nlines++;
-      if (xg->highres)
+      if (mHighRes)
         for (i = 0; i < dsize; i++)
-          xg->data[i] += ivwGetFileValue(vi, jy, i + iyStart, cz);
+          mData[i] += ivwGetFileValue(vi, jy, i + iyStart, cz);
       else
         for (i = 0; i < dsize; i++)
-          xg->data[i] += ivwFastGetValue(jy, i + iyStart, cz);
+          mData[i] += ivwFastGetValue(jy, i + iyStart, cz);
     }
     if (nlines > 1)
       for(i = 0; i < dsize; i++)
-        xg->data[i] /= nlines;
+        mData[i] /= nlines;
     break;
 
   case GRAPH_ZAXIS:
     dsize = vi->zsize;
     if (allocDataArray(dsize))
       return;
-    xg->subStart = 0;
-    xg->cpt = cz;
+    mSubStart = 0;
+    mCenterPt = cz;
 
     /* DNM: skip out if outside limits */
     if (cx < 0 || cx >= vi->xsize || cy < 0 || cy >= vi->ysize)
       break;
-    if (cacheInd >= 0 && !xg->highres) {
+    if (cacheInd >= 0 && !mHighRes) {
       if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
         return;
     }
-    if (xg->highres)
+    if (mHighRes)
       for(i = 0; i < dsize; i++)
-        xg->data[i] = ivwGetFileValue(vi, cx, cy, i);
+        mData[i] = ivwGetFileValue(vi, cx, cy, i);
     else
       for(i = 0; i < dsize; i++)
-        xg->data[i] = ivwFastGetValue(cx, cy, i);
+        mData[i] = ivwFastGetValue(cx, cy, i);
     break;
 
 
     /* Contour : DNM got this working properly, and in 3D */
   case GRAPH_CONTOUR:
-    cp = xg->cp = vi->imod->cindex.point;
+    cp = mPtCur = vi->imod->cindex.point;
     cont = imodContourGet(vi->imod);
     if (!cont)
       return;
@@ -665,16 +685,16 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 
     // For tile cache, find limits of contour within area being used and load it if it
     // is planar
-    if (cacheInd >= 0 && !xg->highres) {
+    if (cacheInd >= 0 && !mHighRes) {
       imodContourGetBBox(cont, &pmin, &pmax);
       if (B3DNINT(pmin.z) == B3DNINT(pmax.z)) {
-        pmin.x = B3DMAX(pmin.x, ixStart) - xg->nlines / 2 - 1;
+        pmin.x = B3DMAX(pmin.x, ixStart) - mNumLines / 2 - 1;
         pmin.x = B3DMAX(0, pmin.x);
-        pmax.x = B3DMIN(pmax.x, ixStart + nxUse) + xg->nlines / 2 + 1;
+        pmax.x = B3DMIN(pmax.x, ixStart + nxUse) + mNumLines / 2 + 1;
         pmax.x = B3DMIN(pmax.x, vi->xsize - 1);
-        pmin.y = B3DMAX(pmin.y, iyStart) - xg->nlines / 2 - 1;
+        pmin.y = B3DMAX(pmin.y, iyStart) - mNumLines / 2 - 1;
         pmin.y = B3DMAX(0, pmin.y);
-        pmax.y = B3DMIN(pmax.y, iyStart + nyUse) + xg->nlines / 2 + 1;
+        pmax.y = B3DMIN(pmax.y, iyStart + nyUse) + mNumLines / 2 + 1;
         pmax.y = B3DMIN(pmax.y, vi->ysize - 1);
         vi->pyrCache->loadTilesContainingArea(cacheInd, pmin.x, pmin.y, pmax.x + 1 - 
                                               pmin.x, pmax.y + 1 - pmin.y, 
@@ -685,13 +705,13 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     }
 
     /* Get true 3D length, record where current point falls */
-    xg->subStart = (int)(totlen + 0.5);
+    mSubStart = (int)(totlen + 0.5);
     totlen = 0.;
     if (cp < 0) 
       cp = 0;
     if (cp >= (int)cont->psize) 
       cp = (int)cont->psize - 1;
-    xg->cpt = xg->subStart;
+    mCenterPt = mSubStart;
 
     pt1 = cont->pts;
     if (skipStart)
@@ -704,18 +724,18 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
         pt2 = &endPt;
       totlen += imodPoint3DScaleDistance(pt1, pt2, &scale);
       if (i == cp)
-        xg->cpt = (int)(totlen + 0.5) + xg->subStart;
+        mCenterPt = (int)(totlen + 0.5) + mSubStart;
       pt1 = pt2;
     }
     if (cp >= iend)
-      xg->cpt = (int)(totlen + 0.5) + xg->subStart;
+      mCenterPt = (int)(totlen + 0.5) + mSubStart;
 
     dsize = (int)(totlen + 1.0);
     if (allocDataArray(dsize))
       return;
-    xg->cx = cont->pts[cp].x + 0.5f;
-    xg->cy = cont->pts[cp].y + 0.5f;
-    xg->cz = cont->pts[cp].z + 0.5f;
+    mXcur = cont->pts[cp].x + 0.5f;
+    mYcur = cont->pts[cp].y + 0.5f;
+    mZcur = cont->pts[cp].z + 0.5f;
 
     /* Advance through data points, finding nearest pixel along each line
        of contour */
@@ -748,7 +768,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
         frac = (i - totlen) / curint;
 
       // Compute delta for cross-averaging
-      if (xg->nlines > 1 && curpt != vecpt) {
+      if (mNumLines > 1 && curpt != vecpt) {
         dx = pt1->y - pt2->y;
         dy = pt2->x - pt1->x;
         lensq = dx * dx + dy * dy;
@@ -764,7 +784,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       }
 
       nlines = 0;
-      for (jy = -(xg->nlines - 1) / 2 ; jy < xg->nlines - (xg->nlines - 1) / 2;
+      for (jy = -(mNumLines - 1) / 2 ; jy < mNumLines - (mNumLines - 1) / 2;
            jy++) {
         cx = (int)(pt1->x + frac * (pt2->x - pt1->x) + jy * dx + 0.5);
         cy = (int)(pt1->y + frac * (pt2->y - pt1->y) + jy * dy + 0.5);
@@ -773,14 +793,14 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
             cy >= 0 && cy < vi->ysize &&
             cz >= 0 && cz < vi->zsize) {
           nlines++;
-          if (xg->highres)
-            xg->data[i] += ivwGetFileValue(vi, cx, cy, cz);
+          if (mHighRes)
+            mData[i] += ivwGetFileValue(vi, cx, cy, cz);
           else
-            xg->data[i] += ivwFastGetValue(cx, cy, cz);
+            mData[i] += ivwFastGetValue(cx, cy, cz);
         }
       }
       if (nlines)
-        xg->data[i] /= nlines;
+        mData[i] /= nlines;
     }
 
     break;
@@ -793,7 +813,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       sum = 0.;
       if (allocDataArray(dsize))
         return;
-      xg->subStart = 0;
+      mSubStart = 0;
       cz = (int)(vi->zmouse + 0.5f);
       if (vi->ushortStore) {
         bmap = ivwUShortInRangeToByteMap(vi);
@@ -802,25 +822,25 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
         for (j = iyStart; j < iyStart + nyUse; j++) {
           for (i = ixStart; i < ixStart + nxUse; i++) {
             pt = bmap[usimage[j][i]];
-            xg->data[pt] += 1.0f;
+            mData[pt] += 1.0f;
             sum += pt;
           }
         }
-        xg->cpt = bmap[usimage[cy][cx]];
+        mCenterPt = bmap[usimage[cy][cx]];
         free(bmap);
       } else {
         for (j = iyStart; j < iyStart + nyUse; j++) {
           for (i = ixStart; i < ixStart + nxUse; i++) {
             pt = image[j][i];
-            xg->data[pt] += 1.0f;
+            mData[pt] += 1.0f;
             sum += pt;
           }
         }
-        xg->cpt = image[cy][cx];
+        mCenterPt = image[cy][cx];
       }
 
       // For high res, too painful to get file mean
-      /*if (xg->highres) {
+      /*if (mHighRes) {
         sum = 0.;
         for (j = iyStart; j < iyStart + nyUse; j++)
           for (i = ixStart; i < ixStart + nxUse; i++)
@@ -829,7 +849,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 
       // For high res, rescale the sum by the load in scaling, ignoring
       // truncation (ignoring outmin/outmax ...)
-      if (xg->highres) {
+      if (mHighRes) {
         smin = vi->image->smin;
         smax = vi->image->smax;
         if (vi->multiFileZ > 0) {
@@ -839,7 +859,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
         if (smin != smax) 
           sum  = sum * (smax - smin) / 255. + smin;
       }
-      xg->mean = sum / (nxUse * nyUse);
+      mMean = sum / (nxUse * nyUse);
     }
     break;
 
@@ -847,81 +867,81 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     break;
   }
 
-  if (xg->axis != GRAPH_HISTOGRAM) {
+  if (mAxis != GRAPH_HISTOGRAM) {
     sum = 0.;
     for (i = 0; i < dsize; i++)
-      sum += xg->data[i];
-    xg->mean = sum / dsize;
+      sum += mData[i];
+    mMean = sum / dsize;
   }
 }
 
 // Set the text of the Axis labels
-void GraphWindow::xgraphDrawAxis(GraphStruct *xg)
+void GraphWindow::drawAxis()
 {
   QString str;
 
   // Output integers on the value axis unless we are in high res mode and 
   // the file is not byte or integer
-  int mode = xg->vi->image->mode;
-  int floats = !xg->highres || mode == MRC_MODE_BYTE || 
+  int mode = mVi->image->mode;
+  int floats = !mHighRes || mode == MRC_MODE_BYTE || 
     mode == MRC_MODE_SHORT || mode == MRC_MODE_USHORT ? 0 : 1;
 
   if (floats)
-    str.sprintf("%9g", xg->min);
+    str.sprintf("%9g", mMin);
   else
-    str.sprintf("%6d", (int)xg->min);
+    str.sprintf("%6d", (int)mMin);
   mVlabel2->setText(str);
 
   if (floats)
-    str.sprintf("%9g", xg->max);
+    str.sprintf("%9g", mMax);
   else
-    str.sprintf("%6d", (int)xg->max);
+    str.sprintf("%6d", (int)mMax);
   mVlabel1->setText(str);
 
   // Output pixel position axis
-  str.sprintf("%d", xg->start);
+  str.sprintf("%d", mStart);
   mPlabel1->setText(str);
-  str.sprintf("%d", (xg->start + xg->end) / 2);
+  str.sprintf("%d", (mStart + mEnd) / 2);
   mPlabel2->setText(str);
-  str.sprintf("%d", xg->end);
+  str.sprintf("%d", mEnd);
   mPlabel3->setText(str);
-  str.sprintf(" %.5g", xg->mean);
+  str.sprintf(" %.5g", mMean);
   mMeanLabel->setText(str);
 }
 
 // Actually draw the data
-void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
+void GraphWindow::drawPlot()
 {
   int spnt, epnt, i;
-  int cpntx = xg->width/2;
+  int cpntx = mWidth/2;
   float min, max, yoffset, yscale, extra;
-  float zoom = xg->zoom;
+  float zoom = mZoom;
 
-  if (!xg->data)
+  if (!mData)
     return;
 
-  spnt = xg->cpt - (int)(cpntx / zoom);
-  epnt = xg->cpt + (int)(cpntx / zoom);
+  spnt = mCenterPt - (int)(cpntx / zoom);
+  epnt = mCenterPt + (int)(cpntx / zoom);
 
   // Give a histogram no more than full range if possible
-  if (xg->axis == GRAPH_HISTOGRAM) {
+  if (mAxis == GRAPH_HISTOGRAM) {
     spnt = B3DMAX(0, spnt);
     epnt = B3DMIN(256, epnt);
-    zoom = (float)xg->width / (epnt - spnt);
+    zoom = (float)mWidth / (epnt - spnt);
   }
 
   b3dColorIndex(App->foreground);
   max = -1.e37;
   min = 1.e37;
-  for (i = spnt - xg->subStart; i < epnt - xg->subStart; i++) {
+  for (i = spnt - mSubStart; i < epnt - mSubStart; i++) {
     if (i < 0)
       continue;
-    if (i >= xg->dsize)
+    if (i >= mDataSize)
       break;
-    if (xg->data[i] < min)
-      min = xg->data[i];
-    if (xg->data[i] > max)
-      max = xg->data[i];
+    if (mData[i] < min)
+      min = mData[i];
+    if (mData[i] > max)
+      max = mData[i];
   }
 
   // Increase range a bit but keep integer values and keep a min of 0
@@ -932,110 +952,34 @@ void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
     min -= extra;
   max += extra;
 
-  xg->min = min;
-  xg->max = max;
+  mMin = min;
+  mMax = max;
   yoffset = min;
   if (max-min)
-    yscale = xg->height/(max - min);
+    yscale = mHeight/(max - min);
   else yscale = 1.0f;
 
   b3dBeginLine();
-  for (i = spnt - xg->subStart; (i <= epnt - xg->subStart) && (i < xg->dsize);
+  for (i = spnt - mSubStart; (i <= epnt - mSubStart) && (i < mDataSize);
       i++) {
     if (i < 0)
       continue;
-    b3dVertex2i((int)((i  + xg->subStart - spnt) * zoom),
-                (int)((xg->data[i] - yoffset) * yscale));
+    b3dVertex2i((int)((i  + mSubStart - spnt) * zoom),
+                (int)((mData[i] - yoffset) * yscale));
   }
   b3dEndLine();
 
   b3dColorIndex(App->endpoint);
-  b3dDrawLine((int)((xg->cpt - spnt) * zoom), 0,
-              (int)((xg->cpt - spnt) * zoom), xg->height);
+  b3dDrawLine((int)((mCenterPt - spnt) * zoom), 0,
+              (int)((mCenterPt - spnt) * zoom), mHeight);
 
-  xg->offset = yoffset;
-  xg->scale  = yscale;
-  xg->start  = spnt;
-  xg->end    = epnt;
-  return;
+  mOffset = yoffset;
+  mScale  = yscale;
+  mStart  = spnt;
+  mEnd    = epnt;
 }
 
-
-/*
- * The GL WIDGET CLASS: PAINT, RESIZE, MOUSE EVENTS
- */
-GraphGL::GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent)
-  : QGLWidget(format, parent)
-{
-  mGraph = graph;
-}
-
-void GraphGL::paintGL()
-{
-  GraphStruct *xg = mGraph;
-  static bool drawing = false;
-
-  if (drawing)
-    return;
-  drawing = true;
-  if (!xg->locked)
-    xg->dialog->xgraphFillData(xg);
-
-  if (!xg->data)
-    return;
-  b3dColorIndex(App->background);
-  glClear(GL_COLOR_BUFFER_BIT);
-  xg->dialog->xgraphDrawPlot(xg);
-  xg->dialog->xgraphDrawAxis(xg);
-  drawing = false;
-}
-
-void GraphGL::resizeGL( int wdth, int hght )
-{
-  mGraph->width  = wdth;
-  mGraph->height = hght;
-  b3dResizeViewportXY(wdth, hght);
-}
-
-void GraphGL::mousePressEvent(QMouseEvent * e )
-{
-  ivwControlPriority(mGraph->vi, mGraph->ctrl);
-  utilRaiseIfNeeded(mGraph->dialog, e);
-  if (e->buttons() & ImodPrefs->actualButton(1))
-    setxyz(mGraph, e->x(), e->y());
-}
-
-// Routine to change the position on the current axis based upon a mouse click
-void GraphGL::setxyz(GraphStruct *xg, int mx, int my)
-{
-  int ni = (int)((mx/xg->zoom) + xg->start);
-  int x,y,z;
-
-  ivwGetLocation(xg->vi, &x, &y, &z);
-
-  switch(xg->axis){
-  case GRAPH_XAXIS:
-    x = ni;
-    break;
-  case GRAPH_YAXIS:
-    y = ni;
-    break;
-  case GRAPH_ZAXIS:
-    z = ni;
-    break;
-
-  case GRAPH_CONTOUR:
-    return;
-  case GRAPH_HISTOGRAM:
-    return;
-  }
-  ivwSetLocation(xg->vi, x, y, z);
-  ivwControlPriority(xg->vi, xg->ctrl);
-  imodDraw(xg->vi, IMOD_DRAW_XYZ);
-  return;
-}
-
-static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
+void GraphWindow::makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
                               int iy1, int iy2, Ipoint *newpt)
 {
   float t, tmax;
@@ -1066,3 +1010,73 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
   newpt->z = tmax * (pt2.z - pt1.z) + pt1.z;
 }
 
+/*
+ * The GL WIDGET CLASS: PAINT, RESIZE, MOUSE EVENTS
+ */
+GraphGL::GraphGL(GraphWindow *graph, QGLFormat format, QWidget * parent)
+  : QGLWidget(format, parent)
+{
+  mGraph = graph;
+  mDrawing = false;
+}
+
+void GraphGL::paintGL()
+{
+  if (mDrawing)
+    return;
+  mDrawing = true;
+  if (!mGraph->mLocked)
+    mGraph->fillData();
+
+  if (!mGraph->mData)
+    return;
+  b3dColorIndex(App->background);
+  glClear(GL_COLOR_BUFFER_BIT);
+  mGraph->drawPlot();
+  mGraph->drawAxis();
+  mDrawing = false;
+}
+
+void GraphGL::resizeGL( int wdth, int hght )
+{
+  mGraph->mWidth  = wdth;
+  mGraph->mHeight = hght;
+  b3dResizeViewportXY(wdth, hght);
+}
+
+void GraphGL::mousePressEvent(QMouseEvent * e )
+{
+  ivwControlPriority(mGraph->mVi, mGraph->mCtrl);
+  utilRaiseIfNeeded(mGraph, e);
+  if (e->buttons() & ImodPrefs->actualButton(1))
+    setxyz(e->x(), e->y());
+}
+
+// Routine to change the position on the current axis based upon a mouse click
+void GraphGL::setxyz(int mx, int my)
+{
+  int ni = (int)((mx/mGraph->mZoom) + mGraph->mStart);
+  int x,y,z;
+
+  ivwGetLocation(mGraph->mVi, &x, &y, &z);
+
+  switch(mGraph->mAxis){
+  case GRAPH_XAXIS:
+    x = ni;
+    break;
+  case GRAPH_YAXIS:
+    y = ni;
+    break;
+  case GRAPH_ZAXIS:
+    z = ni;
+    break;
+
+  case GRAPH_CONTOUR:
+    return;
+  case GRAPH_HISTOGRAM:
+    return;
+  }
+  ivwSetLocation(mGraph->mVi, x, y, z);
+  ivwControlPriority(mGraph->mVi, mGraph->mCtrl);
+  imodDraw(mGraph->mVi, IMOD_DRAW_XYZ);
+}

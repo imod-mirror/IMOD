@@ -7,7 +7,7 @@
 subroutine proc_vars(ifMapTilt, irefTilt, var, nvarSearch)
   !
   use tltcntrl
-  use mapSep
+  use mapSepGroups
   implicit none
 
   real*4 var(*)
@@ -20,12 +20,12 @@ subroutine proc_vars(ifMapTilt, irefTilt, var, nvarSearch)
   !
   ! Remap the separate group information for the current views
   !
-  do iv = 1, ngsep
-    nsepInGrp(iv) = nsepInGrpIn(iv)
-    do i = 1, nsepInGrp(iv)
-      ivsep(i, iv) = ivsepIn(i, iv)
+  do iv = 1, numSeparateGroups
+    numSepInGroup(iv) = nsepInGrpIn(iv)
+    do i = 1, numSepInGroup(iv)
+      iviewsInGroup(i, iv) = ivsepIn(i, iv)
     enddo
-    call mapSeparateGroup(ivsep(1, iv), nsepInGrp(iv), mapFileToView, &
+    call mapSeparateGroup(iviewsInGroup(1, iv), numSepInGroup(iv), mapFileToView, &
         nfileViews)
   enddo
   !

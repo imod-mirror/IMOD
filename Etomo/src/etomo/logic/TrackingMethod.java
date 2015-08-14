@@ -5,26 +5,18 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoNumber;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2013</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright 2013 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 public final class TrackingMethod implements EnumeratedType {
-  public static final String rcsid = "$Id:$";
-
   public static final TrackingMethod SEED = new TrackingMethod(true, 0, "Seed");
   public static final TrackingMethod PATCH_TRACKING = new TrackingMethod(false, 1,
-      "PatchTracking");
+    "PatchTracking");
   public static final TrackingMethod RAPTOR = new TrackingMethod(false, 2, "Raptor");
 
   public static final int NUM = 3;
@@ -44,13 +36,13 @@ public final class TrackingMethod implements EnumeratedType {
     if (string == null) {
       return null;
     }
-    if (SEED.string.equals(string)) {
+    if (SEED.string.equals(string) || SEED.value.equals(string)) {
       return SEED;
     }
-    if (PATCH_TRACKING.string.equals(string)) {
+    if (PATCH_TRACKING.string.equals(string) || PATCH_TRACKING.value.equals(string)) {
       return PATCH_TRACKING;
     }
-    if (RAPTOR.string.equals(string)) {
+    if (RAPTOR.string.equals(string) || RAPTOR.value.equals(string)) {
       return RAPTOR;
     }
     return null;

@@ -174,7 +174,7 @@ c
       call ialcel(6,cell)
       call itrlab(6,5)
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
       tempext='rot      1'
 c       
       write(titlech,302) (angles(i),i=1,3),dat,tim

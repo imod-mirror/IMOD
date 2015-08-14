@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findcontrast 1 4.6.34 BL3DEMC
+.TH findcontrast 1 4.6.34 IMOD
 .SH NAME
 findcontrast - Finds contrast settings for converting to bytes
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH subimage 1 4.6.34 BL3DEMC
+.TH subimage 1 4.6.34 IMOD
 .SH NAME
 subimage - subtracts one image from another
 .SH SYNOPSIS

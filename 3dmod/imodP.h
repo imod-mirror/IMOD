@@ -236,8 +236,6 @@ extern ImodClipboard *ClipHandler;
 extern int Rampbase;
 extern int (*ivwFastGetValue)(int x, int y, int z);
 
-extern "C" int iiQImageCheck(ImodImageFile *inFile);
-
 /*****************************************************************************/
 
 #define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */
@@ -253,7 +251,6 @@ extern "C" int iiQImageCheck(ImodImageFile *inFile);
   a.swap(std::vector<b>(a)); \
   a.resize(c); }
 
-#define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965
 #define HUGE_CACHE 2000000000
 

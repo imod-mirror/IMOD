@@ -185,7 +185,7 @@ run.function.ctf-phase-flip=
 	# check values
 	assert.cb.use-expected-defocus-instead-of-ctfplotter-output=off
 	assert.cb.parallel-processing=on
-	assert.tf.interpolation-width=20
+	assert.tf.interpolation-width=15
 	assert.bn.correct-ctf=off
 	assert.bn.use-ctf-correction=off
   mb.ctf-correction=A

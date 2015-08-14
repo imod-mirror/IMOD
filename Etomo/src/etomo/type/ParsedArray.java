@@ -232,31 +232,32 @@ public final class ParsedArray extends ParsedElement {
       setMissingAttribute();
       return;
     }
-    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
+    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue(),
+        attribute.getLineNum());
     try {
-      parse(tokenizer.next(), tokenizer);
+      parse(tokenizer.next(), tokenizer, attribute.getLineNum());
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), attribute.getLineNum());
     }
   }
 
   /**
    * @return an error message if invalid, otherwise null
    */
-  public String validate() {
+  public String validate(final int lineNum) {
     String errorMessage = null;
     for (int i = 0; i < array.size(); i++) {
       ParsedElement element = array.get(i);
       if (element != null) {
-        errorMessage = element.validate();
+        errorMessage = element.validate(lineNum);
       }
       if (errorMessage != null) {
         return errorMessage;
       }
     }
-    return getFailedMessage();
+    return getFailedMessage(lineNum);
   }
 
   public String getRawString(int index) {
@@ -275,26 +276,26 @@ public final class ParsedArray extends ParsedElement {
     return true;
   }
 
-  public void setRawStringStart(String string) {
-    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string);
+  public void setRawStringStart(final String string) {
+    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string, 0);
     if (descriptor != null) {
-      descriptor.setRawStringStart(string);
+      descriptor.setRawStringStart(string, 0);
     }
     return;
   }
 
-  public void setRawStringEnd(String string) {
-    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string);
+  public void setRawStringEnd(final String string) {
+    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string, 0);
     if (descriptor != null) {
-      descriptor.setRawStringEnd(string);
+      descriptor.setRawStringEnd(string, 0);
     }
     return;
   }
 
-  public void setRawStringIncrement(String string) {
-    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string);
+  public void setRawStringIncrement(final String string) {
+    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string, 0);
     if (descriptor != null) {
-      descriptor.setRawStringIncrement(string);
+      descriptor.setRawStringIncrement(string, 0);
     }
     return;
   }
@@ -305,7 +306,8 @@ public final class ParsedArray extends ParsedElement {
    * @param createIfNumber
    * @return
    */
-  private ParsedArrayDescriptor getAddFirstArrayDescriptor(String addIfNumber) {
+  private ParsedArrayDescriptor getAddFirstArrayDescriptor(final String addIfNumber,
+      final int lineNum) {
     ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
     if (descriptor == null) {
       ParsedNumber number = ParsedNumber.getInstance(type, etomoNumberType, debug,
@@ -313,7 +315,7 @@ public final class ParsedArray extends ParsedElement {
       // If the string doesn't have a number in it, don't bother to create the
       // descriptor. Descriptors can't use "NaN", so there is no point to
       // creating an empty one.
-      number.setRawString(addIfNumber);
+      number.setRawString(addIfNumber, lineNum);
       if (number.isEmpty()) {
         return null;
       }
@@ -352,7 +354,7 @@ public final class ParsedArray extends ParsedElement {
    * input may be a collection, since it is not indexed, so treat it as  a semi-
    * raw string (it may have commas)
    */
-  public void setRawString(String input) {
+  void setRawString(final String input, final int lineNum) {
     if (debug) {
       System.out.println("ParsedArray.setRawString:input=" + input);
     }
@@ -361,18 +363,18 @@ public final class ParsedArray extends ParsedElement {
     if (input == null) {
       return;
     }
-    PrimativeTokenizer tokenizer = createTokenizer(input);
+    PrimativeTokenizer tokenizer = createTokenizer(input, lineNum);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     try {
       token = tokenizer.next();
       // raw strings shouldn't have brackets
       // place input into array starting from the beginning of the list
-      parseArray(token, tokenizer);
+      parseArray(token, tokenizer, lineNum);
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
   }
 
@@ -381,18 +383,18 @@ public final class ParsedArray extends ParsedElement {
    * @param index
    * @param input
    */
-  public void setRawStrings(String input) {
-    PrimativeTokenizer tokenizer = createTokenizer(input);
+  public void setRawStrings(final String input) {
+    PrimativeTokenizer tokenizer = createTokenizer(input, 0);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     try {
       token = tokenizer.next();
       // raw strings shouldn't have brackets so start with parseArray, not parse.
-      parseArray(token, tokenizer);
+      parseArray(token, tokenizer, 0);
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), 0);
     }
   }
 
@@ -450,14 +452,14 @@ public final class ParsedArray extends ParsedElement {
     return "";
   }
 
-  public void setRawString(int index, String string) {
-    PrimativeTokenizer tokenizer = createTokenizer(string);
+  void setRawString(final int index, final String string, final int lineNum) {
+    PrimativeTokenizer tokenizer = createTokenizer(string, lineNum);
     try {
-      parseElement(tokenizer.next(), tokenizer, index);
+      parseElement(tokenizer.next(), tokenizer, index, lineNum);
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
   }
 
@@ -577,7 +579,7 @@ public final class ParsedArray extends ParsedElement {
   void load(final Properties props, String prepend) {
     StringProperty property = new StringProperty(key);
     property.load(props, prepend);
-    setRawString(property.toString());
+    setRawString(property.toString(), 0);
   }
 
   /**
@@ -646,7 +648,7 @@ public final class ParsedArray extends ParsedElement {
    * parse the entire array
    * @return the token that is current when the array is parsed
    */
-  Token parse(Token token, PrimativeTokenizer tokenizer) {
+  Token parse(Token token, final PrimativeTokenizer tokenizer, final int lineNum) {
     array.clear();
     resetFailed();
     if (token == null) {
@@ -660,7 +662,7 @@ public final class ParsedArray extends ParsedElement {
         return token;
       }
       if (!token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        fail("Missing delimiter: '" + OPEN_SYMBOL + "'");
+        fail("Missing delimiter: '" + OPEN_SYMBOL + "'", lineNum);
         return token;
       }
       token = tokenizer.next();
@@ -668,7 +670,7 @@ public final class ParsedArray extends ParsedElement {
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      token = parseArray(token, tokenizer);
+      token = parseArray(token, tokenizer, lineNum);
       if (isFailed()) {
         return token;
       }
@@ -676,14 +678,14 @@ public final class ParsedArray extends ParsedElement {
         token = tokenizer.next();
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail("Missing delimiter: '" + CLOSE_SYMBOL + "'");
+        fail("Missing delimiter: '" + CLOSE_SYMBOL + "'", lineNum);
         return token;
       }
       token = tokenizer.next();
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     return token;
   }
@@ -731,7 +733,8 @@ public final class ParsedArray extends ParsedElement {
     return buffer.toString();
   }
 
-  private Token parseArray(Token token, PrimativeTokenizer tokenizer) {
+  private Token parseArray(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
     if (token == null) {
       return null;
     }
@@ -747,7 +750,7 @@ public final class ParsedArray extends ParsedElement {
       }
       try {
         // parse an element
-        token = parseElement(token, tokenizer);
+        token = parseElement(token, tokenizer, lineNum);
         // Find the divider.
         // Whitespace may be used as a divider or the divider may be preceded by
         // whitespace.
@@ -770,7 +773,7 @@ public final class ParsedArray extends ParsedElement {
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail(e.getMessage());
+        fail(e.getMessage(), lineNum);
       }
     }
     return token;
@@ -783,7 +786,8 @@ public final class ParsedArray extends ParsedElement {
    * @param index adds element when index is -1
    * @return current token when done parsing the element
    */
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer, final int index) {
+  private Token parseElement(Token token, PrimativeTokenizer tokenizer, final int index,
+      final int lineNum) {
     // parse element
     // Array descriptors don't have their own open and close symbols, so they
     // look like numbers until to you get to the first divider (":"or "-").
@@ -797,7 +801,7 @@ public final class ParsedArray extends ParsedElement {
         debug, defaultValue, descr);
     if (descriptor != null) {
       descriptor.setDebug(debug);
-      token = descriptor.parse(token, tokenizer);
+      token = descriptor.parse(token, tokenizer, lineNum);
       // create the correct type of element
       if (descriptor.isEmpty()) {
         // There's nothing there, so its an empty element
@@ -822,7 +826,7 @@ public final class ParsedArray extends ParsedElement {
       // that can have an array descriptor or iterator.
       element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,
           descr);
-      token = element.parse(token, tokenizer);
+      token = element.parse(token, tokenizer, lineNum);
     }
     if (index == -1) {
       array.add(element);
@@ -839,7 +843,8 @@ public final class ParsedArray extends ParsedElement {
    * @param tokenizer
    * @return current token when done parsing the element
    */
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
-    return parseElement(token, tokenizer, -1);
+  private Token parseElement(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
+    return parseElement(token, tokenizer, -1, lineNum);
   }
 }

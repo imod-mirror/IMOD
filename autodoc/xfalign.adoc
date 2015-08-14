@@ -34,6 +34,7 @@ offsets are used for an area up from and to the right of the center.
 [Field = EdgeToIgnore]
 short = matt
 type = F
+default = 0.05
 usage = Fraction of image to omit at edges, or # of pixels (default 0.05)
 tooltip =
 manpage = In Xfsimplex, omit areas of images near their edges.  Enter a
@@ -45,6 +46,7 @@ the fraction is relative to the subarea size. The default is 0.05.
 [Field = ReduceByBinning]
 short = reduce
 type = I
+default = 2
 usage = Binning factor to reduce by (default 2)
 tooltip = Binning factor to reduce by (default 2).  Image reduction is done
 with antialias filtering.
@@ -71,6 +73,7 @@ be applied after binning and filtering if any.
 [Field = ParametersToSearch]
 short = params
 type = I
+default = 0
 usage = 0 for formal params, # of semi-natural params, or -1 to skip search
 tooltip =
 manpage = In Xfsimplex, search for the given number of semi-natural parameters
@@ -90,6 +93,7 @@ search can be limited, and the amount of stretch is limited by default.  Enter
 [Field = LimitsOnSearch]
 short = limits
 type = FA
+default = 0,0,0,0,0.1,4
 usage = Limits for each of the variables being searched
 tooltip = 
 manpage = Limits for each of the variables being searched.  Each number
@@ -152,6 +156,7 @@ option is not available with a reference file.
 [Field = XcorrFilter]
 short = xcfilter
 type = FA
+default = 0.01,0.05,0,0.25
 usage = Sigmas and radii for filter used in initial cross-correlation
 tooltip =
 manpage = Change the filter that is used in cross-correlation by tiltxcorr(1) to

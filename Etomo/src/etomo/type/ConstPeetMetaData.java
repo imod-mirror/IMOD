@@ -59,7 +59,8 @@ package etomo.type;
 * <p> </p>
 */
 public interface ConstPeetMetaData {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   public String getName();
 
@@ -98,4 +99,8 @@ public interface ConstPeetMetaData {
   public boolean isManualCylinderOrientation();
 
   public boolean isTiltRangeMultiAxes();
+
+  public String getCylinderHeight();
+
+  public String getMaskBlurStdDev();
 }

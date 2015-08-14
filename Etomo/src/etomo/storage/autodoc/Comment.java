@@ -8,15 +8,11 @@ import etomo.ui.swing.Token;
 /**
  * <p>Description: Represents a comment in an autodoc.</p>
  * 
- * <p>Copyright: Copyright 2006 - 2010</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.6  2010/11/13 16:05:36  sueh
@@ -45,15 +41,17 @@ import etomo.ui.swing.Token;
  * <p> </p>
  */
 final class Comment extends Statement {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private static final Type TYPE = Statement.Type.COMMENT;
 
   private final WriteOnlyStatementList parent;
   private final Token comment;
 
-  Comment(Token comment, WriteOnlyStatementList parent, Statement previousStatement) {
-    super(previousStatement);
+  Comment(Token comment, WriteOnlyStatementList parent, Statement previousStatement,
+    final int lineNum) {
+    super(previousStatement, lineNum);
     this.parent = parent;
     this.comment = comment;
   }
@@ -83,7 +81,7 @@ final class Comment extends Statement {
   }
 
   void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
-      IOException {
+    IOException {
     file.write(AutodocTokenizer.COMMENT_CHAR, writerId);
     comment.write(file, writerId);
     file.newLine(writerId);

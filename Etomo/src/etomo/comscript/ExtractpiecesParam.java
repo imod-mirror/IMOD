@@ -74,8 +74,7 @@ public class ExtractpiecesParam {
     }
     else {
       command.add(rawStackFileName);
-      command
-          .add(FileType.PIECE_LIST.deriveFileName(rootName, axisType, manager, axisID));
+      command.add(FileType.PIECE_LIST.deriveFileName(rootName, axisType, axisID));
     }
 
     int commandSize = command.size();

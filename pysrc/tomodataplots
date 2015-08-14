@@ -41,7 +41,7 @@ else:
 from pip import *
 
 tempFile = ''
-defaultColors = ['1,navy', '2,maroon']
+defaultColors = ['1,navy', '2,maroon', '3,darkgreen']
 
 # 0 = file type, 1 = columns, 2 = ordinal, 3 = symbols, 4 = connect, 5 = keys
 typeTable = [(0, [5], 1, [7], 1, ['X shift']),
@@ -57,15 +57,18 @@ typeTable = [(0, [5], 1, [7], 1, ['X shift']),
                                         '(view is multiple of 5)']),
              (3, [1], 1, [7], 0, ['Minimum value']),
              (3, [2], 1, [7], 0, ['Maximum value']),
-             (3, [1, 2], 1, [7, 9], 0, ['Minimum value', 'Maximum value'])]
-tempNeeded = [False, True, True, True]
-axisLabels = ['View number', 'View number', 'View number', 'View number']
+             (3, [1, 2], 1, [7, 9], 0, ['Minimum value', 'Maximum value']),
+             (4, [1, 2, 3, 4], 0, [5, 7, 9], 0, ['X position', 'Y position',
+                                                 'Z position'])]
+tempNeeded = [False, True, True, True, False]
+axisLabels = ['View number', 'View number', 'View number', 'View number',
+              'Tilt Angle (degrees)']
 
 # Fallbacks from ../manpages/autodoc2man 3 1 tomodataplots
 options = ["input:InputFile:FN:", "type:TypeOfDataToPlot:IA:",
            "connect:ConnectWithLines:I:", "symbols:SymbolsForGroups:IA:",
            "hue:HueOfGroup:CHM:", "axis:XaxisLabel:CH:",
-           "background:BackgroundProcess:B:"]
+           "background:BackgroundProcess:B:", ":PID:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
@@ -75,6 +78,9 @@ if not dataName:
    exitError('The input file name must be entered')
 if not os.path.exists(dataName):
    exitError('Input file ' + dataName + ' does not exist')
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 # Get type of file, and if it needs processing, read the lines and set up for temp file
 dataType = PipGetInteger('TypeOfDataToPlot', 0) - 1
@@ -121,6 +127,9 @@ if fileType == 1:
    for l in dataLines:
       if re.search(errMatch, l):
          outLines.append(re.sub(errMatch, '', l))
+
+   if len(outLines) < 2:
+      symbols = [7, 9]
 
 # ALIGN
 elif fileType == 2:

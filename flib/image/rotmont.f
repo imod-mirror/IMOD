@@ -100,7 +100,7 @@ c
       dminout=1.e10
       dmaxout=-1.e10
       grandsum=0.
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
 c       
 c       7/7/00 CER: remove the encodes

@@ -355,6 +355,10 @@ run.function.magnification-solution-type-test-gui-basic=
 run.function.tilt-angle-solution-type-test-gui-basic=
 run.function.distortion-solution-type-test-gui-basic=
 run.function.beam-tilt-test-gui=
+run.function.restrict-alignment-variables-test-gui=
+
+
+
 
 
 [function = global-variables-test-gui-advanced]
@@ -545,6 +549,41 @@ rb.solve-for-beam-tilt=
 assert.disabled.tf.fixed-beam-tilt=
 rb.no-beam-tilt=
 mb.beam-tilt=B
+
+
+[function = restrict-alignment-variables-test-gui]
+#values
+assert.tf.ratio-of-measurements-to-unknowns-to-achieve=%{target}
+assert.tf.minimum=%{minimum}
+#enabled
+assert.enabled.tf.ratio-of-measurements-to-unknowns-to-achieve=
+assert.enabled.tf.minimum=
+assert.enabled.bn.restrict-variables=
+#behavior
+[[ifnot = patch-tracking]]
+  tf.ratio-of-measurements-to-unknowns-to-achieve=%{target-restrict}
+  tf.minimum=%{minimum-restrict}
+[[]]
+[[if = patch-tracking]]
+  tf.ratio-of-measurements-to-unknowns-to-achieve=%{target-restrict-patch-tracking}
+  tf.minimum=%{minimum-restrict-patch-tracking}
+[[]]
+bn.restrict-variables=
+wait.process.reloading-align=done
+[[ifnot = montage]]
+  #user template in use
+  assert.rb.group-rotations=off
+  assert.rb.fixed-magnification-at-10=on
+[[]]
+[[if = montage]]
+  assert.rb.group-rotations=on
+  assert.rb.fixed-magnification-at-10=off
+[[]]
+#reset
+rb.solve-for-all-rotations=
+rb.solve-for-all-magnifications=
+tf.ratio-of-measurements-to-unknowns-to-achieve=%{target}
+tf.minimum=%{minimum}
 
 
 # Local Variables tab gui test

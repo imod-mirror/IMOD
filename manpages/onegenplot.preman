@@ -1,6 +1,6 @@
 .na
 .nh
-.TH onegenplot 1 4.6.8 BL3DEMC
+.TH onegenplot 1 4.6.8 IMOD
 .SH NAME
 onegenplot \- Make an X/Y plot with genhstplt
 .SH SYNOPSIS

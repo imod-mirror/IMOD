@@ -356,7 +356,7 @@ public class Patchcrawl3DPrePIPParam extends ConstPatchcrawl3DPrePIPParam implem
 
   public void setUseBoundaryModel(boolean useBoundaryModel) {
     if (useBoundaryModel) {
-      boundaryModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+      boundaryModel = MatchorwarpParam.getDefaultPatchRegionModel();
     }
     else {
       boundaryModel = "";

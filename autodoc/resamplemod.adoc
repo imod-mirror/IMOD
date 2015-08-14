@@ -41,13 +41,13 @@ object with a contour to indicate the direction.
 short = main
 long = MainAxis
 type = I
-usage = Dominant axis along which fibers run (1 = X, 2 = Y, 3 = Z; default = 3)
+usage = "Dominant axis along which fibers run (1 = X, 2 = Y, 3 = Z; default = 3)"
 tooltip = 
-manpage = Dominant axis along which fibers run (1 = X, 2 = Y, or 3 = Z.)
+manpage = "Dominant axis along which fibers run (1 = X, 2 = Y, or 3 = Z.)
 The default is the Z axis (3), which is appropriate for serial section
 models.  A different axis is generally needed for a model from a tomogram.
 If the model was built on a tomogram loaded into 3dmod with flipping (-Y),
-enter a number that refers to the axis that was seen in 3dmod.
+enter a number that refers to the axis that was seen in 3dmod."
 
 [Field = SkipInversion]
 short = skip

@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -33,6 +35,7 @@ public final class DirectiveDescrFile {
 
   private LogFile logFile = null;
   private File alternateFile = null;
+  private Map<String, Element> directiveMap = null;
 
   public static final DirectiveDescrFile INSTANCE = new DirectiveDescrFile();
 
@@ -125,10 +128,30 @@ public final class DirectiveDescrFile {
   }
 
   /**
-   * Readonly iterator
-   * @author sueh
+   * Returns the description of a directive.
+   * @param key - matches the first column of the directive.cvs file
+   * @return
    */
-  public static final class Iterator implements DirectiveDescr {
+  Element get(final String key) {
+    if (directiveMap == null) {
+      synchronized (this) {
+        if (directiveMap == null) {
+          directiveMap = new Hashtable<String, Element>();
+          Iterator iterator = getIterator(null, null);
+          while (iterator.hasNext()) {
+            Element element = iterator.next();
+            if (element.isDirective()) {
+              directiveMap.put(element.getName(), new Element(element.lineArray));
+            }
+          }
+          releaseIterator(iterator);
+        }
+      }
+    }
+    return directiveMap.get(key);
+  }
+
+  public static final class Element implements DirectiveDescr {
     private static final int NAME_COLUMN_INDEX = 0;
     private static final int DESCR_COLUMN_INDEX = 1;
     private static final int VALUE_TYPE_COLUMN_INDEX = 2;
@@ -138,12 +161,106 @@ public final class DirectiveDescrFile {
     private static final int LABEL_COLUMN_INDEX = 7;
     private static final int CHOICES_COLUMN_INDEX = 8;
 
+    private String[] lineArray = null;
+
+    private Element() {
+    }
+
+    private Element(String[] lineArray) {
+      this.lineArray = lineArray;
+    }
+
+    public String getDescription() {
+      if (lineArray != null && lineArray.length > DESCR_COLUMN_INDEX) {
+        return lineArray[DESCR_COLUMN_INDEX];
+      }
+      return null;
+    }
+
+    public String getLabel() {
+      if (lineArray != null && lineArray.length > LABEL_COLUMN_INDEX) {
+        return lineArray[LABEL_COLUMN_INDEX];
+      }
+      return null;
+    }
+
+    public ChoiceList getChoiceList(final DebugLevel debug) {
+      if (lineArray != null && lineArray.length > CHOICES_COLUMN_INDEX) {
+        return new ChoiceList(lineArray[CHOICES_COLUMN_INDEX], debug);
+      }
+      return null;
+    }
+
+    public DirectiveDescrEtomoColumn getEtomoColumn() {
+      if (lineArray != null && lineArray.length > ETOMO_COLUMN_INDEX) {
+        return DirectiveDescrEtomoColumn.getInstance(lineArray[ETOMO_COLUMN_INDEX]);
+      }
+      return null;
+    }
+
+    public String getName() {
+      if (lineArray != null && lineArray.length > NAME_COLUMN_INDEX) {
+        return lineArray[NAME_COLUMN_INDEX];
+      }
+      return null;
+    }
+
+    public String getSectionHeader() {
+      if (lineArray != null && lineArray.length > NAME_COLUMN_INDEX) {
+        return lineArray[NAME_COLUMN_INDEX];
+      }
+      return null;
+    }
+
+    public DirectiveValueType getValueType() {
+      if (lineArray != null && lineArray.length > VALUE_TYPE_COLUMN_INDEX) {
+        return DirectiveValueType.getInstance(lineArray[VALUE_TYPE_COLUMN_INDEX]);
+      }
+      return DirectiveValueType.UNKNOWN;
+    }
+
+    public boolean isBatch() {
+      if (lineArray != null && lineArray.length > BATCH_COLUMN_INDEX) {
+        return lineArray[BATCH_COLUMN_INDEX].trim().compareToIgnoreCase("Y") == 0;
+      }
+      return false;
+    }
+
+    public boolean isDirective() {
+      if (lineArray != null && lineArray.length >= 3) {
+        return true;
+      }
+      return false;
+    }
+
+    public boolean isSection() {
+      if (lineArray != null && lineArray.length == 1) {
+        return true;
+      }
+      return false;
+    }
+
+    public boolean isTemplate() {
+      if (lineArray != null && lineArray.length > TEMPLATE_COLUMN_INDEX) {
+        return lineArray[TEMPLATE_COLUMN_INDEX].trim().compareToIgnoreCase("Y") == 0;
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Readonly iterator
+   * @author sueh
+   */
+  public static final class Iterator {
+
+    private final Element curElement = new Element();
+
     private final AxisID axisID;
     private final LogFile.ReaderId id;
     private final LogFile logFile;
     private final BaseManager manager;
 
-    private String[] curLineArray = null;
     private String nextLine = null;
 
     private Iterator(final BaseManager manager, final AxisID axisID,
@@ -152,59 +269,6 @@ public final class DirectiveDescrFile {
       this.axisID = axisID;
       this.logFile = logFile;
       this.id = id;
-    }
-
-    public String getDescription() {
-      if (curLineArray != null && curLineArray.length > DESCR_COLUMN_INDEX) {
-        return curLineArray[DESCR_COLUMN_INDEX];
-      }
-      return null;
-    }
-
-    public String getLabel() {
-      if (curLineArray != null && curLineArray.length > LABEL_COLUMN_INDEX) {
-        return curLineArray[LABEL_COLUMN_INDEX];
-      }
-      return null;
-    }
-
-    public ChoiceList getChoiceList(final DebugLevel debug) {
-      if (curLineArray != null && curLineArray.length > CHOICES_COLUMN_INDEX) {
-        return new ChoiceList(curLineArray[CHOICES_COLUMN_INDEX], debug);
-      }
-      return null;
-    }
-
-    public DirectiveDescr getDirectiveDescription() {
-      return this;
-    }
-
-    public DirectiveDescrEtomoColumn getEtomoColumn() {
-      if (curLineArray != null && curLineArray.length > ETOMO_COLUMN_INDEX) {
-        return DirectiveDescrEtomoColumn.getInstance(curLineArray[ETOMO_COLUMN_INDEX]);
-      }
-      return null;
-    }
-
-    public String getName() {
-      if (curLineArray != null && curLineArray.length > NAME_COLUMN_INDEX) {
-        return curLineArray[0];
-      }
-      return null;
-    }
-
-    public String getSectionHeader() {
-      if (curLineArray != null && curLineArray.length > NAME_COLUMN_INDEX) {
-        return curLineArray[NAME_COLUMN_INDEX];
-      }
-      return null;
-    }
-
-    public DirectiveValueType getValueType() {
-      if (curLineArray != null && curLineArray.length > VALUE_TYPE_COLUMN_INDEX) {
-        return DirectiveValueType.getInstance(curLineArray[VALUE_TYPE_COLUMN_INDEX]);
-      }
-      return DirectiveValueType.UNKNOWN;
     }
 
     /**
@@ -236,42 +300,16 @@ public final class DirectiveDescrFile {
       }
     }
 
-    public boolean isBatch() {
-      if (curLineArray != null && curLineArray.length > BATCH_COLUMN_INDEX) {
-        return curLineArray[BATCH_COLUMN_INDEX].trim().compareToIgnoreCase("Y") == 0;
-      }
-      return false;
-    }
-
-    public boolean isDirective() {
-      if (curLineArray != null && curLineArray.length >= 3) {
-        return true;
-      }
-      return false;
-    }
-
-    public boolean isSection() {
-      if (curLineArray != null && curLineArray.length == 1) {
-        return true;
-      }
-      return false;
-    }
-
-    public boolean isTemplate() {
-      if (curLineArray != null && curLineArray.length > TEMPLATE_COLUMN_INDEX) {
-        return curLineArray[TEMPLATE_COLUMN_INDEX].trim().compareToIgnoreCase("Y") == 0;
-      }
-      return false;
-    }
-
     /**
      * Increment the line, and null out nextLine
      */
-    public void next() {
+    public Element next() {
       if (hasNext()) {
-        curLineArray = nextLine.split(",");
+        curElement.lineArray = nextLine.split(",");
         nextLine = null;
+        return curElement;
       }
+      return null;
     }
   }
 

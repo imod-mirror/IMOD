@@ -77,7 +77,7 @@ applied in the order that they are entered, and after any 3DTransform entries.
 short = order
 long = InterpolationOrder
 type = I
-usage = Order of interpolation to use (1 = linear, 2 = quadratic; default = 2)
+usage = "Order of interpolation to use (1 = linear, 2 = quadratic; default = 2)"
 tooltip = 
 manpage = Order of interpolation to use.  Currently only quadratic (2) and
 linear (1) interpolation are available; the default is quadratic.

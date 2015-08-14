@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodqtassist 1 3.4.16 BL3DEMC
+.TH imodqtassist 1 3.4.16 IMOD
 .SH NAME
 imodqtassist \- Displays pages in qch file through Qt Assistant
 .SH SYNOPSIS

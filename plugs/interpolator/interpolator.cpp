@@ -1646,7 +1646,7 @@ int Interpolator::getTilingMethod()
 
 void Interpolator::helpPluginHelp()
 {
-  imodShowHelpPage("../plughelp/interpolator.html#TOP");
+  imodShowHelpPage("plughelp/interpolator.html#TOP");
 }
 
 
@@ -1658,7 +1658,7 @@ void Interpolator::buttonPressed(int which)
   if      (which==0)
     close();
   else if (which==1)
-		openUrl( "http://www.slashsegmentation.com/tools/imod/interpolator-plugin" );
+		openUrl( "https://www.youtube.com/watch?v=BsNSVLIQ-cE" );
 	else if (which==2)
     helpPluginHelp();
 }
@@ -3495,7 +3495,7 @@ mergeAllTouchingConts( vector<IcontPtr> conts )
 	for(int i=1; i<int(conts.size()); i++)
 		if( cont_doContsTouch( conts[i-1].cont, conts[i].cont ) )
 		{
-      cont_getOuterUnionPolygon( conts[i-1].cont, conts[i-1].cont, conts[i].cont );
+      cont_getOuterUnionPolygon( conts[i-1].cont, conts[i-1].cont, conts[i].cont, 0 );
       deleteAllPts( conts[i].cont );
       eraseContour( conts, i );
 			i=0;

@@ -8,15 +8,11 @@ import etomo.type.AxisID;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.5  2010/02/17 04:47:54  sueh
@@ -43,8 +39,6 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 public final class QueuechunkParam implements IntermittentCommand {
-  public static final String rcsid = "$Id$";
-
   private final String queue;
 
   private String intermittentCommand = null;
@@ -54,14 +48,14 @@ public final class QueuechunkParam implements IntermittentCommand {
   }
 
   public static QueuechunkParam getLoadInstance(String queue, AxisID axisID,
-      BaseManager manager) {
+    BaseManager manager) {
     QueuechunkParam instance = new QueuechunkParam(queue, axisID, manager);
-    instance.setIntermittentCommand(queue, axisID, manager);
+    instance.setIntermittentCommand(queue);
     return instance;
   }
 
-  private void setIntermittentCommand(String queue, AxisID axisID, BaseManager manager) {
-    Node cluster = Network.getQueue(manager, queue, axisID, manager.getPropertyUserDir());
+  private void setIntermittentCommand(String queue) {
+    Node cluster = Network.getQueue(queue);
     if (cluster != null) {
       intermittentCommand = "bash " + cluster.getCommand() + " -a L";
     }

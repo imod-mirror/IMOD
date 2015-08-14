@@ -318,7 +318,7 @@ int imod_object_edit_draw(void)
     state = 1;
   Ioew_dialog->setObjectType(state);
 
-  Ioew_dialog->setFrontSurface(obj->flags & IMOD_OBJFLAG_OUT ? 1 : 0);
+  Ioew_dialog->setFrontSurface(B3DCHOICE(obj->flags & IMOD_OBJFLAG_OUT, 1, 0));
   Ioew_dialog->setPointRadius(obj->pdrawsize);
   Ioew_dialog->setPlanarBox(iobjPlanar(obj->flags), iobjOpen(obj->flags));
   Ioew_dialog->setPointLimit(obj->extra[IOBJ_EX_PNT_LIMIT]);

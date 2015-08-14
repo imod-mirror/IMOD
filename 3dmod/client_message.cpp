@@ -46,6 +46,7 @@ static QStringList sMessageStrings;
 static int sMessageStamp = -1;
 static bool sInitialLoad;
 
+#define SPACE_KEEPER "%?@%*#!"
 #define STDIN_INTERVAL  50
 #define MAX_LINE 256
 static char sThreadLine[MAX_LINE];
@@ -221,6 +222,7 @@ void ImodClipboard::clipHackTimeout()
 void ImodClipboard::stdinTimeout()
 {
   QString text;
+  QStringList tmpStrings;
   if (mHandling)
     return;
 
@@ -262,11 +264,12 @@ void ImodClipboard::stdinTimeout()
     mDisconnected = true;
     return;
   }
-  
+
+  splitWithEscapedSpaces(text, tmpStrings);
   if (sInitialLoad)
-    sMessageStrings += text.split(" ", QString::SkipEmptyParts);
+    sMessageStrings += tmpStrings;
   else
-    sMessageStrings = text.split(" ", QString::SkipEmptyParts);
+    sMessageStrings = tmpStrings;
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
@@ -296,7 +299,7 @@ bool ImodClipboard::handleMessage()
 
   // Split the string, ignoring multiple spaces, and return false if fewer
   // than 3 elements
-  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  splitWithEscapedSpaces(text, tmpStrings);
   if (tmpStrings.count() < 3)
     return false;
 
@@ -321,6 +324,15 @@ bool ImodClipboard::handleMessage()
   return true;
 }
 
+// Split on spaces after converting escaped spaces to nonsense string
+// We used \\ for the escape to avoid having to escape backslashes themselves
+void ImodClipboard::splitWithEscapedSpaces(QString &text, QStringList &tmpStrings)
+{
+  text.replace("\\\\ ", SPACE_KEEPER);
+  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  tmpStrings.replaceInStrings(SPACE_KEEPER, " ");
+}
+
 // This function performs the action after the delay is up.  It returns
 // true if the program is still to quit
 bool ImodClipboard::executeMessage()
@@ -334,7 +346,8 @@ bool ImodClipboard::executeMessage()
   ZapFuncs *zap;
   int movieVal, xaxis, yaxis, zaxis, taxis;
   int objNum, type, symbol, symSize, ptSize, mode, mask, interval;
-  bool props1;
+  int reserved, red = 0, green = 0, blue = 0;
+  bool props1, props3;
   Imod *imod;
   Iobj *obj;
   int symTable[] = 
@@ -342,7 +355,8 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1, 0, 6, 
+                        6};
   int numArgs = sMessageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -409,7 +423,7 @@ bool ImodClipboard::executeMessage()
                                 sMessageAction == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
-                 LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                 LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
 
         }
         else if(returnValue == IMOD_IO_SAVE_ERROR) {
@@ -427,7 +441,7 @@ bool ImodClipboard::executeMessage()
           if(returnValue == IMOD_IO_SUCCESS) {
         
             wprint("New model %s created.\n", 
-                   LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                   LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
           }
           else {
             wprint("Could not create a new model %s.\n", 
@@ -476,10 +490,10 @@ bool ImodClipboard::executeMessage()
         else {
           imod_set_mmode(IMOD_MMOVIE);
           if (movieVal < 0) {
-            xaxis = (-movieVal) & 1 ? 1 : 0;
-            yaxis = (-movieVal) & 2 ? 1 : 0;
-            zaxis = (-movieVal) & 4 ? 1 : 0;
-            taxis = (-movieVal) & 8 ? 1 : 0;
+            xaxis = B3DCHOICE((-movieVal) & 1, 1, 0);
+            yaxis = B3DCHOICE((-movieVal) & 2, 1, 0);
+            zaxis = B3DCHOICE((-movieVal) & 4, 1, 0);
+            taxis = B3DCHOICE((-movieVal) & 8, 1, 0);
             imodMovieXYZT(App->cvi, xaxis, yaxis, zaxis, taxis);
           }
         }
@@ -508,14 +522,23 @@ bool ImodClipboard::executeMessage()
       case MESSAGE_NEWOBJ_PROPERTIES:
       case MESSAGE_OBJ_PROPS_2:
       case MESSAGE_NEWOBJ_PROPS_2:
+      case MESSAGE_OBJ_PROPS_3:
+      case MESSAGE_NEWOBJ_PROPS_3:
         props1 = sMessageAction == MESSAGE_OBJ_PROPERTIES ||
           sMessageAction == MESSAGE_NEWOBJ_PROPERTIES;
+        props3 = sMessageAction == MESSAGE_OBJ_PROPS_3 ||
+          sMessageAction == MESSAGE_NEWOBJ_PROPS_3;
         objNum = sMessageStrings[++arg].toInt();
         type = sMessageStrings[++arg].toInt();
         symbol = sMessageStrings[++arg].toInt();
-        symSize = sMessageStrings[++arg].toInt();
-        if (props1)
+        if (props3)
+          sscanf(LATIN1(sMessageStrings[++arg]), "%d,%d,%d", &red, &green, &blue);
+        else
+          symSize = sMessageStrings[++arg].toInt();
+        if (props1 || props3)
           ptSize = sMessageStrings[++arg].toInt();
+        if (props3)
+          reserved = sMessageStrings[++arg].toInt();
 
         // Object is numbered from 1, so decrement and test for substituting
         // current object
@@ -532,7 +555,8 @@ bool ImodClipboard::executeMessage()
 
         // If object has contours, skip for NEWOBJ message
         if (obj->contsize && (sMessageAction == MESSAGE_NEWOBJ_PROPERTIES ||
-                              sMessageAction == MESSAGE_NEWOBJ_PROPS_2))
+                              sMessageAction == MESSAGE_NEWOBJ_PROPS_2 || 
+                              sMessageAction == MESSAGE_NEWOBJ_PROPS_3))
           break;
 
         if (props1) {
@@ -557,7 +581,7 @@ bool ImodClipboard::executeMessage()
           if (symbol >= 0) {
             if ((symbol & 7) < (sizeof(symTable) / sizeof(int)))
               obj->symbol = symTable[symbol & 7];
-            utilSetObjFlag(obj, 0, (symbol & 8) != 0, IOBJ_SYMF_FILL);
+            utilSetObjFlag(obj, 1, (symbol & 8) != 0, IOBJ_SYMF_FILL);
           }
           
           // Symbol size, 3d point size
@@ -565,7 +589,7 @@ bool ImodClipboard::executeMessage()
             obj->symsize = symSize;
           if (ptSize >= 0)
             obj->pdrawsize = ptSize;
-        } else {
+        } else if (!props3) {
 
           // Points per contour
           if (type >= 0)
@@ -578,7 +602,31 @@ bool ImodClipboard::executeMessage()
           // Sphere on sec only
           if (symSize >= 0)
             utilSetObjFlag(obj, 0, symSize != 0, IMOD_OBJFLAG_PNT_ON_SEC);
-        }        
+        } else {
+          
+          // Line width
+          if (type > 0)
+            obj->linewidth2 = type;
+
+          // Symbols at ends
+          if (symbol >= 0){
+            utilSetObjFlag(obj, 1, (symbol & 1) != 0, IOBJ_SYMF_ENDS);
+            utilSetObjFlag(obj, 1, (symbol & 2) != 0, IOBJ_SYMF_ARROW);
+          }
+
+          // Object color
+          if (red >= 0) {
+            B3DCLAMP(red, 0, 255);
+            B3DCLAMP(green, 0, 255);
+            B3DCLAMP(blue, 0, 255);
+            obj->red = red / 255.;
+            obj->green = green / 255.;
+            obj->blue = blue / 255.;
+          }
+
+          // Two more reserved...
+
+        }
 
         // The general draw updates object edit window, but need to call 
         // imodv object edit for it to update
@@ -618,6 +666,11 @@ bool ImodClipboard::executeMessage()
           imodvOpenSelectedWindows(LATIN1(sMessageStrings[arg + 1]));
         ImodInfoWin->openSelectedWindows(LATIN1(sMessageStrings[++arg]),
                                          ImodvClosed ? 0 : 1);
+        break;
+
+      case MESSAGE_MODEL_CHANGED:
+        imodPrintStderr("Model changed: %d\n", (imod && imod_model_changed(imod)) ? 1 : 
+                        0);
         break;
 
       case MESSAGE_PLUGIN_EXECUTE:

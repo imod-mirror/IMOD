@@ -39,10 +39,10 @@ public final class MatchMode {
     if (string == null) {
       return null;
     }
-    if (string.equals(B_TO_A_STRING)) {
+    if (string.equalsIgnoreCase(B_TO_A_STRING)) {
       return B_TO_A;
     }
-    if (string.equals(A_TO_B_STRING)) {
+    if (string.equalsIgnoreCase(A_TO_B_STRING)) {
       return A_TO_B;
     }
     return null;

@@ -53,6 +53,7 @@ static void usage(char *progname)
           "Y-Z flipped\n");
   printf("\t-i file\tTransform to match given image file coordinate"
           " system\n");
+  printf("\t-I file\tFirst set image coordinate information from the given image file\n");
   printf("\t-Y\tFlip model in Y and Z (without toggling flipped"
           " flag)\n");
   printf("\t-T\tToggle flag that model is flipped in Y and Z\n");
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
   int    doflip = 1;
   int    transopt = 0;
   int    rotScaleopt = 0;
-  int    toImage = 0;
+  int    toImage = 0, fromImage = 0;
   int    oneLine = -1;
   int    toggleFlip = 0;
   int    flipModel = 0;
@@ -86,7 +87,7 @@ int main(int argc, char *argv[])
   Imat *mat = imodMatNew(3);
   Imat *normMat = imodMatNew(3);
   IrefImage useRef, *modRefp;
-  MrcHeader hdata;
+  MrcHeader hdata, hdataFirst;
   Ipoint unitPt = {1., 1., 1.};
   char prefix[100];
   sprintf(prefix, "ERROR: %s - ", progname);
@@ -122,6 +123,17 @@ int main(int argc, char *argv[])
         if (mrc_head_read(fin, &hdata)) 
           exitError("Reading header from %s", argv[i]);
         fclose(fin);
+        break;
+
+      case 'I':
+        fromImage = 1;
+        if (NULL == (fin = fopen(argv[++i], "rb")))
+          exitError("Couldn't open %s", argv[i]);
+
+        if (mrc_head_read(fin, &hdataFirst)) 
+          exitError("Reading header from %s", argv[i]);
+        fclose(fin);
+        break;
 
       case 'z':
         useZscale = 1;
@@ -291,6 +303,10 @@ int main(int argc, char *argv[])
   fout = fopen(argv[i + 1], "wb");
   if (!fout)
     exitError("Opening output file %s", argv[i + 1]);
+
+  /* Change image reference information */
+  if (fromImage && imodSetRefImage(&model, &hdataFirst))
+    exitError("Allocating a IrefImage structure");
 
   /* Do flipping operations first */
   if (flipModel)

@@ -242,7 +242,7 @@ tooltip =
 manpage = Binning or other reduction to apply to the trimmed, padded images.
 Ordinary binning is used unless the -antialias option is given.
 By default, a reduction will be selected that makes the maximum dimension of the
-trimmed, padded image be no more than 1180 pixels, up to a reduction of 4.
+trimmed, padded image be no more than 1250 pixels, up to a reduction of 4.
 Reduction will be increased above 4 only to the extent needed to make the image
 fit in the arrays.  This default behavior might result in more reduction
 than desired, and the reduction might change when the amount of trimming
@@ -284,11 +284,15 @@ image, which would be lost in Xftoxg(1).
 [Field = PadsInXandY]
 short = pad
 type = IP
-usage = Number of pixels to pad images in X and in Y
-tooltip = Padding in X, and in Y; the default is 5% of the image size up to 20
-pixels.
-manpage = Number of pixels to pad images in X and in Y.  The default is 5% of
-the image dimensions up to 20 pixels.
+usage = Number of pixels to pad images on each side in X and in Y
+tooltip = Padding on each side in X, and in Y; the default is 10% of the image size.
+manpage = Number of pixels to pad images on each side in X and in Y, before binning.
+With no padding, shifts greater than 50% of the image size will not be
+treated correctly.  Each 1% of padding allows proper treatment of shifts more than
+50% by an additional 2% of image size.
+The default is 5% of images dimensions for patch tracking or finding warping,
+or 10% for regular correlations, allowing shifts up to 70% of the image size
+to be determined.
 
 [Field = TapersInXandY]
 short = taper
@@ -391,7 +395,9 @@ manpage = Search for the magnification factor that gives the highest
 correlation coefficient at one or more views.  This factor will be
 incorporated into the transformation for the respective view.  If a maximum
 value of the correlation coefficient is not found within the allowed range
-(specified with the -mag option), a magnification of 1 is used.
+(specified with the -mag option), a magnification of 1 is used.  This option
+cannot be used together with rotation scan, cumulative correlation, patch
+tracking, or when finding warping.
 
 [Field = ViewsWithMagChanges]
 short = changes
@@ -408,6 +414,44 @@ usage = Lower and upper limits for size change (default 0.9,1.1)
 tooltip =
 manpage = Lower and upper limits for size change when searching for
 magnification factors.  The default is 0.9,1.1.
+
+[Field = ScanRotationMaxAndStep]
+short = scan
+type = FP
+usage = Maximum angle and step size to scan for best rotation, or one angle and 0
+tooltip =
+manpage = Either the maximum angle and angular step size at which to apply
+rotation in order to estimate the best rotation; or a single rotation angle to
+apply and a 0 step size.  With a positive step size to estimate rotation, the
+program does a coarse scan just at the given interval from the negative to
+positive maximum angle, then estimates the best
+rotation by interpolation.  This is unlike the magnification search, which
+reduces its step size to refine the estimate.  The final correlation is done
+at the interpolated angle.  With a step size of 0, the angle given as the
+maximum (which can be negative) is applied before correlating.  The resulting
+transformation incorporates the rotation in either case.  This option cannot
+be used together with magnification search, cumulative correlation, patch
+tracking, or when finding warping.
+
+[Field = ReferenceFile]
+short = reference
+type = FN
+usage = Input file containing an image to use as a reference
+tooltip = 
+manpage = Input file containing an image to use as a reference.  Each view
+from the main input image file will be aligned with this reference image,
+which will be assumed to be at zero tilt.  The output file will contain a
+linear transform for every view in the input file; if a subset of views
+is specified with \fB-views\fR or some views are skipped, unaligned views will
+be given a unit transform.  This option cannot be used with cumulative
+correlations, patch tracking, or when finding warping.
+
+[Field = ReferenceView]
+short = rview
+type = I
+usage = View number of image to use in reference file
+tooltip = 
+manpage = View number of image to use in reference file, numbered from 1.
 
 [Field = SizeOfPatchesXandY]
 short = size

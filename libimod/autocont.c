@@ -18,7 +18,6 @@
 static void autoPatchFillOutside(unsigned char *data, int *xlist, int *ylist, 
                                  int listsize, int xsize, int xmin, int xmax, int ymin,
                                  int ymax, int x, int y);
-static int nay8(int i, int j);
 
 /*!
  * Marks the area outside of the "flooded" region of pixels in [data], ones marked with 
@@ -146,30 +145,8 @@ static void autoPatchFillOutside(unsigned char *data, int *xlist, int *ylist,
   }
 }
 
-/* Testing the eight neighbors of a point: if the point is in the flood, counts up the 
-   neighbors that are also in flood */
-static unsigned char *sData;
-static int sXsize;
-static int sYsize;
-static int nay8(int i, int j)
-{
-  int n, m, k = 0;
-  int x, y;
-
-  if (!(sData[i + (j * sXsize)] & AUTOX_FLOOD))
-    return(0);
-     
-  for (n = -1; n <= 1; n++) {
-    y = n + j;
-    for(m = -1; m <= 1 ; m++) {
-      x = m + i;
-      if ((x >= 0) && (y >= 0) && (x < sXsize) && (y < sYsize))
-        if (sData[x + (y * sXsize)] & AUTOX_FLOOD)
-          k++; 
-    }
-  }
-  return(k-1);
-}
+/* DNM 5/9/15: Removed nay8 function that required static variables for the array and 
+   was only being called once, so that imodAutoShrink could be called in parallel */
 
 /*!
  * Shrinks the area in [data] marked with the flag AUTOX_FLOOD by eliminating every
@@ -178,17 +155,26 @@ static int nay8(int i, int j)
  */
 void imodAutoShrink(unsigned char *data, int imax, int jmax)
 {
-  int i, j;
-  sData = data;
-  sXsize = imax;
-  sYsize = jmax;
+  int i, j, k, n, m, x, y;
      
   /* DNM: tried testing on fill flag before checking neighbors and it
      didn't work. */
   for (j = 0; j < jmax; j++) {
     for (i = 0; i < imax; i++) {
-      if (nay8(i, j) < 7)
-        data[i + (j * imax)] |= AUTOX_CHECK;
+      if (data[i + (j * imax)] & AUTOX_FLOOD) {
+        k = 0;
+        for (n = -1; n <= 1; n++) {
+          y = n + j;
+          for (m = -1; m <= 1 ; m++) {
+            x = m + i;
+            if ((x >= 0) && (y >= 0) && (x < imax) && (y < jmax))
+              if (data[x + (y * imax)] & AUTOX_FLOOD)
+                k++; 
+          }
+        }
+        if (k < 7)
+          data[i + (j * imax)] |= AUTOX_CHECK;
+      }
     }
   }
 

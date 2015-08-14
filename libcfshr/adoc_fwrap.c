@@ -19,15 +19,23 @@
 #ifdef F77FUNCAP
 #define adocread ADOCREAD
 #define adocopenimagemetadata ADOCOPENIMAGEMETADATA
+#define adocgetimagemetainfo ADOCGETIMAGEMETAINFO
 #define adocnew ADOCNEW
 #define adocsetcurrent ADOCSETCURRENT
 #define adocdone ADOCDONE
+#define adocclear ADOCCLEAR
 #define adocwrite ADOCWRITE
 #define adocaddsection ADOCADDSECTION
+#define adocorderwritebyvalue ADOCORDERWRITEBYVALUE
 #define adocsetkeyvalue ADOCSETKEYVALUE
 #define adocdeletekeyvalue ADOCDELETEKEYVALUE
 #define adocgetsectionname ADOCGETSECTIONNAME
 #define adocgetnumberofsections ADOCGETNUMBEROFSECTIONS
+#define adoclookupsection ADOCLOOKUPSECTION
+#define adoclookupbynamevalue ADOCLOOKUPBYNAMEVALUE
+#define adocfindinsertindex ADOCFINDINSERTINDEX
+#define adocinsertsection ADOCINSERTSECTION
+#define adoctransfersection ADOCTRANSFERSECTION
 #define adocgetstring ADOCGETSTRING
 #define adocgetinteger ADOCGETINTEGER
 #define adocgettwointegers ADOCGETTWOINTEGERS
@@ -43,18 +51,29 @@
 #define adocsetfloat ADOCSETFLOAT
 #define adocsettwofloats ADOCSETTWOFLOATS
 #define adocsetthreefloats ADOCSETTHREEFLOATS
+#define adocsetfloatarray ADOCSETFLOATARRAY
+#define adocsetintegerarray ADOCSETINTEGERARRAY
+#define adocgetstandardnames ADOCGETSTANDARDNAMES
 #else
 #define adocread adocread_
 #define adocopenimagemetadata adocopenimagemetadata_
+#define adocgetimagemetainfo adocgetimagemetainfo_
 #define adocnew adocnew_
 #define adocsetcurrent adocsetcurrent_
+#define adocclear adocclear_
 #define adocdone adocdone_
 #define adocwrite adocwrite_
 #define adocaddsection adocaddsection_
+#define adocorderwritebyvalue adocorderwritebyvalue_
 #define adocsetkeyvalue adocsetkeyvalue_
 #define adocdeletekeyvalue adocdeletekeyvalue_
 #define adocgetsectionname adocgetsectionname_
 #define adocgetnumberofsections adocgetnumberofsections_
+#define adoclookupsection adoclookupsection_
+#define adoclookupbynamevalue adoclookupbynamevalue_
+#define adocfindinsertindex adocfindinsertindex_
+#define adocinsertsection adocinsertsection_
+#define adoctransfersection adoctransfersection_
 #define adocgetstring adocgetstring_
 #define adocgetinteger adocgetinteger_
 #define adocgettwointegers adocgettwointegers_
@@ -67,9 +86,12 @@
 #define adocsetinteger adocsetinteger_
 #define adocsettwointegers adocsettwointegers_
 #define adocsetthreeintegers adocsetthreeintegers_
+#define adocsetintegerarray adocsetintegerarray_
 #define adocsetfloat adocsetfloat_
 #define adocsettwofloats adocsettwofloats_
 #define adocsetthreefloats adocsetthreefloats_
+#define adocsetfloatarray adocsetfloatarray_
+#define adocgetstandardnames adocgetstandardnames_
 #endif
 
 static int twof2cstr(char *collName, char *key, int collSize, int keySize, 
@@ -99,6 +121,11 @@ int adocopenimagemetadata(char *filename, int *addMdoc, int *montage,
   return (err >= 0 ? err + 1 : err);
 }
 
+int adocgetimagemetainfo(int *montage, int *numSect, int *sectType) 
+{
+  return AdocGetImageMetaInfo(montage, numSect, sectType);
+}
+
 int adocnew()
 {
   return AdocNew();
@@ -107,6 +134,11 @@ int adocnew()
 int adocsetcurrent(int *index)
 {
   return AdocSetCurrent(*index - 1);
+}
+
+void adocclear(int *index)
+{
+  AdocClear(*index - 1);
 }
 
 void adocdone()
@@ -135,6 +167,17 @@ int adocaddsection(char *collName, char *name, int collSize, int nameSize)
   free(cStr);
   free(kStr);
   return (err >= 0 ? err + 1 : err);
+}
+
+int adocorderwritebyvalue(char *collName, int collSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = adocf2cstr(collName, collSize)))
+    return -1;
+  err = AdocOrderWriteByValue(cStr);
+  free(cStr);
+  return err;
 }
 
 int adocsetkeyvalue(char *collName, int *sectInd, char *key, char *value, 
@@ -197,6 +240,19 @@ int adocsetthreeintegers(char *collName, int *sectInd, char *key, int *ival1,
   return err;
 }
 
+int adocsetintegerarray(char *collName, int *sectInd, char *key, int *vals,
+                        int *numVals, int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetIntegerArray(cStr, *sectInd - 1, kStr, vals, *numVals);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
 int adocsetfloat(char *collName, int *sectInd, char *key, float *val,
                  int collSize, int keySize)
 {
@@ -236,6 +292,18 @@ int adocsetthreefloats(char *collName, int *sectInd, char *key, float *val1,
   return err;
 }
 
+int adocsetfloatarray(char *collName, int *sectInd, char *key, float *vals,
+                      int *numVals, int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetFloatArray(cStr, *sectInd - 1, kStr, vals, *numVals);
+  free(cStr);
+  free(kStr);
+  return err;
+}
 
 int adocdeletekeyvalue(char *collName, int *sectInd, char *key, int collSize, 
                        int keySize)
@@ -279,6 +347,66 @@ int adocgetnumberofsections(char *collName, int collSize)
     return -1;
   err = AdocGetNumberOfSections(cStr);
   free(cStr);
+  return err;
+}
+
+int adoclookupsection(char *typeName, char *name, int typeSize, int nameSize)
+{
+  char *tStr, *nStr;
+  int err;
+  if (twof2cstr(typeName, name, typeSize, nameSize, &tStr, &nStr))
+    return -1;
+  err = AdocLookupSection(tStr, nStr);
+  free(tStr);
+  free(nStr);
+  return err;
+}
+ 
+int adoclookupbynamevalue(char *typeName, int *nameValue, int typeSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = adocf2cstr(typeName, typeSize)))
+    return -1;
+  err = AdocLookupByNameValue(cStr, *nameValue);
+  free(cStr);
+  return (err >= 0 ? err + 1 : err);
+}
+
+int adocfindinsertindex(char *typeName, int *nameValue, int typeSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = adocf2cstr(typeName, typeSize)))
+    return -1;
+  err = AdocFindInsertIndex(cStr, *nameValue);
+  free(cStr);
+  return (err >= 0 ? err + 1 : err);
+}
+
+int adocinsertsection(const char *typeName, int *sectInd, const char *name, int typeSize,
+                      int nameSize)
+{
+  char *tStr, *nStr;
+  int err;
+  if (twof2cstr(typeName, name, typeSize, nameSize, &tStr, &nStr))
+    return -1;
+  err = AdocInsertSection(tStr, *sectInd - 1, nStr);
+  free(tStr);
+  free(nStr);
+  return err;
+}
+
+int adoctransfersection(char *typeName, int *sectInd, int *toAdocInd, char *newName,
+                        int *byValue, int typeSize, int nameSize)
+{
+  char *tStr, *nStr;
+  int err;
+  if (twof2cstr(typeName, newName, typeSize, nameSize, &tStr, &nStr))
+    return -1;
+  err = AdocTransferSection(tStr, *sectInd - 1, *toAdocInd -1, nStr, *byValue);
+  free(tStr);
+  free(nStr);
   return err;
 }
 
@@ -408,6 +536,23 @@ int adocgetfloatarray(char *collName, int *sectInd, char *key, float *array,
   return err;
 }
 
+int adocgetstandardnames(char *globalName, char *zvalueName, int globalSize, 
+                         int zvalueSize)
+{
+  int err = 0;
+  if (c2fString(ADOC_GLOBAL_NAME, globalName, globalSize)) {
+    PipSetError("In AdocGetStandardNames, global name is too long for character "
+                "variable");
+    err = -1;
+  }
+  if (!err && c2fString(ADOC_ZVALUE_NAME, zvalueName, zvalueSize)) {
+    PipSetError("In AdocGetSectionName, zvalue name is too long for character "
+                "variable");
+    err = -1;
+  }
+  return err;
+}
+
 /* Create C copies of two Fortran strings */
 static int twof2cstr(char *collName, char *key, int collSize, int keySize, 
                      char **cStr, char **kStr)
@@ -429,16 +574,3 @@ static char *adocf2cstr(char *str, int strSize)
     PipSetError("Memory error converting string from Fortran to C");
   return newStr;
 }
-
-/*
-  $Log$
-  Revision 1.1  2007/09/20 02:43:08  mast
-  Moved to new library
-
-  Revision 3.2  2007/04/05 20:57:23  mast
-  Added set functions for ints and floats
-
-  Revision 3.1  2006/10/17 18:14:52  mast
-  Added to package
-
-*/

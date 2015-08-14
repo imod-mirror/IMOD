@@ -81,31 +81,31 @@ except ImodpyError:
          pass
 
    if noJava:
-      prnstr("""There is no java runtime in the current search path.  A Java runtime
-environment needs to be installed and the command search path needs
+      prnstr("""ERROR: There is no java runtime in the current search path.  A Java
+runtime environment needs to be installed and the command search path needs
 to be defined or IMOD_JAVADIR set to locate the java command.""")
    sys.exit(1)
 
 for line in verslines:
    if line.find('GNU') >= 0:
-      errstr = """eTomo will not work with GNU java.  You should install a Sun/Oracle or
-OpenJDK version of the Java runtime environment and put it on your
-command search path"""
+      errstr = """ERROR: eTomo will not work with GNU java.  You should install a
+Sun/Oracle or OpenJDK version of the Java runtime environment and put it on
+your command search path"""
       if os.getenv('IMOD_JAVADIR') != None:
          errstr += " or make a link to it from " + os.environ['IMOD_JAVADIR']
       prnstr(errstr)
       sys.exit(1)
 
-   if re.search(r'ersion.*1\.4', line):
-      errstr = "You are trying to run a 1.4 version of Java"
+   if re.search(r'ersion.*1\.[45]', line):
+      errstr = "ERROR: You are trying to run a version of Java before 1.6"
       fulljava = which('java')
       if fulljava:
          errstr += ', located at ' + fulljava
       prnstr(errstr)
       errstr =  \
-          """eTomo will no longer work with java 1.4.  You should install a Sun/Oracle
-or OpenJDK version of the Java runtime environment, version 1.6 or higher, and
-put it on your command search path, or point IMOD_JAVADIR to it"""
+          """eTomo will no longer work with java 1.4-1.5.  You should install an
+Oracle or OpenJDK version of the Java runtime environment, version 1.6 or higher,
+and put it on your command search path, or point IMOD_JAVADIR to it"""
       if os.getenv('IMOD_JAVADIR') != None:
          errstr += " or make a link to it from " + os.environ['IMOD_JAVADIR']
       prnstr(errstr)
@@ -140,13 +140,13 @@ if sys.platform.find('win32') >= 0:
          cygbin = cygtry
          os.environ['PATH'] = cygbin + os.pathsep + os.environ['PATH']
       else:
-         prnstr('You must have the psutil module installed to run etomo with Windows ' + \
+         prnstr('ERROR: You must have the psutil module installed to run etomo with Windows ' + \
                    'Python')
          sys.exit(1)
 
 if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
    if os.path.exists(os.path.join(cygbin, 'python')):
-      prnstr('There must be a python.exe in the Cygwin bin in order to use etomo')
+      prnstr('ERROR: There must be a python.exe in the Cygwin bin in order to use etomo')
       pythlist = glob.glob(os.path.join(cygbin, 'python?.?.exe'))
       if len(pythlist) > 0:
          prnstr('You should run this command in a Cygwin terminal:')
@@ -154,7 +154,7 @@ if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
       else:
          prnstr('It does not work to have a Cygwin link from python to python2.x.exe')
    else:
-      prnstr("You must have python installed in Cygwin in order to use eTomo")
+      prnstr("ERROR: You must have python installed in Cygwin in order to use eTomo")
    sys.exit(1)
 
 if cygbin:
@@ -180,6 +180,22 @@ if '-h' in sys.argv or '--help' in sys.argv or '--h' in sys.argv:
 if '--fg' in sys.argv or '--directive' in sys.argv:
    foreground = 1
 
+# add plugin locations to the classpath
+pluginPathArray = []
+path = os.path.join(os.environ['IMOD_DIR'], '..', 'EtomoPlugins')
+if os.path.exists(path):
+   pluginPathArray.append(path + "/*")
+path = os.path.join(os.environ['IMOD_DIR'], 'imodplug', 'etomo')
+if os.path.exists(path):
+   pluginPathArray.append(path + "/*")
+pluginPaths = ''
+if pluginPathArray:
+   pluginPaths = ':'
+   for path in pluginPathArray:
+      if pluginPaths:
+         pluginPaths += os.pathsep
+      pluginPaths += path
+
 # Allow developer to run a specified jar
 jarDir = IMOD_DIR + '/bin/'
 if '--jardir' in sys.argv:
@@ -189,12 +205,12 @@ if '--jardir' in sys.argv:
          break
 
 # Build the common java command
-javacom = fmtstr('java -Xmx{0} {1} -cp "{2}/etomo" -jar "{2}/etomo.jar"', \
-                    ETOMO_MEM_LIM, userhomeQuoted, jarDir)
+javacom = fmtstr('java -Xmx{0} {1} -cp "{2}/etomo.jar{3}" etomo.EtomoDirector', \
+                    ETOMO_MEM_LIM, userhomeQuoted, jarDir, pluginPaths)
 comArray = ['java', '-Xmx' + ETOMO_MEM_LIM]
 if userhome:
    comArray.append(userhome)
-comArray += ['-cp', jarDir + '/etomo', '-jar', jarDir + '/etomo.jar']
+comArray += ['-cp', jarDir + '/etomo.jar' + pluginPaths, 'etomo.EtomoDirector']
 skipNext = False
 for ind in range(1, len(sys.argv)):
    if skipNext:
@@ -312,7 +328,8 @@ else:
       outfile = open(outlog, 'w')
       errfile = open(errlog, 'w')
    except Exception:
-      prnstr('An error occurred opening the standard output or error output log file')
+      prnstr('ERROR: An error occurred opening the standard output or error output ' +\
+                'log file')
       sys.exit(1)
    try:
       runcmd(javacom, None, outfile, errfile)

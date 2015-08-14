@@ -28,6 +28,9 @@
 #define MESSAGE_GHOST_MODE     17
 #define MESSAGE_ZAP_HQ_MODE    18
 #define MESSAGE_OPEN_DIALOGS   19
+#define MESSAGE_MODEL_CHANGED  20
+#define MESSAGE_OBJ_PROPS_3    21
+#define MESSAGE_NEWOBJ_PROPS_3 22
 // REMEMBER TO UPDATE requiredArgs in ImodClipboard::executeMessage FOR NEW MESSAGES
 
 /* Definitions for plugins/special modules */
@@ -43,6 +46,7 @@
 
 #include <qobject.h>
 #include <qstring.h>
+#include <qstringlist.h>
 class QTimer;
 
 class ImodClipboard : public QObject
@@ -60,6 +64,7 @@ class ImodClipboard : public QObject
   int waitForDisconnect();
   bool disconnectedFromStderr() {return mDisconnected;};
   void doneWithLoad();
+  void splitWithEscapedSpaces(QString &text, QStringList &tmpString);
 
   QTimer *mClipHackTimer;
   QTimer *mStdinTimer;

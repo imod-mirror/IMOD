@@ -13,15 +13,11 @@ import etomo.util.HashedArray;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.7  2010/11/13 16:03:45  sueh
@@ -50,29 +46,26 @@ import etomo.util.HashedArray;
  * <p> </p>
  */
 public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnable {
-  public static final String rcsid = "$Id$";
-
   final LoadDisplay display;
   final boolean usersColumn;
 
   private HashedArray programs = new HashedArray();
-  //stopped:  true when the run() is not executing.  Set at the end of the run
-  //program.  Also set externally to stop the run() program.
+  // stopped: true when the run() is not executing. Set at the end of the run
+  // program. Also set externally to stop the run() program.
   private boolean stopped = true;
 
   abstract void processData(ProgramState programState);
 
   public LoadMonitor(LoadDisplay display, AxisID axisID, BaseManager manager) {
     this.display = display;
-    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager
-        .getPropertyUserDir());
+    usersColumn = CpuAdoc.INSTANCE.isUsersColumn();
   }
 
   public void run() {
     try {
       while (!stopped) {
         boolean programsStopped = true;
-        //update the output on the display from each of the running programs.
+        // update the output on the display from each of the running programs.
         for (int i = 0; i < programs.size(); i++) {
           ProgramState programState = (ProgramState) programs.get(i);
           if (!stopped && !programState.isStopped()) {
@@ -110,8 +103,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
    * @param program
    */
   public void stopMonitoring(IntermittentBackgroundProcess program) {
-    ProgramState programState = (ProgramState) programs.get(program.getCommand()
-        .getComputer());
+    ProgramState programState =
+      (ProgramState) programs.get(program.getCommand().getComputer());
     programState.setStopMonitoring(true);
     boolean programsStopped = true;
     for (int i = 0; i < programs.size(); i++) {
@@ -158,7 +151,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
       new Thread(this).start();
     }
     display.msgStartingProcess(key, FailureReason.COMPUTER_DOWN.getReason(),
-        FailureReason.LOGIN_FAILED.getReason());
+      FailureReason.LOGIN_FAILED.getReason());
   }
 
   public void msgIntermittentCommandFailed(IntermittentCommand command) {
@@ -186,7 +179,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
 
   static final class ProgramState {
     private final IntermittentBackgroundProcess program;
-    //userMap:  convenience variable for counting the number of different users logged into a computer.
+    // userMap: convenience variable for counting the number of different users logged
+    // into a computer.
     private final HashMap userMap = new HashMap();
     private final ArrayList userList = new ArrayList();
 
@@ -200,7 +194,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
 
     public String toString() {
       return "[program=" + program + ",\nwaitForCommand=" + waitForCommand + ","
-          + super.toString() + "]";
+        + super.toString() + "]";
     }
 
     private String[] getStdError() {
@@ -270,22 +264,22 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
      * @return
      */
     private synchronized FailureReason getFailureReason() {
-      //There was a failure, so failureReason must not be null
+      // There was a failure, so failureReason must not be null
       FailureReason failureReason = program.getFailureReason();
       if (failureReason == null) {
         program.setFailureReason(FailureReason.UNKOWN);
       }
-      //If data has already been received, this is an unknown error
+      // If data has already been received, this is an unknown error
       if (receivedData) {
         program.setFailureReason(FailureReason.UNKOWN);
         return FailureReason.UNKOWN;
       }
-      //If stderr is empty but receivedData is false, return the existing failure reason
+      // If stderr is empty but receivedData is false, return the existing failure reason
       String[] stderr = getStdError();
       if (stderr == null || stderr.length == 0) {
         return program.getFailureReason();
       }
-      //Try to set a failure reason from the information in stderr
+      // Try to set a failure reason from the information in stderr
       boolean connectionSucceeded = false;
       failureReason = FailureReason.UNKOWN;
       for (int i = 0; i < stderr.length; i++) {
@@ -298,7 +292,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
             failureReason = FailureReason.LOGIN_FAILED;
           }
           else if (line.indexOf("authentication succeeded") != -1) {
-            //Not a connection failure.  Don't know why this failed.
+            // Not a connection failure. Don't know why this failed.
             connectionSucceeded = true;
             failureReason = FailureReason.UNKOWN;
           }

@@ -3,6 +3,10 @@ package etomo.logic;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.storage.DataFileFilter;
@@ -20,29 +24,193 @@ import etomo.util.Montagesize;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2012</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 public final class DatasetTool {
-  public static final String rcsid = "$Id:$";
-
   public static final String STANDARD_DATASET_EXT = ".st";
   public static final String ALTERNATE_DATASET_EXT = ".mrc";
 
   private static final String MESSAGE_TITLE = "Invalid Dataset Directory";
 
-  private DatasetTool() {
+  private DatasetTool() {}
+
+  public static String switchExtension(final String file) {
+    if (file.endsWith(STANDARD_DATASET_EXT)) {
+      return file.substring(0, file.lastIndexOf(".")) + ALTERNATE_DATASET_EXT;
+    }
+    if (file.endsWith(ALTERNATE_DATASET_EXT)) {
+      return file.substring(0, file.lastIndexOf(".")) + STANDARD_DATASET_EXT;
+    }
+    return file;
+  }
+
+  /**
+   * Returns one of the two extensions, defaulting to the standard extension.
+   * @param file
+   * @return
+   */
+  public static String getExtension(final String file) {
+    if (file == null) {
+      return STANDARD_DATASET_EXT;
+    }
+    if (file.endsWith(ALTERNATE_DATASET_EXT)) {
+      return ALTERNATE_DATASET_EXT;
+    }
+    return STANDARD_DATASET_EXT;
+  }
+
+  /**
+   * Prevent B stacks in the stackList from being passed by.  Do the same to files with
+   * name collision.
+   *
+   * @param component
+   * @param stackList
+   * @return
+   * @see etomo.logic.DatasetTool.StackInfo
+   */
+  public static List<StackInfo> removeMatchingBStacks(final UIComponent component,
+    final File[] stackList) {
+    if (stackList == null) {
+      return null;
+    }
+    // The filtered stack list will be returned.
+    List<StackInfo> filteredStackList = new ArrayList<StackInfo>();
+    // Stack map allows for searching for B stacks and collisions.
+    Map<String, StackInfo> stackMap = new Hashtable<String, StackInfo>();
+    // Add non-dual axis stacks to the filtered stack list. Filter out matching B stacks.
+    for (int i = 0; i < stackList.length; i++) {
+      if (stackList[i] == null) {
+        continue;
+      }
+      StackInfo stackInfo = new StackInfo(stackList[i]);
+      filteredStackList.add(stackInfo);
+      String key = stackInfo.getKey();
+      if (!stackMap.containsKey(key)) {
+        // Nothing matches this key - can save the current stack in stackMap
+        stackMap.put(key, stackInfo);
+      }
+      else {
+        StackInfo mappedStackInfo = stackMap.get(key);
+        if (mappedStackInfo == null) {
+          // This should not happen.
+          stackMap.remove(key);
+          stackMap.put(key, stackInfo);
+        }
+        else {
+          // Attach the new stackInfo to the saved one with the same key, or set a
+          // collision.
+          mappedStackInfo.match(stackInfo);
+        }
+      }
+    }
+    // Return filtered stack list. Stack info instances should be set up to ignore B
+    // stacks and collided names. Report ignored stacks and collisions.
+    StringBuilder errMsg = new StringBuilder();
+    int len = filteredStackList.size();
+    for (int i = 0; i < len; i++) {
+      filteredStackList.get(i).report(errMsg);
+    }
+    if (errMsg.length() > 0) {
+      UIHarness.INSTANCE.openMessageDialog(null, component, errMsg.toString(),
+        "File Name Collision", (AxisID) null);
+    }
+    return filteredStackList;
+  }
+
+  private static AxisID getAxisID(final String fileName) {
+    if (fileName.endsWith(AxisID.FIRST.getExtension() + STANDARD_DATASET_EXT)
+      || fileName.endsWith(AxisID.FIRST.getExtension() + ALTERNATE_DATASET_EXT)) {
+      return AxisID.FIRST;
+    }
+    if (fileName.endsWith(AxisID.SECOND.getExtension() + STANDARD_DATASET_EXT)
+      || fileName.endsWith(AxisID.SECOND.getExtension() + ALTERNATE_DATASET_EXT)) {
+      return AxisID.SECOND;
+    }
+    return AxisID.ONLY;
+  }
+
+  /**
+   * If dualAxis is true, get the stack that matches axisID.  Otherwise return a file
+   * made of stackAbsPath.
+   *
+   * @param stackAbsPath
+   * @param axisID
+   * @param dualAxis
+   * @return
+   */
+  public static File getStackFile(String stackAbsPath, final AxisID axisID,
+    final boolean dualAxis) {
+    if (stackAbsPath == null) {
+      return null;
+    }
+    if (dualAxis) {
+      String ext = null;
+      if (stackAbsPath.endsWith(STANDARD_DATASET_EXT)) {
+        ext = STANDARD_DATASET_EXT;
+      }
+      else if (stackAbsPath.endsWith(ALTERNATE_DATASET_EXT)) {
+        ext = ALTERNATE_DATASET_EXT;
+      }
+      // Switch axes if the axis doesn't match axisID.
+      AxisID otherAxisID = axisID.getOtherAxisID();
+      if (ext != null && stackAbsPath.endsWith(otherAxisID.getExtension() + ext)) {
+        stackAbsPath =
+          stackAbsPath.substring(0, stackAbsPath.length()
+            - otherAxisID.getExtension().length() - ext.length())
+            + axisID.getExtension() + ext;
+      }
+    }
+    return new File(stackAbsPath);
+  }
+
+  public static String getDatasetName(final String stackName, final boolean dualAxis) {
+    if (stackName == null) {
+      return null;
+    }
+    String ext = null;
+    if (stackName.endsWith(STANDARD_DATASET_EXT)) {
+      ext = STANDARD_DATASET_EXT;
+    }
+    else if (stackName.endsWith(ALTERNATE_DATASET_EXT)) {
+      ext = ALTERNATE_DATASET_EXT;
+    }
+    int removeChars = 0;
+    if (ext != null) {
+      removeChars = ext.length();
+    }
+    if (dualAxis && removeChars > 0) {
+      if (stackName.endsWith(AxisID.FIRST.getExtension() + ext)) {
+        removeChars += AxisID.FIRST.getExtension().length();
+      }
+      else if (stackName.endsWith(AxisID.SECOND.getExtension() + ext)) {
+        removeChars += AxisID.SECOND.getExtension().length();
+      }
+    }
+    return stackName.substring(0, stackName.length() - removeChars);
+  }
+
+  /**
+   * Gets a dataset (.edf) file that is in the same directory as the stackFile
+   *
+   * @param stackFile
+   * @param dualAxis
+   * @return
+   */
+  public static File getDatasetFile(final File stackFile, final boolean dualAxis) {
+    if (stackFile == null) {
+      return null;
+    }
+    String datasetName = getDatasetName(stackFile.getName(), dualAxis);
+    if (datasetName == null) {
+      return null;
+    }
+    return new File(stackFile.getParent(), datasetName + DataFileType.RECON.extension);
   }
 
   /**
@@ -52,14 +220,15 @@ public final class DatasetTool {
    * standardizedFilePath to the renamed file path.  If the rename fails, return true and
    * keep standardizedFilePath empty so that the user will reexamine the directory.
    * Otherwise return true.
+   *
    * @param manager
-   * @param inputFile - dataset file or dataset name that is treated as if it where a file
+   * @param inputFile            - dataset file or dataset name that is treated as if it where a file
    * @param standardizedFilePath - a new string to place in the dataset field
    * @return true if standardizedFilePath should replace the current dataset field entry
    */
   public static boolean standardizeExtension(final BaseManager manager,
-      final AxisType axisType, final File inputFile,
-      final StringProperty standardizedFilePath) {
+    final AxisType axisType, final File inputFile,
+    final StringProperty standardizedFilePath) {
     standardizedFilePath.reset();
     // Nothing to do
     if (inputFile == null) {
@@ -88,21 +257,21 @@ public final class DatasetTool {
         }
       }
       else if (!(new File(absPath + AxisID.FIRST.getExtension() + STANDARD_DATASET_EXT)
-          .exists())
-          && !(new File(absPath + AxisID.SECOND.getExtension() + STANDARD_DATASET_EXT)
-              .exists())) {
+        .exists())
+        && !(new File(absPath + AxisID.SECOND.getExtension() + STANDARD_DATASET_EXT)
+          .exists())) {
         // dual axis dataset
         // if the .mrc files associated with this dataset name exist, rename them
-        File altDatasetFile = new File(absPath + AxisID.FIRST.getExtension()
-            + ALTERNATE_DATASET_EXT);
+        File altDatasetFile =
+          new File(absPath + AxisID.FIRST.getExtension() + ALTERNATE_DATASET_EXT);
         // must return true if the rename failed, files may be in an unknown state and
         // the user should reexamine the directory.
         boolean renameFailed = false;
         if (altDatasetFile.exists()) {
           renameFailed = renameToStandardExtension(manager, altDatasetFile) == null;
         }
-        altDatasetFile = new File(absPath + AxisID.SECOND.getExtension()
-            + ALTERNATE_DATASET_EXT);
+        altDatasetFile =
+          new File(absPath + AxisID.SECOND.getExtension() + ALTERNATE_DATASET_EXT);
         if (altDatasetFile.exists()) {
           if (renameToStandardExtension(manager, altDatasetFile) == null || renameFailed) {
             return true;
@@ -149,7 +318,7 @@ public final class DatasetTool {
         secondFileName.append(name.substring(index + 1));
       }
       renameToStandardExtension(manager, new File(inputFile.getParentFile(),
-          secondFileName.toString()));
+        secondFileName.toString()));
     }
     return true;
   }
@@ -160,11 +329,12 @@ public final class DatasetTool {
    * image file as it exists at the end of the this function.  If something has gone
    * wrong, null will be returned.  This forces the user to find the correct file, and
    * reduces the chance that etomo will or
+   *
    * @param inputFile - image stack file that is not null and does not have extension .st
    * @return the path of the image file, or null if there has been an error - set this output to the dataset text field
    */
   private static String renameToStandardExtension(final BaseManager manager,
-      final File inputFile) {
+    final File inputFile) {
     String name = inputFile.getName();
     if (name.endsWith(ALTERNATE_DATASET_EXT)) {
       name = name.substring(0, name.length() - ALTERNATE_DATASET_EXT.length());
@@ -173,7 +343,7 @@ public final class DatasetTool {
     try {
       // MUST fail and return false if the destination file already exists.
       System.err.println("Renaming " + inputFile.getAbsolutePath() + " to "
-          + newFile.getAbsolutePath());
+        + newFile.getAbsolutePath());
       if (Utilities.renameFileSafely(manager, AxisID.ONLY, inputFile, newFile)) {
         return newFile.getAbsolutePath();
       }
@@ -191,16 +361,17 @@ public final class DatasetTool {
 
   /**
    * Validates the dataset directory, including sharing.
-   * @param manager - for popping up error message
-   * @param axisID - for popping up error message
-   * @param inputFile - input file (such as .st file) or the data file
+   *
+   * @param manager      - for popping up error message
+   * @param axisID       - for popping up error message
+   * @param inputFile    - input file (such as .st file) or the data file
    * @param dataFileType - type of the new dataset
-   * @param axisType - axis type of the new dataset - only required for reconstructions
+   * @param axisType     - axis type of the new dataset - only required for reconstructions
    * @return
    */
   public static boolean validateDatasetName(final BaseManager manager,
-      final UIComponent uiComponent, final AxisID axisID, final File inputFile,
-      final DataFileType dataFileType, final AxisType axisType) {
+    final UIComponent uiComponent, final AxisID axisID, final File inputFile,
+    final DataFileType dataFileType, final AxisType axisType) {
     String errorMessage = null;
     if (inputFile == null) {
       errorMessage = "No input file specified.";
@@ -217,7 +388,7 @@ public final class DatasetTool {
     }
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(manager, uiComponent, errorMessage,
-          MESSAGE_TITLE, axisID);
+        MESSAGE_TITLE, axisID);
       return false;
     }
     String inputFileName = inputFile.getName();
@@ -228,26 +399,26 @@ public final class DatasetTool {
     }
     // Check for embedded spaces
     if (inputFileName.matches("\\s*\\S+\\s+\\S+(\\s+\\S+)*\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(
-          manager,
-          uiComponent,
+      UIHarness.INSTANCE
+        .openMessageDialog(manager, uiComponent,
           "The dataset name cannot contain embedded spaces: "
-              + inputFile.getAbsolutePath(), MESSAGE_TITLE, axisID);
+            + inputFile.getAbsolutePath(), MESSAGE_TITLE, axisID);
       return false;
     }
     if (inputFile.getParent().endsWith(" ")) {
       UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
-          "The dataset directory cannot end in a space: " + inputFile.getAbsolutePath(),
-          MESSAGE_TITLE, axisID);
+        "The dataset directory cannot end in a space: " + inputFile.getAbsolutePath(),
+        MESSAGE_TITLE, axisID);
       return false;
     }
     File directory = inputFile.getParentFile();
     return validateDatasetName(manager, uiComponent, axisID, directory, inputFileRoot,
-        dataFileType, axisType, false);
+      dataFileType, axisType, false);
   }
 
   /**
    * Validates the dataset directory, including sharing.
+   *
    * @param manager
    * @param axisID
    * @param inputFile
@@ -256,48 +427,50 @@ public final class DatasetTool {
    * @return
    */
   public static boolean validateDatasetName(final BaseManager manager,
-      final AxisID axisID, final File inputFile, final DataFileType dataFileType,
-      final AxisType axisType) {
+    final AxisID axisID, final File inputFile, final DataFileType dataFileType,
+    final AxisType axisType) {
     if (inputFile == null) {
       UIHarness.INSTANCE.openMessageDialog(manager, null, "The input file is empty.",
-          MESSAGE_TITLE, axisID);
+        MESSAGE_TITLE, axisID);
       return false;
     }
     return validateDatasetName(manager, null, axisID, inputFile.getParentFile(),
-        inputFile.getName(), dataFileType, axisType, false);
+      inputFile.getName(), dataFileType, axisType, false);
   }
 
   /**
    * Validates the dataset directory, including sharing.
-   * @param manager - for popping up error message
-   * @param axisID - for popping up error message
-   * @param directory - directory in which the new dataset will be created
+   *
+   * @param manager       - for popping up error message
+   * @param axisID        - for popping up error message
+   * @param directory     - directory in which the new dataset will be created
    * @param inputFileRoot - root name of the new dataset
-   * @param dataFileType - type of the new dataset
-   * @param axisType -  axis type of the new dataset - only required for reconstructions
+   * @param dataFileType  - type of the new dataset
+   * @param axisType      -  axis type of the new dataset - only required for reconstructions
    * @return
    */
   public static boolean validateDatasetName(final BaseManager manager,
-      final AxisID axisID, final File directory, final String inputFileRoot,
-      final DataFileType dataFileType, final AxisType axisType, final boolean datasetName) {
+    final AxisID axisID, final File directory, final String inputFileRoot,
+    final DataFileType dataFileType, final AxisType axisType, final boolean datasetName) {
     return validateDatasetName(manager, null, axisID, directory, inputFileRoot,
-        dataFileType, axisType, datasetName);
+      dataFileType, axisType, datasetName);
   }
 
   /**
    * Validates the dataset directory, including sharing.
-   * @param manager - for popping up error message
-   * @param axisID - for popping up error message
-   * @param directory - directory in which the new dataset will be created
+   *
+   * @param manager       - for popping up error message
+   * @param axisID        - for popping up error message
+   * @param directory     - directory in which the new dataset will be created
    * @param inputFileRoot - root name of the new dataset
-   * @param dataFileType - type of the new dataset
-   * @param axisType -  axis type of the new dataset - only required for reconstructions
+   * @param dataFileType  - type of the new dataset
+   * @param axisType      -  axis type of the new dataset - only required for reconstructions
    * @return
    */
   public static boolean validateDatasetName(final BaseManager manager,
-      final UIComponent uiComponent, final AxisID axisID, final File directory,
-      final String inputFileRoot, final DataFileType dataFileType,
-      final AxisType axisType, final boolean datasetName) {
+    final UIComponent uiComponent, final AxisID axisID, final File directory,
+    final String inputFileRoot, final DataFileType dataFileType, final AxisType axisType,
+    final boolean datasetName) {
     String errorMessage = null;
     if (!directory.exists()) {
       errorMessage = "Directory does not exist: " + directory.getAbsolutePath();
@@ -313,6 +486,9 @@ public final class DatasetTool {
     }
     else if (dataFileType == null) {
       errorMessage = "No data file type specified";
+    }
+    else if (inputFileRoot == null) {
+      errorMessage = "Missing dataset name.";
     }
     // Check for embedded spaces
     else if (inputFileRoot.matches("\\s*\\S+\\s+\\S+(\\s+\\S+)*\\s*")) {
@@ -331,19 +507,23 @@ public final class DatasetTool {
             // If the existing data file does not have an axis type, the axis types
             // don't matter.
             if (DataFileType.getInstance(fileList[i].getName()).hasAxisType) {
-              fileAxisType = AxisType.getInstance(LogFile.getLineContaining(fileList[i],
+              fileAxisType =
+                AxisType.getInstance(LogFile.getLineContaining(fileList[i],
                   "Setup.AxisType"));
             }
-            canShare = canShareWith(dataFileType, inputFileRoot, axisType,
-                fileList[i].getName(), fileAxisType, datasetName);
+            canShare =
+              canShareWith(dataFileType, inputFileRoot, axisType, fileList[i].getName(),
+                fileAxisType, datasetName);
           }
           else {
-            canShare = canShareWith(dataFileType, inputFileRoot, fileList[i].getName(),
+            canShare =
+              canShareWith(dataFileType, inputFileRoot, fileList[i].getName(),
                 datasetName);
           }
           if (!canShare) {
-            errorMessage = "Cannot create " + dataFileType + " dataset " + inputFileRoot
-                + " in " + directory + " because " + fileList[i].getName()
+            errorMessage =
+              "Cannot create " + dataFileType + " dataset " + inputFileRoot + " in "
+                + directory + " because " + fileList[i].getName()
                 + " cannot share a directory with this new dataset.  Please select "
                 + "another directory.";
             break;
@@ -355,7 +535,7 @@ public final class DatasetTool {
       return true;
     }
     UIHarness.INSTANCE.openMessageDialog(manager, uiComponent, errorMessage,
-        MESSAGE_TITLE, axisID);
+      MESSAGE_TITLE, axisID);
     return false;
 
   }
@@ -364,21 +544,21 @@ public final class DatasetTool {
    * Returns true if newDataFileType can share a directory with another data file
    * (existingDataFileName).  This function cannot allow .edf files to share a directory.
    * Call reconCanShareWith to allow .edf file sharing.
-   * @param newRoot - the root of the project to be created
+   *
+   * @param newRoot              - the root of the project to be created
    * @param existingDataFileName - a data file in the directory to be shared
-
    * @return
    */
   static boolean canShareWith(final DataFileType newDataFileType, final String newRoot,
-      final String existingDataFileName, final boolean datasetName) {
+    final String existingDataFileName, final boolean datasetName) {
     if (newDataFileType.hasAxisType) {
       // handle incorrect data file type
       new InvalidParameterException("Warning: unable to share directories containing "
-          + newDataFileType
-          + " file types.  Wrong canShareWith called.  Calling correct canShareWith "
-          + "without axis type information.").printStackTrace();
+        + newDataFileType
+        + " file types.  Wrong canShareWith called.  Calling correct canShareWith "
+        + "without axis type information.").printStackTrace();
       return canShareWith(newDataFileType, newRoot, null, existingDataFileName, null,
-          datasetName);
+        datasetName);
     }
     // Get the type of the existing data file
     DataFileType existingDataFileType = DataFileType.getInstance(existingDataFileName);
@@ -413,8 +593,8 @@ public final class DatasetTool {
     }
     if (newDataFileType == DataFileType.SERIAL_SECTIONS) {
       if (existingDataFileType == DataFileType.RECON
-          || existingDataFileType == DataFileType.JOIN
-          || existingDataFileType == DataFileType.PEET) {
+        || existingDataFileType == DataFileType.JOIN
+        || existingDataFileType == DataFileType.PEET) {
         return false;
       }
       if (existingDataFileType == DataFileType.SERIAL_SECTIONS) {
@@ -425,9 +605,9 @@ public final class DatasetTool {
     }
     if (newDataFileType == DataFileType.TOOLS) {
       if (existingDataFileType == DataFileType.RECON
-          || existingDataFileType == DataFileType.JOIN
-          || existingDataFileType == DataFileType.PEET
-          || existingDataFileType == DataFileType.SERIAL_SECTIONS) {
+        || existingDataFileType == DataFileType.JOIN
+        || existingDataFileType == DataFileType.PEET
+        || existingDataFileType == DataFileType.SERIAL_SECTIONS) {
         // Can share a major project directory, if the root is different
         return !root.equals(newRoot);
       }
@@ -438,19 +618,20 @@ public final class DatasetTool {
 
   /**
    * CanShareWith function for DataFileTypes that have an axis type (.edf).
-   * Returns true if newDataFileType can share a directory with another data file 
-   * (existingDataFileName).  The Axis Type parameters can be null if 
+   * Returns true if newDataFileType can share a directory with another data file
+   * (existingDataFileName).  The Axis Type parameters can be null if
    * existingDataFileName is not an .edf file.
-   * @param newDataFileType - file type of the new dataset file
-   * @param newRoot - root of the new dataset file
-   * @param newAxisType - axis type of the new dataset file
+   *
+   * @param newDataFileType      - file type of the new dataset file
+   * @param newRoot              - root of the new dataset file
+   * @param newAxisType          - axis type of the new dataset file
    * @param existingDataFileName - the existing dataset file
-   * @param existingAxisType - the axis type of the existing dataset file
+   * @param existingAxisType     - the axis type of the existing dataset file
    * @return
    */
   static boolean canShareWith(final DataFileType newDataFileType, String newRoot,
-      final AxisType newAxisType, final String existingDataFileName,
-      final AxisType existingAxisType, final boolean datasetName) {
+    final AxisType newAxisType, final String existingDataFileName,
+    final AxisType existingAxisType, final boolean datasetName) {
     // check new root
     if (newRoot == null || newRoot.matches("\\s*")) {
       return false;
@@ -458,8 +639,8 @@ public final class DatasetTool {
     // handle incorrect data file types
     if (!newDataFileType.hasAxisType) {
       new IllegalStateException("Wrong canShareWith function called - " + newDataFileType
-          + " does not have an axis type.  Calling correct canShareWith.  newRoot:"
-          + newRoot).printStackTrace();
+        + " does not have an axis type.  Calling correct canShareWith.  newRoot:"
+        + newRoot).printStackTrace();
       return canShareWith(newDataFileType, existingDataFileName, newRoot, datasetName);
     }
     // Get the type of the existing data file
@@ -476,13 +657,13 @@ public final class DatasetTool {
     }
     // Can't share if the newAxisType is missing
     if ((newAxisType == null || newAxisType == AxisType.NOT_SET)
-        && existingDataFileType.hasAxisType) {
+      && existingDataFileType.hasAxisType) {
       new InvalidParameterException(
-          "Warning: dual and single axis reconstructions of the same stack cannot "
-              + "share a directory.\nNewAxisType wasn't set for a " + newDataFileType
-              + " data file.  hasAxisType:" + newDataFileType.hasAxisType
-              + ",existingDataFileName:" + existingDataFileName + ",newRoot:" + newRoot
-              + ",root:" + root).printStackTrace();
+        "Warning: dual and single axis reconstructions of the same stack cannot "
+          + "share a directory.\nNewAxisType wasn't set for a " + newDataFileType
+          + " data file.  hasAxisType:" + newDataFileType.hasAxisType
+          + ",existingDataFileName:" + existingDataFileName + ",newRoot:" + newRoot
+          + ",root:" + root).printStackTrace();
       return false;
     }
     // If the data file type uses the axis letter, and the new root (newRoot) ends in "a"
@@ -504,14 +685,14 @@ public final class DatasetTool {
       // Can't share if the existingAxisType is missing
       // Don't have enough information to avoid matching stacks with similar names
       if ((existingAxisType == null || existingAxisType == AxisType.NOT_SET)
-          && existingDataFileType.hasAxisType) {
+        && existingDataFileType.hasAxisType) {
         new InvalidAlgorithmParameterException(
-            "Warning: dual and single axis reconstructions of the same stack cannot "
-                + "share a directory.\nExistingAxisType wasn't set for a "
-                + existingDataFileType + " data file.  hasAxisType:"
-                + newDataFileType.hasAxisType + ",existingDataFileName:"
-                + existingDataFileName + ",newRoot:" + newRoot + ",root:" + root)
-            .printStackTrace();
+          "Warning: dual and single axis reconstructions of the same stack cannot "
+            + "share a directory.\nExistingAxisType wasn't set for a "
+            + existingDataFileType + " data file.  hasAxisType:"
+            + newDataFileType.hasAxisType + ",existingDataFileName:"
+            + existingDataFileName + ",newRoot:" + newRoot + ",root:" + root)
+          .printStackTrace();
         return false;
       }
       // Match the root without an axis letter
@@ -553,9 +734,8 @@ public final class DatasetTool {
           return false;
         }
         new IllegalStateException("Letter was stripped, but not recorded.  usesAxisID:"
-            + newDataFileType.hasAxisType + ",existingDataFileName:"
-            + existingDataFileName + ",newRoot:" + newRoot + ",root:" + root)
-            .printStackTrace();
+          + newDataFileType.hasAxisType + ",existingDataFileName:" + existingDataFileName
+          + ",newRoot:" + newRoot + ",root:" + root).printStackTrace();
         return false;
       }
       // Dual axis can match the same dual axis file, or both single axis files
@@ -610,6 +790,7 @@ public final class DatasetTool {
   /**
    * Pops up an error message and returns false if the view type doesn't match the stack
    * type.
+   *
    * @param manager
    * @param axisID
    * @param viewType
@@ -617,32 +798,32 @@ public final class DatasetTool {
    * @return
    */
   public static boolean validateViewType(final ViewType viewType,
-      final String absolutePath, final String stackFileName, final BaseManager manager,
-      final UIComponent uiComponent, final AxisID axisID) {
+    final String absolutePath, final String stackFileName, final BaseManager manager,
+    final UIComponent uiComponent, final AxisID axisID) {
     if (stackFileName == null) {
       return true;
     }
-    Montagesize montagesize = Montagesize
-        .getInstance(absolutePath, stackFileName, axisID);
+    Montagesize montagesize =
+      Montagesize.getInstance(absolutePath, stackFileName, axisID);
     // Run montagesize without the piece list file to see what the stack looks like.
     montagesize.setIgnorePieceListFile(true);
     int exitValue = readMontagesize(montagesize, manager);
     if (!montagesize.pieceListFileExists()) {
       if (exitValue == 0) {
         return validateMontage(viewType, montagesize, absolutePath, stackFileName,
-            manager, uiComponent, axisID);
+          manager, uiComponent, axisID);
       }
       else if (exitValue == 1 && viewType == ViewType.MONTAGE) {
         UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
-            "The dataset is not a montage.  Please select single frame type.",
-            "Incorrect Frame Type", axisID);
+          "The dataset is not a montage.  Please select single frame type.",
+          "Incorrect Frame Type", axisID);
         return false;
       }
     }
     // Ignored existing piece list file.
     else if (exitValue == 0) {
       return validateMontage(viewType, montagesize, absolutePath, stackFileName, manager,
-          uiComponent, axisID);
+        uiComponent, axisID);
     }
     else if (exitValue == 1) {
       // No piece list information available in the stack - run montagesize with with
@@ -650,15 +831,15 @@ public final class DatasetTool {
       exitValue = readMontagesize(montagesize, manager);
       if (exitValue == 0) {
         return validateMontage(viewType, montagesize, absolutePath, stackFileName,
-            manager, uiComponent, axisID);
+          manager, uiComponent, axisID);
       }
       else if (exitValue == 2 || exitValue == 3) {
         // If they selected single view, go with that and ignore the piece list file
         if (viewType == ViewType.MONTAGE) {
           UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
-              "The piece list file associated with this dataset does not match and the "
-                  + "stack does not contain piece list information.  Please select "
-                  + "single frame type.", "Incorrect Frame Type", axisID);
+            "The piece list file associated with this dataset does not match and the "
+              + "stack does not contain piece list information.  Please select "
+              + "single frame type.", "Incorrect Frame Type", axisID);
           return false;
         }
       }
@@ -667,7 +848,7 @@ public final class DatasetTool {
   }
 
   private static int readMontagesize(final Montagesize montagesize,
-      final BaseManager manager) {
+    final BaseManager manager) {
     int exitValue;
     try {
       montagesize.read(manager);
@@ -690,9 +871,8 @@ public final class DatasetTool {
   }
 
   private static boolean validateMontage(final ViewType viewType,
-      final Montagesize montagesize, final String absolutePath,
-      final String stackFileName, final BaseManager manager,
-      final UIComponent uiComponent, final AxisID axisID) {
+    final Montagesize montagesize, final String absolutePath, final String stackFileName,
+    final BaseManager manager, final UIComponent uiComponent, final AxisID axisID) {
     if (viewType != ViewType.MONTAGE) {
       // Currently 1x1 montage works with single view, so only fail if X or Y are
       // different.
@@ -700,25 +880,25 @@ public final class DatasetTool {
       try {
         if (!header.read(manager)) {
           UIHarness.INSTANCE.openMessageDialog(manager, "File does not exist.",
-              "Entry Error", axisID);
+            "Entry Error", axisID);
           return false;
         }
       }
       catch (etomo.util.InvalidParameterException except) {
         UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
-            "Invalid Parameter Exception", axisID);
+          "Invalid Parameter Exception", axisID);
         return false;
       }
       catch (IOException except) {
         UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
-            "IO Exception", axisID);
+          "IO Exception", axisID);
         return false;
       }
       if (montagesize.getX().getInt() > header.getNColumns()
-          || montagesize.getY().getInt() > header.getNRows()) {
+        || montagesize.getY().getInt() > header.getNRows()) {
         UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
-            "The dataset is a montage.  Please select montage frame type.",
-            "Incorrect Frame Type", axisID);
+          "The dataset is a montage.  Please select montage frame type.",
+          "Incorrect Frame Type", axisID);
         return false;
       }
     }
@@ -727,7 +907,7 @@ public final class DatasetTool {
 
   /**
    * Returns true if the stack is a not a montage, or is a 1xn or nx1 montage.
-   * @param viewType
+   *
    * @param absolutePath
    * @param stackFileName
    * @param manager
@@ -735,10 +915,10 @@ public final class DatasetTool {
    * @return
    */
   public static boolean isOneBy(final String absolutePath, final String stackFileName,
-      final BaseManager manager, final AxisID axisID) {
+    final BaseManager manager, final AxisID axisID) {
     // montagesize
-    Montagesize montagesize = Montagesize
-        .getInstance(absolutePath, stackFileName, axisID);
+    Montagesize montagesize =
+      Montagesize.getInstance(absolutePath, stackFileName, axisID);
     // Run montagesize without the piece list file to see what the stack looks like.
     montagesize.setIgnorePieceListFile(true);
     int exitValue = readMontagesize(montagesize, manager);
@@ -761,15 +941,15 @@ public final class DatasetTool {
       return true;
     }
     if (montagesize.getX().getInt() == header.getNColumns()
-        || montagesize.getY().getInt() == header.getNRows()) {
+      || montagesize.getY().getInt() == header.getNRows()) {
       return true;
     }
     return false;
   }
 
   public static boolean validateTiltAngle(final BaseManager manager,
-      final AxisID messageAxisID, final String errorTitle, final AxisID axisID,
-      final boolean manual, final String angle, final String increment) {
+    final AxisID messageAxisID, final String errorTitle, final AxisID axisID,
+    final boolean manual, final String angle, final String increment) {
     if (!manual) {
       return true;
     }
@@ -783,7 +963,7 @@ public final class DatasetTool {
     }
     if (message != null) {
       UIHarness.INSTANCE.openMessageDialog(manager, message
-          + (axisDescr == null ? "." : axisDescr), errorTitle, messageAxisID);
+        + (axisDescr == null ? "." : axisDescr), errorTitle, messageAxisID);
       return false;
     }
     return true;
@@ -797,5 +977,142 @@ public final class DatasetTool {
       return " in Axis B.";
     }
     return null;
+  }
+
+  /**
+   * Stores a stack file and information about other stack file with the same root name,
+   * path, and axis type.  For axis type, any stack ending in the axis letters "a" or "b"
+   * is considered to be dual axis type.  A matching stack is a dual axis type stack file
+   * which has the same root name, path, and axis type - but a different axis letter.  The
+   * assumption is that it will be part of the same tomogram, so the B matching stack is
+   * not returned by getStack.
+   */
+  public static final class StackInfo {
+    private File stack = null;
+    private AxisID axisID = null;
+    private String key = null;
+    // A collision is caused by another file with the same root name, path, axis type, and
+    // axis letter (for dual axis type), but a different extension.
+    private boolean collision = false;
+    private StackInfo matchingStack = null;
+
+    private StackInfo(final File stack) {
+      this.stack = stack;
+    }
+
+    private String getKey() {
+      setKey();
+      return key;
+    }
+
+    /**
+     * Matches two files against each other.
+     *
+     * @param stackInfo
+     */
+    private void match(final StackInfo stackInfo) {
+      if (stackInfo == null) {
+        System.out.println("Warning: empty stackInfo parameter");
+        Thread.dumpStack();
+        return;
+      }
+      setKey();
+      stackInfo.setKey();
+      if (key == null || !key.equals(stackInfo.key)) {
+        System.out.println("Warning: key, " + key + " is not equal to " + stackInfo.key);
+        Thread.dumpStack();
+        return;
+      }
+      setAxisID();
+      stackInfo.setAxisID();
+      if (axisID == null || axisID == AxisID.ONLY || axisID == stackInfo.axisID) {
+        // this stack name is identical to another stack name, but with a different
+        // extension. This is a name collision. Files with a name collision can not be
+        // loaded together. Neither file will be added to the table.
+        setCollision();
+        stackInfo.setCollision();
+      }
+      else {
+        // Both stacks are dual axis, and they have different axis letters. Match the
+        // stacks to each other.
+        matchingStack = stackInfo;
+        stackInfo.matchingStack = this;
+      }
+    }
+
+    private void setCollision() {
+      collision = true;
+      // Release the matched stack. It is now considered to NOT be part of a dual axis
+      // tomogram.
+      if (matchingStack != null) {
+        matchingStack.matchingStack = null;
+        matchingStack = null;
+      }
+    }
+
+    private void report(final StringBuilder errMsg) {
+      if (collision) {
+        errMsg.append("Warning: Name collision: " + stack.getAbsolutePath() + ".  ");
+      }
+      else if (matchingStack != null && axisID == AxisID.SECOND) {
+        System.err.println("INFO: Assuming " + stack
+          + " is a B axis stack.  It will not be added to the table.\nTo add it to the "
+          + "table, open it separately from the corresponding A axis stack.");
+      }
+    }
+
+    /**
+     * Returns a stack if the stack can be put into the table.  For stacks with a name
+     * collision, and B stacks that have a matching stack, null is returned.
+     *
+     * @return
+     */
+    public File getStack() {
+      if (!collision && (matchingStack == null || axisID != AxisID.SECOND)) {
+        return stack;
+      }
+      return null;
+    }
+
+    public boolean isMatched() {
+      return matchingStack != null;
+    }
+
+    public boolean isSingleAxis() {
+      setAxisID();
+      return axisID == null || axisID == AxisID.ONLY;
+    }
+
+    private void setAxisID() {
+      if (axisID == null) {
+        if (stack != null) {
+          axisID = getAxisID(stack.getName());
+        }
+      }
+    }
+
+    /**
+     * xxxa.st, xxxa.mrc, xxxb.st, and xxxb.mrc have the same key.  A different key will
+     * be generated for .xxx.st and xxx.mrc
+     */
+    private void setKey() {
+      setAxisID();
+      if (key == null) {
+        AxisType axisType;
+        if (axisID == null || axisID == AxisID.ONLY) {
+          axisType = AxisType.SINGLE_AXIS;
+        }
+        else {
+          axisType = AxisType.DUAL_AXIS;
+        }
+        File datasetFile = null;
+        if (stack != null) {
+          datasetFile = getDatasetFile(stack, axisType == AxisType.DUAL_AXIS);
+        }
+        if (datasetFile != null) {
+          key = datasetFile.getAbsolutePath() + axisType.toString();
+        }
+      }
+    }
   }
 }

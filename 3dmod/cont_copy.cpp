@@ -21,6 +21,7 @@
 #include <QKeyEvent>
 #include "dia_qtutils.h"
 #include <QHBoxLayout>
+#include <QCheckBox>
 #include <qcombobox.h>
 #include <qgroupbox.h>
 #include <qbuttongroup.h>
@@ -45,6 +46,7 @@
 #define COPY_TO_NEXT_TIME    6
 
 static int copyContour(Icont *cont, int coNum);
+static int copyAsEllipse(Icont *cont);
 static int contCompare(Icont *c1, Icont *c2);
 static int contRmDup(Icont *c1, Icont *c2);
 
@@ -58,6 +60,7 @@ static struct
   int doSurface;    
   int doAll;
   int doAllObj;
+  int makeEllipse;
 
   /* Copy to information. */
   int copyOperation;
@@ -75,7 +78,7 @@ static struct
 sData = 
   { 
     NULL, NULL , 
-    0, 0, 0, 
+    0, 0, 0, 0,
     0, -1, 0, -1, 0, 0, 0, 0
   };
 
@@ -195,6 +198,51 @@ static int copyContour(Icont *cont, int coNum)
   return(0);
 }
 
+static int copyAsEllipse(Icont *cont)
+{
+  Ipoint center;
+  float aa, bb, angle, cosang, sinang, xx, yy;
+  Icont *ellco;
+  double theta;
+  Iobj *toObj;
+  int ind, numNew;
+  ImodView *vw = sData.vw;
+  int obnum = vw->imod->cindex.object;
+
+  if (cont->psize < 3)
+    return 0;
+  aa = imodContourLength(cont, 1);
+  numNew = B3DMAX(12., aa / 3.);
+  if (imodContourEquivEllipse(cont, &center, &aa, &bb, &angle))
+    return 1;
+  ellco = imodContourNew();
+  if (!ellco)
+    return 1;
+  cosang = (float)cos((double)angle * RADIANS_PER_DEGREE);
+  sinang = (float)sin((double)angle * RADIANS_PER_DEGREE);
+  ellco->pts = B3DMALLOC(Ipoint, numNew);
+  if (!ellco->pts)
+    return 1;
+  ellco->psize = numNew;
+  for (ind = 0; ind < numNew; ind++) {
+    theta = (ind * 360. * RADIANS_PER_DEGREE) / numNew;
+    xx = aa * cos(theta);
+    yy = bb * sin(theta);
+    ellco->pts[ind].x = cosang * xx - sinang * yy + center.x;
+    ellco->pts[ind].y = sinang * xx + cosang * yy + center.y;
+    ellco->pts[ind].z = cont->pts->z;
+  }
+
+  obnum = sData.objectNumber - 1;
+  toObj = &vw->imod->obj[obnum];
+  vbCleanupVBD(toObj);
+  vw->undo->contourAddition(obnum, toObj->contsize);
+  ind = imodObjectAddContour(toObj, ellco);
+  imodContourDefault(ellco);
+  if (ind < 0)
+    return 1;
+  return 0;
+}
 
 int openContourCopyDialog(ImodView *vw)
 {
@@ -235,7 +283,7 @@ void imodContCopyUpdate(void)
 
 
 static const char *buttonLabels[] = {"Apply", "Done", "Help"};
-static const char *buttonTips[] = {"Copy the selected contours (hot key K)",
+static const char *buttonTips[] = {"Copy the selected contours (hot key Shift+K)",
                              "Close dialog box", "Open help box"};
 
 ContourCopy::ContourCopy(QWidget *parent, const char *name)
@@ -301,6 +349,12 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   rangeSelected(radioVal);
   diaSetGroup(mRadioGroup, radioVal);
 
+  mEllipseBox = diaCheckBox("Make equivalent ellipse", this, mLayout);
+  connect(mEllipseBox, SIGNAL(toggled(bool)), this, SLOT(ellipseToggled(bool)));
+  mEllipseBox->setToolTip("Make the copied contour be the equivalent ellipse (one with "
+                          "the same second moments as the area)");
+  diaSetChecked(mEllipseBox, sData.makeEllipse != 0);
+  mEllipseBox->setEnabled(sData.copyOperation == COPY_TO_OBJECT);
   update();
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
@@ -340,6 +394,10 @@ void ContourCopy::rangeSelected(int which)
   sData.doAllObj = (which == 3) ? 1 : 0;
 }
 
+void ContourCopy::ellipseToggled(bool state)
+{
+  sData.makeEllipse = state ? 1 : 0;
+}
 
 void ContourCopy::update()
 {
@@ -384,6 +442,7 @@ void ContourCopy::update()
   diaSetSpinMMVal(mToSpinBox, minVal, maxVal, curVal);
   mToSpinBox->setSpecialValueText(minVal ? "" : "   ");
   mToSpinBox->setEnabled(minVal > 0);
+  mEllipseBox->setEnabled(sData.copyOperation == COPY_TO_OBJECT);
 
   // Enable the time radio button if appropriate
   if (vw->numTimes)
@@ -433,6 +492,11 @@ void ContourCopy::apply()
         (sData.objectNumber > (int)imod->objsize) ||
         (sData.objectNumber == imod->cindex.object + 1)){
       wprint("\a%sBad destination object.\n", badCopy);
+      return;
+    }
+    if (sData.makeEllipse && 
+        (!iobjClose(obj->flags) || !iobjClose(imod->obj[sData.objectNumber - 1].flags))) {
+      wprint("\aTo make ellipses, objects to copy from and to must both be closed.\n");
       return;
     }
     break;
@@ -527,9 +591,13 @@ void ContourCopy::apply()
       if (cont->psize && (sData.doAll || sData.doAllObj || sData.doSurface || 
                           (co == imod->cindex.contour && ob == imod->cindex.object) || 
                           imodSelectionListQuery(sData.vw, ob, co) > -2)) {
-        ncont  = imodContourDup(cont);
-        errcode = copyContour(ncont, co);
-        free(ncont);
+        if (sData.copyOperation == COPY_TO_OBJECT && sData.makeEllipse) {
+          errcode = copyAsEllipse(cont);
+        } else {
+          ncont  = imodContourDup(cont);
+          errcode = copyContour(ncont, co);
+          free(ncont);
+        }
         if (errcode)
           wprint("\a%sFailed to duplicate contour correctly.\n", badCopy);
       }

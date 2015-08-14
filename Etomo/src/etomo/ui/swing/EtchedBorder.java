@@ -5,6 +5,8 @@ import java.awt.Color;
 import javax.swing.BorderFactory;
 import javax.swing.border.TitledBorder;
 
+import etomo.util.Utilities;
+
 /*
  * <p>Description: </p>
  *
@@ -43,16 +45,19 @@ import javax.swing.border.TitledBorder;
  */
 
 public class EtchedBorder {
-  public static final String rcsid = "$Id$";
-
+  public static final String rcsid =
+    "$Id$";
+  
   private TitledBorder titledBorder;
   // TODO these should be gotten from the app some how
-  private static final Color highlight = new Color(248, 254, 255);
-  private static final Color shadow = new Color(121, 124, 136);
+  private static final Color highlight = !Utilities.APRIL_FOOLS ? new Color(248, 254, 255) : new Color(
+    255, 231, 205);
+  private static final Color shadow = !Utilities.APRIL_FOOLS ? new Color(121, 124, 136) : new Color(138,
+    152, 219);
 
   public EtchedBorder(String title) {
-    titledBorder = new TitledBorder(BorderFactory.createEtchedBorder(highlight, shadow),
-        title);
+    titledBorder =
+      new TitledBorder(BorderFactory.createEtchedBorder(highlight, shadow), title);
   }
 
   public void setTitle(String title) {

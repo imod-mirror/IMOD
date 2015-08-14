@@ -5,19 +5,13 @@ import junit.framework.TestCase;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 */
 public final class ProcessResultDisplayStateTest extends TestCase {
-  public static final String rcsid = "$Id$";
-
   Display displayNotRunning = null;
   Display displayControlNotRunning = null;
   Display displayRunning = null;
@@ -250,6 +244,9 @@ public final class ProcessResultDisplayStateTest extends TestCase {
 
     public boolean getOriginalState() {
       return done;
+    }
+    
+    public void setDebug(final boolean input) {
     }
 
     public void setProcessDone(boolean done) {

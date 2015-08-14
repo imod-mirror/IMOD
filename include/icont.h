@@ -123,9 +123,13 @@ double imodContourLongAxis(Icont *cont, float precision, float *aspect,
 			   float *longaxis);
 double imodContourPrincipalAxis(Icont *cont);
 double imodContourCircularity(Icont *cont);
+int imodContourEquivEllipse(Icont *cont, Ipoint *center, float *longAxis, 
+                            float *shortAxis, float *angle);
 int imodContourZValue(Icont *cont);
 int imodContourFitPlane(Icont *cont, Ipoint *scale, Ipoint *norm, float *dval,
                         double *alpha, double *beta);
+int imodContourInsideCont(Icont *inner, Icont *outer);
+
 
 /* calculates the center of mass values for cont and puts them in rpt. */
 int    imodContourCenterOfMass(Icont *cont, Ipoint *rpt);
@@ -136,6 +140,7 @@ double imodContourCenterMoment(Icont *cont, Ipoint *org, int a, int b);
  * returns index of point in cont that is nearest to pnt. 
  */
 int    imodContourNearest(Icont *cont, Ipoint *pnt);
+
 
 /****************************************************************************
  * All functions with ContZ in their name assume all z values are the same.

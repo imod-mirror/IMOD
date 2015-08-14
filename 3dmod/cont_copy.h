@@ -13,6 +13,7 @@
 class QButtonGroup;
 class QSpinBox;
 class QComboBox;
+class QCheckBox;
 class QRadioButton;
 
 typedef struct ViewInfo ImodView;
@@ -32,6 +33,7 @@ class ContourCopy : public DialogFrame
   void placeSelected(int which);
   void toValueChanged(int value);
   void rangeSelected(int which);
+  void ellipseToggled(bool state);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -44,6 +46,7 @@ class ContourCopy : public DialogFrame
   QButtonGroup *mRadioGroup;
   QSpinBox *mToSpinBox;
   QRadioButton *mTimeRadio;
+  QCheckBox *mEllipseBox;
 };
 
 int openContourCopyDialog(ImodView *vw);

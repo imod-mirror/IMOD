@@ -610,7 +610,7 @@ void imodContEditJoin(ImodView *vw)
   Iindex *i2p = &cojoin.i2;
   Iindex *indp;
   Iindex *indArray;
-  int co, pt1, pt2, ind1, ind2, tpt1, tpt2, end1, end2, concat, testConcat;
+  int co, pt1, pt2, ind1, ind2, tpt1, tpt2, end1, end2, concat, testConcat, invertOne;
   int i, j, numJoin, ijoin, ic1, ic2;
   float dist, distMin, tdist;
   Icont *cont1, *cont2, *jcont;
@@ -836,9 +836,14 @@ void imodContEditJoin(ImodView *vw)
       pt2 = 0;
     }
 
-    if (iobjClose(obj->flags) && !concat) 
-      jcont = imodContourJoin(cont1, cont2, pt1, pt2, FALSE, 0);
-    else
+    // If closed and not concatenating, see if one contour is inside the other
+    // and if so, join with flag to make them go in opposite directions
+    if (iobjClose(obj->flags) && !concat) {
+      invertOne = 0;
+      if (imodContourInsideCont(cont1, cont2) || imodContourInsideCont(cont2, cont1))
+        invertOne = 1;
+      jcont = imodContourJoin(cont1, cont2, pt1, pt2, FALSE, invertOne);
+    } else
       jcont = imodContourSplice(cont1, cont2, pt1, pt2);
 
     if (!jcont) {

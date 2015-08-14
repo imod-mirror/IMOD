@@ -96,9 +96,9 @@ public final class DirectiveEditorBuilder {
       int dCount = 0;
       boolean matchesType = false;
       while (descrIterator.hasNext()) {
-        descrIterator.next();
+      DirectiveDescrFile.Element element=  descrIterator.next();
         // Get the section - directives following this section are associated with it.
-        if (descrIterator.isSection()) {
+        if (element.isSection()) {
           if (section != null) {
             // Record whether any of the directives in the section match the directive
             // file type. Directives that don't match the type cannot be edited in this
@@ -108,14 +108,14 @@ public final class DirectiveEditorBuilder {
               sectionArray.remove(section);
             }
           }
-          section = new DirectiveDescrSection(descrIterator.getSectionHeader());
+          section = new DirectiveDescrSection(element.getSectionHeader());
           matchesType = false;
           dCount = 0;
           sectionArray.add(section);
         }
-        else if (descrIterator.isDirective()) {
+        else if (element.isDirective()) {
           // Get the directive
-          directive = new Directive(descrIterator.getDirectiveDescription());
+          directive = new Directive(element);
           // Only save valid directives.
           if (directive.isValid()) {
             // Check to see if this directive matches the type
@@ -200,7 +200,7 @@ public final class DirectiveEditorBuilder {
       fileTypeExists[type.getIndex()] = true;
       try {
         ReadOnlyStatementList statementList = AutodocFactory.getInstance(manager,
-            directiveFile);
+            directiveFile, false);
         if (statementList != null) {
           StatementLocation location = statementList.getStatementLocation();
           ReadOnlyStatement statement = null;
@@ -293,7 +293,6 @@ public final class DirectiveEditorBuilder {
    * Handles cases where a setupset directive has a default value that is stored in a
    * .com file.
    * @param commandMap
-   * @param errmsg
    */
   private void setSpecialCaseDefaultValues(Map<String, String> commandMap) {
     DirectiveName fromDirectiveName = new DirectiveName();
@@ -321,7 +320,6 @@ public final class DirectiveEditorBuilder {
    * @param commandMap - list of values
    * @param fromDirectiveName - key to commandMap
    * @param toDirectiveName - key to DirectiveMap
-   * @param axisID - the value belongs to a specific axis
    */
   private void setDefaultDirectiveValue(final Map<String, String> commandMap,
       final DirectiveName fromDirectiveName, final DirectiveName toDirectiveName) {
@@ -348,7 +346,6 @@ public final class DirectiveEditorBuilder {
    * from directiveMap.  Places the value in the directive.
    * @param commandMap - list of values
    * @param directiveName - key
-   * @param axisID - the value belongs to a specific axis
    * @param isDefaultValue - the value is a default value
    */
   private void setDirectiveValue(final Map<String, String> commandMap,

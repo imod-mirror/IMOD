@@ -9,7 +9,7 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
     mapAlfEnd, ifBTSearch, tiltOrig, tiltAdd, pipinput, numInView, &
     ninThresh, rotEntered)
   use alivar
-  use mapsep
+  use mapSepGroups
   implicit none
   integer*4 inputAlf, numVarSearch, numVarAngles, numVarScaled, minTiltInd, numCompSearch
   integer*4 ifLocal, mapTiltStart, mapAlfStart, ifBTSearch, numInView(*)
@@ -49,7 +49,7 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   integer*4 iref2, ioptMag, irefComp, ioptComp, iffix, iv, jv, ioptDel
   integer*4 irefDmag, nvarTmp, ivdum, idist, ioptDist(2), ioptAlf, nviewFixIn
   integer*4 irefTilt, numDmagVar, ivl, ivh, lenOpt
-  integer*4 irefTiltIn
+  integer*4 irefTiltIn, noSepTiltGroups, numSepSave
   integer*4 nearest_view, ifpip, mapFix, ierr
   character*1024 listString
   save ioptRot, ivSpecEndXtilt, ioptTilt, nviewFixIn, irefTiltIn
@@ -76,6 +76,7 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   tiltAdd = 0.
   numVarSearch = 0
   ifpip = 0
+  noSepTiltGroups = 0
   if (ifLocal == 0) then
     call allocateMapsep(ierr)
     call memoryError(ierr, 'ARRAYS FOR MAPSEP')
@@ -88,10 +89,12 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   ! print *,(numInView(i), i = 1, nview)
   if (pipinput) ifpip = 1
   if (pipinput .and. ifLocal == 0) then
-    call inputSeparateGroups(ngsep, nsepInGrp, ivsep, listString)
-    do ig = 1, ngsep
-      call mapSeparateGroup(ivsep(1, ig), nsepInGrp(ig), mapFileToView, nfileViews)
+    call inputSeparateGroups(numSeparateGroups, numSepInGroup, iviewsInGroup, listString)
+    do ig = 1, numSeparateGroups
+      call mapSeparateGroup(iviewsInGroup(1, ig), numSepInGroup(ig), mapFileToView,  &
+          nfileViews)
     enddo
+    ierr = PipGetInteger('NoSeparateTiltGroups', noSepTiltGroups)
     rotStart = 0.
     ierr = PipGetFloat('RotationAngle', rotStart)
   endif
@@ -233,15 +236,15 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
         'variables,' &
         //' enter the number of sets of views to treat separately' &
         //' from the main set of views (otherwise enter 0): '
-    read(5,*) ngsep
-    do ig = 1, ngsep
+    read(5,*) numSeparateGroups
+    do ig = 1, numSeparateGroups
       write(*,'(1x,a,i3,a,$)') 'List of views in set', ig, &
           ' (ranges OK): '
-      call rdlist(5, ivsep(1, ig), nsepInGrp(ig))
+      call rdlist(5, iviewsInGroup(1, ig), numSepInGroup(ig))
       !
       ! check legality and trim ones not in included views
       !
-      call mapSeparateGroup(ivsep(1, ig), nsepInGrp(ig), mapFileToView, &
+      call mapSeparateGroup(iviewsInGroup(1, ig), numSepInGroup(ig), mapFileToView, &
           nfileViews)
       ! print *,(ivsep(i, ig), i = 1, nsepInGrp(ig))
     enddo
@@ -359,13 +362,18 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
       power = powerTilt
     endif
     call setGrpSize(tilt, nview, power, groupSize)
-    call automap(nview, mapList, groupSize, mapFileToView, nfileViews &
-        , ifpip, 1, PrependLocal('TiltDefaultGrouping', ifLocal), &
+    !
+    ! Cancel the separate groups if appropriate by saving, zeroing, and restoring them
+    numSepSave = numSeparateGroups
+    if ((noSepTiltGroups == 1 .and. patchTrackModel) .or. noSepTiltGroups > 1) &
+        numSeparateGroups = 0
+    call automap(nview, mapList, groupSize, mapFileToView, nfileViews , ifpip, 1, &
+        PrependLocal('TiltDefaultGrouping', ifLocal), &
         PrependLocal('TiltNondefaultGroup', ifLocal), numInView, ninThresh, &
-        ifLocal, nmapDefTilt, nRanSpecTilt, nmapSpecTilt, ivSpecStrTilt, &
-        ivSpecEndTilt)
+        ifLocal, nmapDefTilt, nRanSpecTilt, nmapSpecTilt, ivSpecStrTilt, ivSpecEndTilt)
     if (.not.pipinput) write(6, 111) (mapList(i), i = 1, nview)
 111 format(/,' Variable mapping list:',(1x,25i3))
+    numSeparateGroups = numSepSave
   endif
   !
   ! analyze map list
@@ -635,8 +643,8 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
           endif
           call setGrpSize(tilt, nview, power, groupSize)
           call automap(nview, mapList, groupSize, mapFileToView, nfileViews, &
-              ifpip, 1, PrependLocal(distOptTmp(1:lenOpt)//'DefaultGrouping', ifLocal), &
-              PrependLocal(distOptTmp(1:lenOpt)//'NondefaultGroup', ifLocal), &
+              ifpip, 1, PrependLocal(distOptTmp(1:lenOpt) //'DefaultGrouping', ifLocal), &
+              PrependLocal(distOptTmp(1:lenOpt) //'NondefaultGroup', ifLocal), &
               numInView, ninThresh, ifLocal, nmapDefDist(idist), nRanSpecDist(idist), &
               nmapSpecDist(1, idist), ivSpecStrDist(1, idist), &
               ivSpecEndDist(1, idist))
@@ -1098,7 +1106,7 @@ subroutine GetMapList(varName, option, iref, fixval, ifpip, ifLocal, &
         , fixval, ' give it the same variable # as view', iref
     read(5,*) (mapList(i), i = 1, nview)
   else
-    mapOption = PrependLocal(trim(option)//'Mapping', ifLocal)
+    mapOption = PrependLocal(trim(option) //'Mapping', ifLocal)
     numEntry = 0
     len = PipNumberOfEntries(mapOption, numEntry)
     numTot = 0

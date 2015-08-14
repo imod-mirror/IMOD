@@ -57,7 +57,7 @@ public class DirectiveNameTest extends TestCase {
     assertTrue("recognizes setupset",
         DirectiveName.equals(SETUP_SET_NAME, DirectiveType.SETUP_SET));
     assertTrue("recognizes runtime",
-        DirectiveName.equals(RUNTIME_NAME, DirectiveType.RUNTIME));
+        DirectiveName.equals(RUNTIME_NAME, DirectiveType.RUN_TIME));
     assertTrue("recognizes comparam",
         DirectiveName.equals(COM_PARAM_NAME, DirectiveType.COM_PARAM));
 
@@ -76,7 +76,7 @@ public class DirectiveNameTest extends TestCase {
     directiveName.setKey(SETUP_SET_NAME);
     assertTrue("recognizes setupset", directiveName.equals(DirectiveType.SETUP_SET));
     directiveName.setKey(RUNTIME_NAME);
-    assertTrue("recognizes runtime", directiveName.equals(DirectiveType.RUNTIME));
+    assertTrue("recognizes runtime", directiveName.equals(DirectiveType.RUN_TIME));
     directiveName.setKey(COM_PARAM_NAME);
     assertTrue("recognizes comparam", directiveName.equals(DirectiveType.COM_PARAM));
   }

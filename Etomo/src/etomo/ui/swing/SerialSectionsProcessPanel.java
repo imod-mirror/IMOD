@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
@@ -19,11 +20,14 @@ import etomo.type.AxisID;
 * <p> $Log$ </p>
 */
 public final class SerialSectionsProcessPanel extends AxisProcessPanel {
-  public static  final String  rcsid =  "$Id:$";
-  
   SerialSectionsProcessPanel(BaseManager manager) {
-    super(AxisID.ONLY, manager, false);
+    super(AxisID.ONLY, manager, false, true, InterfaceType.SERIAL_SECTIONS);
     createProcessControlPanel();
+    showBothAxis();
     initializePanels();
+  }
+  
+  void showBothAxis() {
+    setBackground(Colors.getBackgroundSerialSections());
   }
 }

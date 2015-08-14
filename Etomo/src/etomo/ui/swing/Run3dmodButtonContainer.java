@@ -18,7 +18,8 @@ import etomo.type.Run3dmodMenuOptions;
 interface Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  public void action(Run3dmodButton button, Run3dmodMenuOptions run3dmodMenuOptions);
+  public void action(String actionCommand, Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions);
 }
 /**
  * <p> $Log$

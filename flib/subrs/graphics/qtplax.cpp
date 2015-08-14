@@ -143,7 +143,7 @@ enum {PCALL_MAPCOLOR, PCALL_BOX, PCALL_BOXO, PCALL_VECT, PCALL_VECTW, PCALL_CIRC
       PCALL_CIRCO, PCALL_POLY, PCALL_POLYO, PCALL_SCTEXT, PCALL_ALIGN};
 
 
-PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
+PlaxWindow::PlaxWindow(QWidget *parent, Qt::WindowFlags fl) :
   QWidget(parent, fl)
 {
 

@@ -27,6 +27,7 @@
 #include "workprocs.h"
 #include "xcramp.h"
 #include "xzap.h"
+#include "xxyz.h"
 #include "imod_edit.h"
 #include "info_setup.h"
 #include "imod_input.h"
@@ -1233,7 +1234,10 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
     break;
 
   case Qt::Key_K:
-    iccCopyContour();
+    if (shifted)
+      iccCopyContour();
+    else
+      handled = 0;
     break;
     
   case Qt::Key_M:
@@ -1377,6 +1381,11 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
   case Qt::Key_V:
     if (!vi->doingInitialLoad)
       imodv_open();
+    break;
+
+  case Qt::Key_X:
+    if (ctrl && !vi->doingInitialLoad)
+      xxyz_open(vi);
     break;
 
   case Qt::Key_Y:

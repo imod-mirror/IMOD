@@ -31,17 +31,11 @@ import etomo.util.Utilities;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2013</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
+ * <p>Copyright: Copyright 2013 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 */
 public final class DirectiveEditorManager extends BaseManager {
   public static final String rcsid = "$Id:$";
@@ -202,11 +196,11 @@ public final class DirectiveEditorManager extends BaseManager {
     if (absPath == null) {
       return false;
     }
-    if (absPath.endsWith(AutodocFactory.EXTENSION)) {
+    if (AutodocFactory.endsWithAutodocExtension(absPath)) {
       saveFile = new File(absPath);
     }
     else {
-      saveFile = new File(absPath + AutodocFactory.EXTENSION);
+      saveFile = new File(absPath + AutodocFactory.Extension.DEFAULT);
     }
     if (saveFile.exists()) {
       if (!uiHarness.openYesNoDialog(this, "The file " + saveFile.getAbsolutePath()

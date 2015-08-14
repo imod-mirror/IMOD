@@ -1,6 +1,6 @@
 .na
 .nh
-.TH makepyramid 1 4.6.18 BL3DEMC
+.TH makepyramid 1 4.6.18 IMOD
 .SH NAME
 makepyramid \- Create an image pyramid for rapid viewing in 3dmod
 .SH SYNOPSIS

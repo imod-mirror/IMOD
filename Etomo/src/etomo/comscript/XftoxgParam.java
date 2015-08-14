@@ -14,15 +14,11 @@ import etomo.type.ProcessName;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.6  2010/04/28 16:13:46  sueh
@@ -45,8 +41,6 @@ import etomo.type.ProcessName;
  * <p> </p>
  */
 public final class XftoxgParam implements Command {
-  public static final String rcsid = "$Id$";
-
   public static final ProcessName PROCESS_NAME = ProcessName.XFTOXG;
   public static final String COMMAND_NAME = PROCESS_NAME.toString();
   public static final String NUMBER_TO_FIT_KEY = "NumberToFit";
@@ -283,7 +277,7 @@ public final class XftoxgParam implements Command {
     public boolean isDefault() {
       return false;
     }
-    
+
     public String getLabel() {
       return null;
     }

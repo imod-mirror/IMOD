@@ -46,7 +46,7 @@ c
       else
         readw_or_imod=.false.
         open(20,file=filename,status='old',err=20)
-        call qopen(istrm,filename,'OLD')
+        call qopen(istrm,filename,'RO')
         call qseek(istrm,1,1,1,1,1)
 c         
         call qread(istrm,int2,52,ier)

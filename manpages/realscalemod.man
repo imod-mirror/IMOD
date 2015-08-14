@@ -1,6 +1,6 @@
 .na
 .nh
-.TH realscalemod 1 4.6.34 BL3DEMC
+.TH realscalemod 1 4.6.34 IMOD
 .SH NAME
 realscalemod - to scale a model to microns, adjusting for tilts
 .SH SYNOPSIS

@@ -21,6 +21,15 @@ run the command files on.  It is passed directly to Splittilt(1) unless it is
 8 unless the command file contains the option to use the GPU, in which case it
 is 1.
 
+[Field = ChunksPerProcessor]
+short = ra
+type = I
+usage = Number of chunks per processor (default 5 imposed by Splittilt)
+tooltip =
+manpage = Use this option to set the number of chunks per processor; it will
+be multiplied by the number of processors to give a value for the
+\fI-TargetChunks\fB option to Splittilt(1).
+
 [Field = StartFromZero]
 short = st
 type = B

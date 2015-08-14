@@ -133,7 +133,7 @@ c
         if(ifanypc.eq.1)nreplace=nreplace+1
       enddo
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
 c       
 c       7/7/00 CER: remove the encodes
 c       

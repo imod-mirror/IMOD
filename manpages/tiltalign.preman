@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tiltalign 1 4.6.34 BL3DEMC
+.TH tiltalign 1 4.6.34 IMOD
 .SH NAME
 tiltalign - Solve for alignment of tilted views using fiducials
 .SH SYNOPSIS

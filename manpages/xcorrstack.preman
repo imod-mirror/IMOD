@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xcorrstack 1 4.6.34 BL3DEMC
+.TH xcorrstack 1 4.6.34 IMOD
 .SH NAME
 xcorrstack - to cross-correlate a single image with a whole image stack
 .SH SYNOPSIS

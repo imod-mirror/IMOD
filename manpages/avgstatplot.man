@@ -1,6 +1,6 @@
 .na
 .nh
-.TH avgstatplot 1 4.6.34 BL3DEMC
+.TH avgstatplot 1 4.6.34 IMOD
 .SH NAME
 avgstatplot - to plot the output of IMAVGSTAT
 .SH SYNOPSIS

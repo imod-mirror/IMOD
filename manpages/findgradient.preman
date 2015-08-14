@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findgradient 1 4.6.34 BL3DEMC
+.TH findgradient 1 4.6.34 IMOD
 .SH NAME
 findgradient - Finds mag gradient that minimize montage blending error
 .SH SYNOPSIS

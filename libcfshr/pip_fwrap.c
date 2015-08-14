@@ -41,6 +41,7 @@
 #define pipparseinput PIPPARSEINPUT
 #define pipallowcommadefaults PIPALLOWCOMMADEFAULTS
 #define pipreadoptionfile PIPREADOPTIONFILE
+#define pipreadprogdefaults PIPREADPROGDEFAULTS
 #define pipsetmanpageoutput PIPSETMANPAGEOUTPUT
 #define pipenableentryoutput PIPENABLEENTRYOUTPUT 
 #define pipsetspecialflags PIPSETSPECIALFLAGS
@@ -75,6 +76,7 @@
 #define pipparseinput pipparseinput_
 #define pipallowcommadefaults pipallowcommadefaults_
 #define pipreadoptionfile pipreadoptionfile_
+#define pipreadprogdefaults pipreadprogdefaults_
 #define pipsetmanpageoutput pipsetmanpageoutput_
 #define pipenableentryoutput pipenableentryoutput_
 #define pipsetspecialflags pipsetspecialflags_
@@ -147,6 +149,17 @@ int pipreadoptionfile(char *progName, int *helpLevel, int *localDir,
   err = PipReadOptionFile(cStr, *helpLevel, *localDir);
   free(cStr);
   return err;
+}
+
+void pipreadprogdefaults(char *option, int optionSize)
+{
+  char *cStr;
+  if (!(cStr = pipf2cstr(option, optionSize))) {
+    PipSetError("Memory error in pipreadprogdefaults_");
+    return;
+  }
+  PipReadProgDefaults(cStr);
+  free(cStr);
 }
 
 int pipaddoption(char *optionString, int stringSize)

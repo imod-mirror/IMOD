@@ -1,6 +1,6 @@
 .na
 .nh
-.TH autofidseed 1 4.6.8 BL3DEMC
+.TH autofidseed 1 4.6.8 IMOD
 .SH NAME
 autofidseed \- Automatically make a seed model for tilt series fiducial tracking
 .SH SYNOPSIS

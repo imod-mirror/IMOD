@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtrotlong 1 4.6.34 BL3DEMC
+.TH mtrotlong 1 4.6.34 IMOD
 .SH NAME
 mtrotlong - extract MTs rotated into longitudinal orientation
 .SH SYNOPSIS

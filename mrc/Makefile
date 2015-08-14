@@ -10,7 +10,7 @@ O = $(OBJEXT)
 E = $(BINEXT)
 
 
-PROGS     = raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
+PROGS     = raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) preNID$(E)\
  mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) preNAD$(E)
 
 IILIBS    =  $(LIIMOD) $(LCFSHR) $(TIFFLIBS)
@@ -52,6 +52,10 @@ ctfutils.$(O) : ../ctfplotter/ctfutils.cpp
 
 preNAD$(E) : preNAD.$(O) ctfutils.$(O) recline.$(O)
 	$(LAPACKLINK) -o preNAD preNAD.$(O) ctfutils.$(O) recline.$(O) $(LDFLAGS) \
+	$(IILIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(FORT_CPPLIBS) $(CLIBS)
+
+preNID$(E) : preNID.$(O) ctfutils.$(O) recline.$(O)
+	$(LAPACKLINK) -o preNID preNID.$(O)  ctfutils.$(O) recline.$(O) $(LDFLAGS) \
 	$(IILIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(FORT_CPPLIBS) $(CLIBS)
 
 

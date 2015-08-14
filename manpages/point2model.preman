@@ -1,6 +1,6 @@
 .na
 .nh
-.TH point2model 1 3.10.20 BL3DEMC
+.TH point2model 1 3.10.20 IMOD
 .SH NAME
 point2model -\ Convert point listing to IMOD model file
 .SH SYNOPSIS

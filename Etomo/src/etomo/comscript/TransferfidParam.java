@@ -1,14 +1,11 @@
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.16  2011/09/08 05:38:34  sueh
@@ -158,9 +155,9 @@ import etomo.type.TiltAngleType;
 import etomo.util.DatasetFiles;
 
 public final class TransferfidParam implements Storable {
-  public static final String rcsid = "$Id$";
-
   protected static final String group = "Transferfid";
+  private static final int MIRROR_X_AXIS_TRY_BOTH = 0;
+  private static final int MIRROR_X_AXIS_MIRROR = 1;
 
   private String inputImageFile;
   private String outputImageFile;
@@ -171,12 +168,12 @@ public final class TransferfidParam implements Storable {
   private final EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
   // null => both, -1 => -90, 1=> +90
   private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER,
-      "SearchDirection");
+    "SearchDirection");
   private final EtomoNumber centerViewA = new EtomoNumber("CenterViewA");
   private final EtomoNumber centerViewB = new EtomoNumber("CenterViewB");
   private final ScriptParameter numberViews = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "NumberViews");
-  private final EtomoBoolean2 mirrorInX = new EtomoBoolean2("MirrorInX");
+    EtomoNumber.Type.INTEGER, "NumberViews");
+  private final EtomoNumber mirrorXaxis = new EtomoNumber("MirrorXaxis");
 
   private ConstMetaData metaData = null;
   private boolean createLog = false;
@@ -193,6 +190,7 @@ public final class TransferfidParam implements Storable {
     groupString = group + axisID.getExtension();
     searchDirection.setValidValues(new int[] { -1, 1 });
     numberViews.setDisplayValue(5);
+    mirrorXaxis.setDisplayValue(MIRROR_X_AXIS_TRY_BOTH);
     reset();
   }
 
@@ -216,7 +214,7 @@ public final class TransferfidParam implements Storable {
     centerViewA.reset();
     centerViewB.reset();
     numberViews.reset();
-    mirrorInX.reset();
+    mirrorXaxis.reset();
   }
 
   public void initialize() {
@@ -226,12 +224,17 @@ public final class TransferfidParam implements Storable {
     centerViewB.reset();
   }
 
-  public void setMirrorInX(boolean mirrorInX) {
-    this.mirrorInX.set(mirrorInX);
+  public void setMirrorXaxis(boolean input) {
+    if (input) {
+      mirrorXaxis.set(MIRROR_X_AXIS_MIRROR);
+    }
+    else {
+      mirrorXaxis.set(MIRROR_X_AXIS_TRY_BOTH);
+    }
   }
 
-  public ConstEtomoNumber getMirrorInX() {
-    return mirrorInX;
+  public ConstEtomoNumber getMirrorXaxis() {
+    return mirrorXaxis;
   }
 
   private void setCenterViewAResetValue() {
@@ -248,12 +251,13 @@ public final class TransferfidParam implements Storable {
     setCenterViewResetValue(centerViewB, metaData.getTiltAngleSpecB());
   }
 
-  private void setCenterViewResetValue(EtomoNumber centerView, TiltAngleSpec tiltAngleSpec) {
+  private void
+    setCenterViewResetValue(EtomoNumber centerView, TiltAngleSpec tiltAngleSpec) {
     if (tiltAngleSpec.getType() != TiltAngleType.RANGE) {
       return;
     }
     centerView.setDisplayValue(Math.round(1 - tiltAngleSpec.getRangeMin()
-        / tiltAngleSpec.getRangeStep()));
+      / tiltAngleSpec.getRangeStep()));
   }
 
   /**
@@ -266,7 +270,7 @@ public final class TransferfidParam implements Storable {
     that.centerViewA.set(centerViewA);
     that.centerViewB.set(centerViewB);
     that.numberViews.set(numberViews);
-    that.mirrorInX.set(mirrorInX);
+    that.mirrorXaxis.set(mirrorXaxis);
   }
 
   /**
@@ -279,7 +283,7 @@ public final class TransferfidParam implements Storable {
     centerViewA.set(that.centerViewA);
     centerViewB.set(that.centerViewB);
     numberViews.set(that.numberViews);
-    mirrorInX.set(that.mirrorInX);
+    mirrorXaxis.set(that.mirrorXaxis);
   }
 
   public void store(Properties props) {
@@ -293,7 +297,7 @@ public final class TransferfidParam implements Storable {
     centerViewA.store(props, prepend);
     centerViewB.store(props, prepend);
     numberViews.store(props, prepend);
-    mirrorInX.store(props, prepend);
+    mirrorXaxis.store(props, prepend);
   }
 
   public void load(Properties props) {
@@ -309,7 +313,7 @@ public final class TransferfidParam implements Storable {
     centerViewA.load(props, prepend);
     centerViewB.load(props, prepend);
     numberViews.load(props, prepend);
-    mirrorInX.load(props, prepend);
+    mirrorXaxis.load(props, prepend);
   }
 
   protected String createPrepend(String prepend) {
@@ -380,9 +384,8 @@ public final class TransferfidParam implements Storable {
       command.add("-90");
     }
 
-    if (mirrorInX.is()) {
-      command.add("-x");
-    }
+    command.add("-x");
+    command.add(mirrorXaxis.toString());
 
     if (runMidas.is()) {
       command.add("-m");

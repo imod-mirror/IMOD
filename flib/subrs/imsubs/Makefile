@@ -8,7 +8,7 @@ FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
 OBJS = irdhdr.$(O) wrap_iiunit.$(O) irdbinned.$(O) irdreduced.$(O) strupcase.$(O) \
-	irepak.$(O) isetdn.$(O) blockio.$(O) convert_vms.$(O) cinterp.$(O) iclcdn.$(O)
+	isetdn.$(O) blockio.$(O) convert_vms.$(O) cinterp.$(O) iclcdn.$(O)
 
 all: $(OBJS)
 

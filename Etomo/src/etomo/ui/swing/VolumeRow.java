@@ -562,7 +562,7 @@ final class VolumeRow implements Highlightable {
         JFileChooser fileChooser = table.getFileChooserInstance();
         fileChooser.setSelectedFile(FilePath.buildAbsoluteFile(
             manager.getPropertyUserDir(), fieldCell.getExpandedValue()));
-        fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+        fileChooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.setFileFilter(fileFilter);
         int returnVal = fileChooser.showOpenDialog(table.getContainer());

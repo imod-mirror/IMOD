@@ -1,6 +1,6 @@
 .na
 .nh
-.TH filltomo 1 4.6.34 BL3DEMC
+.TH filltomo 1 4.6.34 IMOD
 .SH NAME
 filltomo - Replace pixels in dual-axis tomogram with values from one
 .SH SYNOPSIS

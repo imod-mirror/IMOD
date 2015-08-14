@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import etomo.BaseManager;
@@ -32,19 +31,13 @@ import etomo.util.RemotePath.InvalidMountRuleException;
  * <p>Description: Command line for processchunks.  Assumes that it will be run
  * once per instance (no reset function).</p>
  * 
- * <p>Copyright: Copyright (c) 2005 - 2006</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public final class ProcesschunksParam implements DetachedCommandDetails, ParallelParam {
-  public static final String rcsid = "$Id$";
-
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
@@ -100,8 +93,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.INSTANCE.getMinNice(manager, axisID,
-        manager.getPropertyUserDir()));
+    nice.setFloor(CpuAdoc.INSTANCE.getMinNice());
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -272,7 +264,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     return getProcessName().toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

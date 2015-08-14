@@ -11,7 +11,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import javax.swing.BoxLayout;
@@ -40,15 +39,11 @@ import etomo.ui.LogProperties;
  * pass the manager when popping up messages.  This could lead to an infinite
  * loop because every message with a manager gets logged.</p>
  * 
- * <p>Copyright: Copyright 2008 - 2010</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.2  2011/02/22 18:14:12  sueh
@@ -83,8 +78,6 @@ import etomo.ui.LogProperties;
  * <p> </p>
  */
 public final class LogWindow implements LogInterface, LogProperties {
-  public static final String rcsid = "$Id$";
-
   static final String TITLE = "Project Log";
   private static final boolean VISIBLE_DEFAULT = true;
   private static final String PREPEND = "ProjectLog";
@@ -280,7 +273,7 @@ public final class LogWindow implements LogInterface, LogProperties {
             try {
               readerId = file.openReader();
               String line = file.readLine(readerId);
-              List<String> lineList = new ArrayList<String>();
+              ArrayList<String> lineList = new ArrayList<String>();
               while (line != null) {
                 lineList.add(line);
                 line = file.readLine(readerId);
@@ -442,10 +435,12 @@ public final class LogWindow implements LogInterface, LogProperties {
     logger.logMessage(title, axisID, message);
   }
 
-  public void logMessage(String title, AxisID axisID, List<String> message) {
+  public void logMessage(String title, AxisID axisID, ArrayList<String> message) {
     logger.logMessage(title, axisID, message);
   }
-
+  public void logMessage( AxisID axisID, ArrayList<String> message) {
+    logger.logMessage( axisID, message);
+  }
   public void logMessage(String title, AxisID axisID) {
     logger.logMessage(title, axisID);
   }
@@ -475,7 +470,7 @@ public final class LogWindow implements LogInterface, LogProperties {
   }
 
   public void store(final Properties props, String prepend) {
-    prepend = getPrepend(prepend);
+    prepend = createPrepend(prepend);
     Dimension size = frame.getSize();
     // A panel that has never been displayed will have a height and width of 0.
     if (size.width <= 0 || size.height <= 0) {
@@ -503,7 +498,7 @@ public final class LogWindow implements LogInterface, LogProperties {
     frameLocationYProperty.reset();
     visibleProperty.set(VISIBLE_DEFAULT);
     // load
-    prepend = getPrepend(prepend);
+    prepend = createPrepend(prepend);
     frameSizeWidthProperty.load(props, prepend);
     frameSizeHeightProperty.load(props, prepend);
     frameLocationXProperty.load(props, prepend);
@@ -511,7 +506,7 @@ public final class LogWindow implements LogInterface, LogProperties {
     visibleProperty.load(props, prepend, VISIBLE_DEFAULT);
   }
 
-  private String getPrepend(String prepend) {
+  private String createPrepend(String prepend) {
     if (prepend == null || prepend.matches("\\s*")) {
       prepend = PREPEND;
     }

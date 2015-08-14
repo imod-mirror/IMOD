@@ -6,14 +6,11 @@ import etomo.comscript.FortranInputString;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.65  2011/05/31 21:06:13  sueh
@@ -319,8 +316,6 @@ import etomo.comscript.FortranInputString;
  * <p> </p>
  */
 public interface ConstMetaData {
-  public static final String rcsid = "$Id$";
-
   public ConstEtomoNumber getPostCurTab();
 
   public ConstEtomoNumber getGenCurTab();
@@ -566,4 +561,12 @@ public interface ConstMetaData {
   public String getLengthOfPieces(AxisID axisID);
 
   public String getMinimumOverlap(AxisID axisID);
+
+  public String getTargetMeasurementRatio(AxisID axisID);
+
+  public String getMinMeasurementRatio(AxisID axisID);
+
+  public boolean isTargetMeasurementRatioSet(AxisID axisID);
+
+  public boolean isMinMeasurementRatioSet(AxisID axisID);
 }

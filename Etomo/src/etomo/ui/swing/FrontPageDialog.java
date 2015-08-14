@@ -18,16 +18,12 @@ import etomo.type.ToolType;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
+ * @version $Id$
+ *
  * <p> $Log$
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
@@ -74,13 +70,13 @@ import etomo.type.ToolType;
  */
 
 public final class FrontPageDialog {
-  public static final String rcsid = "$Id$";
-
   private final JPanel pnlRoot = new JPanel();
   private final MultiLineButton btnRecon = MultiLineButton
       .getDebugInstance(EtomoMenu.RECON_LABEL);
   private final MultiLineButton btnJoin = new MultiLineButton(EtomoMenu.JOIN_LABEL);
   private final MultiLineButton btnNad = new MultiLineButton(EtomoMenu.NAD_LABEL);
+  private final MultiLineButton btnBatchRunTomo = new MultiLineButton(
+      EtomoMenu.BATCH_RUN_TOMO_LABEL);
   private final MultiLineButton btnGeneric = new MultiLineButton(EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton(EtomoMenu.PEET_LABEL);
   private final MultiLineButton btnSerialSections = new MultiLineButton(
@@ -116,6 +112,7 @@ public final class FrontPageDialog {
     btnRecon.setSize();
     btnJoin.setSize();
     btnNad.setSize();
+    btnBatchRunTomo.setSize();
     btnGeneric.setSize();
     btnPeet.setSize();
     btnSerialSections.setSize();
@@ -136,13 +133,14 @@ public final class FrontPageDialog {
     pnlProjectLabel.add(new JLabel("New project:"));
     pnlProjectLabel.add(Box.createHorizontalGlue());
     // projects
-    pnlProjects.setLayout(new GridLayout(3, 2, 7, 7));
+    pnlProjects.setLayout(new GridLayout(4, 2, 7, 7));
     pnlProjects.add(btnRecon.getComponent());
     pnlProjects.add(btnJoin.getComponent());
     pnlProjects.add(btnPeet.getComponent());
     pnlProjects.add(btnSerialSections.getComponent());
     pnlProjects.add(btnNad.getComponent());
     pnlProjects.add(btnGeneric.getComponent());
+    pnlProjects.add(btnBatchRunTomo.getComponent());
     // tool label
     pnlToolLabel.setLayout(new BoxLayout(pnlToolLabel, BoxLayout.X_AXIS));
     pnlToolLabel.add(new JLabel("Tools:"));
@@ -158,6 +156,7 @@ public final class FrontPageDialog {
     btnRecon.addActionListener(actionListener);
     btnJoin.addActionListener(actionListener);
     btnNad.addActionListener(actionListener);
+    btnBatchRunTomo.addActionListener(actionListener);
     btnGeneric.addActionListener(actionListener);
     btnPeet.addActionListener(actionListener);
     btnSerialSections.addActionListener(actionListener);
@@ -179,6 +178,9 @@ public final class FrontPageDialog {
     }
     else if (actionCommand.equals(btnNad.getActionCommand())) {
       EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
+    }
+    else if (actionCommand.equals(btnBatchRunTomo.getActionCommand())) {
+      EtomoDirector.INSTANCE.openBatchRunTomo(true, axisID);
     }
     else if (actionCommand.equals(btnGeneric.getActionCommand())) {
       EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
@@ -204,6 +206,8 @@ public final class FrontPageDialog {
     btnJoin.setToolTipText("Stack tomograms.");
     btnNad.setToolTipText("Run a nonlinear anisotropic diffusion process on a "
         + "tomogram.");
+    btnBatchRunTomo
+        .setToolTipText("Use batchruntomo to create or start one or more tomograms.");
     btnGeneric.setToolTipText("Run a generic parallel process.");
     btnPeet.setToolTipText("Start the interface for the PEET particle averaging "
         + "package.");

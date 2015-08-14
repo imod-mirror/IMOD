@@ -449,14 +449,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     return ltfWarpSpacingY.getText(doValidation);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Reconstruction
     if (panelId == PanelId.POST_FLATTEN_VOLUME) {
@@ -529,7 +522,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   private void inputFileAction() {
     // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(new TomogramFileFilter());
     int returnVal = chooser.showOpenDialog(pnlRoot.getContainer());
@@ -582,9 +575,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     ReadOnlyAutodoc warpVolAutodoc = null;
     try {
       flattenWarpAutodoc = AutodocFactory.getInstance(manager,
-          AutodocFactory.FLATTEN_WARP, axisID);
+          AutodocFactory.FLATTEN_WARP, axisID, false);
       warpVolAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.WARP_VOL,
-          axisID);
+          axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

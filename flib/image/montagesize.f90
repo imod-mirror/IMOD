@@ -21,8 +21,10 @@ program montagesize
   character*320 imageFile, pieceFile
   integer*4 modeIn, numExtraBytes, numSecBytes, iflags, numPcList, minZpc, maxZpc, i
   integer*4 nxTotPix, minXpiece, nxPieces, nxOverlap, minYpiece, nyPieces, numSections
-  integer*4 nyOverlap, nyTotPix, maxExtra, maxPiece, ierr
+  integer*4 nyOverlap, nyTotPix, maxExtra, maxPiece, ierr, indAdoc, iTypeAdoc, numSect
+  integer*4 montage
   real*4 dmin, dmax, dmean
+  integer*4 iiuFileType, iiuRetAdocIndex, AdocSetCurrent, AdocGetImageMetaInfo
   !
   maxPiece = 1000000
   if (iargc() < 1 .or. iargc() > 2) then
@@ -33,7 +35,7 @@ program montagesize
   endif
   call setExitPrefix('ERROR: MONTAGESIZE - ')
   call getarg(1, imageFile)
-  call ialprt(.false.)
+  call iiuAltPrint(0)
   call imopen(1, imageFile, 'ro')
   call irdhdr(1, nxyz, mxyz, modeIn, dmin, dmax, dmean)
   maxPiece = max(maxPiece, 2 * nxyz(3))
@@ -41,16 +43,29 @@ program montagesize
       stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR PIECE COORDINATES')
   if (iargc() == 1) then
-    call irtnbsym(1, numExtraBytes)
+    call iiuRetNumExtended(1, numExtraBytes)
     maxExtra = numExtraBytes + 1000
     allocate(array(maxExtra / 4), stat = ierr)
     call memoryError(ierr, 'ARRAY FOR EXTRA HEADER DATA')
-    call irtsym(1, numExtraBytes, array)
-    call irtsymtyp(1, numSecBytes, iflags)
+    call iiuRetExtendedData(1, numExtraBytes, array)
+    call iiuRetExtendedType(1, numSecBytes, iflags)
     call get_extra_header_pieces (array, numExtraBytes, numSecBytes, iflags, nxyz(3) &
         , ixPcList, iyPcList, izPcList, numPcList, maxPiece)
-    if (numPcList == 0) call exitError( &
-        'No piece list information in this image file')
+    if (numPcList == 0) then
+      indAdoc = iiuRetAdocIndex(1, 0, 1)
+      if (indAdoc < 0) call exitError('No piece list information in this image file')
+      if (AdocSetCurrent(indAdoc) .ne. 0) call exitError('SETTING CURRENT AUTODOC')
+      if (AdocGetImageMetaInfo(montage, numSect, iTypeAdoc) == 0) then
+        call get_metadata_pieces(indAdoc, iTypeAdoc, nxyz(3), ixPcList, iyPcList, &
+            izPcList, maxPiece, numPcList)
+      endif
+      if (numPcList == 0) then
+        if (iiuFileType(1) == 5) call exitError( &
+            'No piece list information in this HDF file')
+        call exitError('No piece list information in this image file or associated '// &
+            '.mdoc file')
+      endif
+    endif
   else
     call getarg(2, pieceFile)
     call read_piece_list(pieceFile, ixPcList, iyPcList, izPcList, &

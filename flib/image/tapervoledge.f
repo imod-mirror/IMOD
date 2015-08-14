@@ -142,7 +142,7 @@ c
       CELL2(6)=90.
 C       
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
 c       
 c       7/7/00 CER: remove the encodes
 c       

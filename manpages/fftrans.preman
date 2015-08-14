@@ -1,6 +1,6 @@
 .na
 .nh
-.TH fftrans 1 4.6.34 BL3DEMC
+.TH fftrans 1 4.6.34 IMOD
 .SH NAME
 fftrans - to compute forward or reverse fourier transform of images
 .SH SYNOPSIS

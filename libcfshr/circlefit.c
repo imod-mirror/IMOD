@@ -197,7 +197,7 @@ void enableRadiusFitting(int doFit)
 /*! Fortran wrapper to @enableRadiusFitting */
 void enableradiusfitting(int *doFit)
 {
-  fitRadius = *doFit ? 1 : 0;
+  fitRadius = (*doFit) ? 1 : 0;
 }
 
 /* Function to compute the error of the circle fit for given vector y */

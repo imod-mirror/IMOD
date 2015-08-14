@@ -83,7 +83,7 @@ c
       tempdir = ' '
       tempext='wrp      1'
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
       patchfile = ' '
       fillfile = ' '
       wallCum = 0.

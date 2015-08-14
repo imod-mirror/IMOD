@@ -3,8 +3,8 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -22,15 +22,11 @@ import etomo.type.StringParameter;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2011</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2011 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$
 * <p> Revision 1.2  2011/05/03 02:43:13  sueh
@@ -41,8 +37,6 @@ import etomo.type.StringParameter;
 * <p> </p>
 */
 public final class SirtsetupParam implements CommandParam, CommandDetails {
-  public static final String rcsid = "$Id$";
-
   public static final String CLEAN_UP_PAST_START_KEY = "CleanUpPastStart";
   public static final String LEAVE_ITERATIONS_KEY = "LeaveIterations";
   public static final String RADIUS_AND_SIGMA_KEY = "RadiusAndSigma";
@@ -304,7 +298,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     return false;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

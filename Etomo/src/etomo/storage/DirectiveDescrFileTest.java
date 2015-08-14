@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.storage.DirectiveDescrFile.Element;
 import etomo.type.AxisID;
 import etomo.type.FileType;
 import etomo.util.TestUtilites;
@@ -34,108 +35,108 @@ public class DirectiveDescrFileTest extends TestCase {
     descrFile.setFile(new File(TestUtilites.INSTANCE.getUnitTestData().getAbsolutePath(),
         FileType.DIRECTIVES_DESCR.getFileName(manager, axisID)));
     DirectiveDescrFile.Iterator iterator = descrFile.getIterator(manager, axisID);
-    assertTrue("file title", iterator.hasNext());
+    Element element = iterator.next();
+    assertNotNull("file title", element);
     assertTrue("hasNext doesn't increment the iterator", iterator.hasNext());
-    iterator.next();
-    assertTrue("file title", iterator.isSection());
-    assertFalse("file title", iterator.isDirective());
-    assertEquals("file title", "Batch/Template Directives", iterator.getName());
-    assertNull("file title", iterator.getDescription());
-    assertEquals("file title", iterator.getValueType(), DirectiveValueType.UNKNOWN);
-    assertFalse("file title", iterator.isBatch());
-    assertFalse("file title", iterator.isTemplate());
-    assertNull("file title", iterator.getEtomoColumn());
+    assertTrue("file title", element.isSection());
+    assertFalse("file title", element.isDirective());
+    assertEquals("file title", "Batch/Template Directives", element.getName());
+    assertNull("file title", element.getDescription());
+    assertEquals("file title", element.getValueType(), DirectiveValueType.UNKNOWN);
+    assertFalse("file title", element.isBatch());
+    assertFalse("file title", element.isTemplate());
+    assertNull("file title", element.getEtomoColumn());
 
     // has next is not necessary because next increments the iterator
-    iterator.next();
-    assertTrue("title", iterator.isSection());
-    assertFalse("title", iterator.isDirective());
+    element = iterator.next();
+    assertTrue("title", element.isSection());
+    assertFalse("title", element.isDirective());
     assertEquals("title", "Directives for Batch Processing and Template Files",
-        iterator.getName());
-    assertNull("title", iterator.getDescription());
-    assertEquals("title", iterator.getValueType(), DirectiveValueType.UNKNOWN);
-    assertFalse("title", iterator.isBatch());
-    assertFalse("title", iterator.isTemplate());
-    assertNull("title", iterator.getEtomoColumn());
+        element.getName());
+    assertNull("title", element.getDescription());
+    assertEquals("title", element.getValueType(), DirectiveValueType.UNKNOWN);
+    assertFalse("title", element.isBatch());
+    assertFalse("title", element.isTemplate());
+    assertNull("title", element.getEtomoColumn());
 
     assertTrue("column header", iterator.hasNext());
-    iterator.next();
-    assertFalse("column header", iterator.isSection());
-    assertTrue("column header", iterator.isDirective());
-    assertEquals("column header", "Directive", iterator.getName());
-    assertEquals("column header", "Definition", iterator.getDescription());
-    assertEquals("column header", iterator.getValueType(), DirectiveValueType.UNKNOWN);
-    assertFalse("column header", iterator.isBatch());
-    assertFalse("column header", iterator.isTemplate());
-    assertNull("column header", iterator.getEtomoColumn());
+    element = iterator.next();
+    assertFalse("column header", element.isSection());
+    assertTrue("column header", element.isDirective());
+    assertEquals("column header", "Directive", element.getName());
+    assertEquals("column header", "Definition", element.getDescription());
+    assertEquals("column header", element.getValueType(), DirectiveValueType.UNKNOWN);
+    assertFalse("column header", element.isBatch());
+    assertFalse("column header", element.isTemplate());
+    assertNull("column header", element.getEtomoColumn());
 
     assertTrue("blank", iterator.hasNext());
-    iterator.next();
-    assertFalse("blank", iterator.isSection());
-    assertFalse("blank", iterator.isDirective());
-    assertNull("blank", iterator.getName());
-    assertNull("blank", iterator.getDescription());
-    assertEquals("blank", iterator.getValueType(), DirectiveValueType.UNKNOWN);
-    assertFalse("blank", iterator.isBatch());
-    assertFalse("blank", iterator.isTemplate());
-    assertNull("blank", iterator.getEtomoColumn());
+    element = iterator.next();
+    assertFalse("blank", element.isSection());
+    assertFalse("blank", element.isDirective());
+    assertNull("blank", element.getName());
+    assertNull("blank", element.getDescription());
+    assertEquals("blank", element.getValueType(), DirectiveValueType.UNKNOWN);
+    assertFalse("blank", element.isBatch());
+    assertFalse("blank", element.isTemplate());
+    assertNull("blank", element.getEtomoColumn());
 
     assertTrue("header - Arguments to copytomocoms", iterator.hasNext());
-    iterator.next();
-    assertTrue("header - Arguments to copytomocoms", iterator.isSection());
-    assertFalse("header - Arguments to copytomocoms", iterator.isDirective());
+    element = iterator.next();
+    assertTrue("header - Arguments to copytomocoms", element.isSection());
+    assertFalse("header - Arguments to copytomocoms", element.isDirective());
     assertEquals("header - Arguments to copytomocoms", "Arguments to copytomocoms",
-        iterator.getName());
-    assertNull("header - Arguments to copytomocoms", iterator.getDescription());
-    assertEquals("header - Arguments to copytomocoms", iterator.getValueType(),
+        element.getName());
+    assertNull("header - Arguments to copytomocoms", element.getDescription());
+    assertEquals("header - Arguments to copytomocoms", element.getValueType(),
         DirectiveValueType.UNKNOWN);
-    assertFalse("header - Arguments to copytomocoms", iterator.isBatch());
-    assertFalse("header - Arguments to copytomocoms", iterator.isTemplate());
-    assertNull("header - Arguments to copytomocoms", iterator.getEtomoColumn());
+    assertFalse("header - Arguments to copytomocoms", element.isBatch());
+    assertFalse("header - Arguments to copytomocoms", element.isTemplate());
+    assertNull("header - Arguments to copytomocoms", element.getEtomoColumn());
 
     assertTrue("name", iterator.hasNext());
-    iterator.next();
-    assertFalse("name", iterator.isSection());
-    assertTrue("name", iterator.isDirective());
-    assertEquals("name", "setupset.copyarg.name", iterator.getName());
-    assertEquals("name", "Root name of data set", iterator.getDescription());
-    assertTrue("name", iterator.getValueType() == DirectiveValueType.STRING);
-    assertTrue("name", iterator.isBatch());
-    assertFalse("name", iterator.isTemplate());
-    assertNull("name", iterator.getEtomoColumn());
+    element = iterator.next();
+    assertFalse("name", element.isSection());
+    assertTrue("name", element.isDirective());
+    assertEquals("name", "setupset.copyarg.name", element.getName());
+    assertEquals("name", "Root name of data set", element.getDescription());
+    assertTrue("name", element.getValueType() == DirectiveValueType.STRING);
+    assertTrue("name", element.isBatch());
+    assertFalse("name", element.isTemplate());
+    assertNull("name", element.getEtomoColumn());
 
     assertTrue("dual", iterator.hasNext());
-    iterator.next();
-    assertFalse("dual", iterator.isSection());
-    assertTrue("dual", iterator.isDirective());
-    assertEquals("dual", "setupset.copyarg.dual", iterator.getName());
-    assertEquals("dual", "Dual-axis data set", iterator.getDescription());
-    assertTrue("dual", iterator.getValueType() == DirectiveValueType.BOOLEAN);
-    assertTrue("dual", iterator.isBatch());
-    assertTrue("dual", iterator.isTemplate());
-    assertTrue("dual", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SO);
+    element = iterator.next();
+    assertFalse("dual", element.isSection());
+    assertTrue("dual", element.isDirective());
+    assertEquals("dual", "setupset.copyarg.dual", element.getName());
+    assertEquals("dual", "Dual-axis data set", element.getDescription());
+    assertTrue("dual", element.getValueType() == DirectiveValueType.BOOLEAN);
+    assertTrue("dual", element.isBatch());
+    assertTrue("dual", element.isTemplate());
+    assertTrue("dual", element.getEtomoColumn() == DirectiveDescrEtomoColumn.SO);
 
     assertTrue("montage", iterator.hasNext());
-    iterator.next();
-    assertFalse("montage", iterator.isSection());
-    assertTrue("montage", iterator.isDirective());
-    assertEquals("montage", "setupset.copyarg.montage", iterator.getName());
-    assertEquals("montage", "Data are montaged", iterator.getDescription());
-    assertTrue("montage", iterator.getValueType() == DirectiveValueType.BOOLEAN);
-    assertTrue("montage", iterator.isBatch());
-    assertTrue("montage", iterator.isTemplate());
-    assertTrue("montage", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+    element = iterator.next();
+    assertFalse("montage", element.isSection());
+    assertTrue("montage", element.isDirective());
+    assertEquals("montage", "setupset.copyarg.montage", element.getName());
+    assertEquals("montage", "Data are montaged", element.getDescription());
+    assertTrue("montage", element.getValueType() == DirectiveValueType.BOOLEAN);
+    assertTrue("montage", element.isBatch());
+    assertTrue("montage", element.isTemplate());
+    assertTrue("montage", element.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     assertTrue("pixel", iterator.hasNext());
-    iterator.next();
-    assertFalse("pixel", iterator.isSection());
-    assertTrue("pixel", iterator.isDirective());
-    assertEquals("pixel", "setupset.copyarg.pixel", iterator.getName());
-    assertEquals("pixel", "Pixel size of images in nanometers", iterator.getDescription());
-    assertTrue("pixel", iterator.getValueType() == DirectiveValueType.FLOATING_POINT);
-    assertTrue("pixel", iterator.isBatch());
-    assertTrue("pixel", iterator.isTemplate());
-    assertNull("pixel", iterator.getEtomoColumn());
+    element = iterator.next();
+    assertFalse("pixel", element.isSection());
+    assertTrue("pixel", element.isDirective());
+    assertEquals("pixel", "setupset.copyarg.pixel", element.getName());
+    assertEquals("pixel", "Pixel size of images in nanometers", element.getDescription());
+    assertTrue("pixel", element.getValueType() == DirectiveValueType.FLOATING_POINT);
+    assertTrue("pixel", element.isBatch());
+    assertTrue("pixel", element.isTemplate());
+    assertNull("pixel", element.getEtomoColumn());
 
     // gold
     iterator.next();
@@ -145,17 +146,17 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("firstinc", iterator.hasNext());
-    iterator.next();
-    assertFalse("firstinc", iterator.isSection());
-    assertTrue("firstinc", iterator.isDirective());
-    assertEquals("firstinc", "setupset.copyarg.firstinc", iterator.getName());
+    element = iterator.next();
+    assertFalse("firstinc", element.isSection());
+    assertTrue("firstinc", element.isDirective());
+    assertEquals("firstinc", "setupset.copyarg.firstinc", element.getName());
     assertEquals("firstinc", "First tilt angle and tilt angle increment",
-        iterator.getDescription());
+        element.getDescription());
     assertTrue("firstinc",
-        iterator.getValueType() == DirectiveValueType.FLOATING_POINT_PAIR);
-    assertTrue("firstinc", iterator.isBatch());
-    assertFalse("firstinc", iterator.isTemplate());
-    assertNull("firstinc", iterator.getEtomoColumn());
+        element.getValueType() == DirectiveValueType.FLOATING_POINT_PAIR);
+    assertTrue("firstinc", element.isBatch());
+    assertFalse("firstinc", element.isTemplate());
+    assertNull("firstinc", element.getEtomoColumn());
 
     // bfirstinc
     iterator.next();
@@ -169,16 +170,16 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("skip", iterator.hasNext());
-    iterator.next();
-    assertFalse("skip", iterator.isSection());
-    assertTrue("skip", iterator.isDirective());
-    assertEquals("skip", "setupset.copyarg.skip", iterator.getName());
+    element = iterator.next();
+    assertFalse("skip", element.isSection());
+    assertTrue("skip", element.isDirective());
+    assertEquals("skip", "setupset.copyarg.skip", element.getName());
     assertEquals("skip", "List of views to exclude from processing for A or only axis",
-        iterator.getDescription());
-    assertTrue("skip", iterator.getValueType() == DirectiveValueType.LIST);
-    assertTrue("skip", iterator.isBatch());
-    assertFalse("skip", iterator.isTemplate());
-    assertNull("skip", iterator.getEtomoColumn());
+        element.getDescription());
+    assertTrue("skip", element.getValueType() == DirectiveValueType.LIST);
+    assertTrue("skip", element.isBatch());
+    assertFalse("skip", element.isTemplate());
+    assertNull("skip", element.getEtomoColumn());
 
     // bskip
     iterator.next();
@@ -186,15 +187,15 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("binning", iterator.hasNext());
-    iterator.next();
-    assertFalse("binning", iterator.isSection());
-    assertTrue("binning", iterator.isDirective());
-    assertEquals("binning", "setupset.copyarg.binning", iterator.getName());
-    assertEquals("binning", "Binning of raw images", iterator.getDescription());
-    assertTrue("binning", iterator.getValueType() == DirectiveValueType.INTEGER);
-    assertTrue("binning", iterator.isBatch());
-    assertTrue("binning", iterator.isTemplate());
-    assertNull("binning", iterator.getEtomoColumn());
+    element = iterator.next();
+    assertFalse("binning", element.isSection());
+    assertTrue("binning", element.isDirective());
+    assertEquals("binning", "setupset.copyarg.binning", element.getName());
+    assertEquals("binning", "Binning of raw images", element.getDescription());
+    assertTrue("binning", element.getValueType() == DirectiveValueType.INTEGER);
+    assertTrue("binning", element.isBatch());
+    assertTrue("binning", element.isTemplate());
+    assertNull("binning", element.getEtomoColumn());
 
     // gradient
     iterator.next();
@@ -208,15 +209,15 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("Cs", iterator.hasNext());
-    iterator.next();
-    assertFalse("Cs", iterator.isSection());
-    assertTrue("Cs", iterator.isDirective());
-    assertEquals("Cs", "setupset.copyarg.Cs", iterator.getName());
-    assertEquals("Cs", "Spherical aberration", iterator.getDescription());
-    assertTrue("Cs", iterator.getValueType() == DirectiveValueType.FLOATING_POINT);
-    assertTrue("Cs", iterator.isBatch());
-    assertTrue("Cs", iterator.isTemplate());
-    assertTrue("Cs", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+    element = iterator.next();
+    assertFalse("Cs", element.isSection());
+    assertTrue("Cs", element.isDirective());
+    assertEquals("Cs", "setupset.copyarg.Cs", element.getName());
+    assertEquals("Cs", "Spherical aberration", element.getDescription());
+    assertTrue("Cs", element.getValueType() == DirectiveValueType.FLOATING_POINT);
+    assertTrue("Cs", element.isBatch());
+    assertTrue("Cs", element.isTemplate());
+    assertTrue("Cs", element.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // ctfnoise
     iterator.next();
@@ -226,16 +227,16 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("scopeTemplate", iterator.hasNext());
-    iterator.next();
-    assertFalse("scopeTemplate", iterator.isSection());
-    assertTrue("scopeTemplate", iterator.isDirective());
-    assertEquals("scopeTemplate", "setupset.scopeTemplate", iterator.getName());
+    element = iterator.next();
+    assertFalse("scopeTemplate", element.isSection());
+    assertTrue("scopeTemplate", element.isDirective());
+    assertEquals("scopeTemplate", "setupset.scopeTemplate", element.getName());
     assertEquals("scopeTemplate", "Name of scope template file to use",
-        iterator.getDescription());
-    assertTrue("scopeTemplate", iterator.getValueType() == DirectiveValueType.STRING);
-    assertTrue("scopeTemplate", iterator.isBatch());
-    assertFalse("scopeTemplate", iterator.isTemplate());
-    assertNull("scopeTemplate", iterator.getEtomoColumn());
+        element.getDescription());
+    assertTrue("scopeTemplate", element.getValueType() == DirectiveValueType.STRING);
+    assertTrue("scopeTemplate", element.isBatch());
+    assertFalse("scopeTemplate", element.isTemplate());
+    assertNull("scopeTemplate", element.getEtomoColumn());
 
     // systemTemplate
     iterator.next();
@@ -251,30 +252,30 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("removeXrays", iterator.hasNext());
-    iterator.next();
-    assertFalse("removeXrays", iterator.isSection());
-    assertTrue("removeXrays", iterator.isDirective());
+    element = iterator.next();
+    assertFalse("removeXrays", element.isSection());
+    assertTrue("removeXrays", element.isDirective());
     assertEquals("removeXrays", "runtime.Preprocessing.any.removeXrays",
-        iterator.getName());
+        element.getName());
     assertEquals("removeXrays", "Run ccderaser to remove X rays",
-        iterator.getDescription());
-    assertTrue("removeXrays", iterator.getValueType() == DirectiveValueType.BOOLEAN);
-    assertTrue("removeXrays", iterator.isBatch());
-    assertFalse("removeXrays", iterator.isTemplate());
-    assertTrue("removeXrays", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.NE);
+        element.getDescription());
+    assertTrue("removeXrays", element.getValueType() == DirectiveValueType.BOOLEAN);
+    assertTrue("removeXrays", element.isBatch());
+    assertFalse("removeXrays", element.isTemplate());
+    assertTrue("removeXrays", element.getEtomoColumn() == DirectiveDescrEtomoColumn.NE);
 
     assertTrue("PeakCriterion", iterator.hasNext());
-    iterator.next();
-    assertFalse("PeakCriterion", iterator.isSection());
-    assertTrue("PeakCriterion", iterator.isDirective());
+    element = iterator.next();
+    assertFalse("PeakCriterion", element.isSection());
+    assertTrue("PeakCriterion", element.isDirective());
     assertEquals("PeakCriterion", "comparam.eraser.ccderaser.PeakCriterion",
-        iterator.getName());
-    assertEquals("PeakCriterion", "Peak criterion # of SDs", iterator.getDescription());
+        element.getName());
+    assertEquals("PeakCriterion", "Peak criterion # of SDs", element.getDescription());
     assertTrue("PeakCriterion",
-        iterator.getValueType() == DirectiveValueType.FLOATING_POINT);
-    assertTrue("PeakCriterion", iterator.isBatch());
-    assertTrue("PeakCriterion", iterator.isTemplate());
-    assertTrue("PeakCriterion", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+        element.getValueType() == DirectiveValueType.FLOATING_POINT);
+    assertTrue("PeakCriterion", element.isBatch());
+    assertTrue("PeakCriterion", element.isTemplate());
+    assertTrue("PeakCriterion", element.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // DiffCriterion
     iterator.next();
@@ -300,37 +301,37 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("newstack.BinByFactor", iterator.hasNext());
-    iterator.next();
-    assertFalse("newstack.BinByFactor", iterator.isSection());
-    assertTrue("newstack.BinByFactor", iterator.isDirective());
+    element = iterator.next();
+    assertFalse("newstack.BinByFactor", element.isSection());
+    assertTrue("newstack.BinByFactor", element.isDirective());
     assertEquals("newstack.BinByFactor", "comparam.prenewst.newstack.BinByFactor",
-        iterator.getName());
+        element.getName());
     assertEquals("newstack.BinByFactor", "Coarse aligned stack binning",
-        iterator.getDescription());
+        element.getDescription());
     assertTrue("newstack.BinByFactor",
-        iterator.getValueType() == DirectiveValueType.INTEGER);
-    assertTrue("newstack.BinByFactor", iterator.isBatch());
-    assertTrue("newstack.BinByFactor", iterator.isTemplate());
+        element.getValueType() == DirectiveValueType.INTEGER);
+    assertTrue("newstack.BinByFactor", element.isBatch());
+    assertTrue("newstack.BinByFactor", element.isTemplate());
     assertTrue("newstack.BinByFactor",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+        element.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // ModeToOutput
     iterator.next();
 
     assertTrue("blendmont.BinByFactor", iterator.hasNext());
-    iterator.next();
-    assertFalse("blendmont.BinByFactor", iterator.isSection());
-    assertTrue("blendmont.BinByFactor", iterator.isDirective());
+    element = iterator.next();
+    assertFalse("blendmont.BinByFactor", element.isSection());
+    assertTrue("blendmont.BinByFactor", element.isDirective());
     assertEquals("blendmont.BinByFactor", "comparam.preblend.blendmont.BinByFactor",
-        iterator.getName());
+        element.getName());
     assertEquals("blendmont.BinByFactor", "Coarse aligned stack binning",
-        iterator.getDescription());
+        element.getDescription());
     assertTrue("blendmont.BinByFactor",
-        iterator.getValueType() == DirectiveValueType.INTEGER);
-    assertTrue("blendmont.BinByFactor", iterator.isBatch());
-    assertTrue("blendmont.BinByFactor", iterator.isTemplate());
+        element.getValueType() == DirectiveValueType.INTEGER);
+    assertTrue("blendmont.BinByFactor", element.isBatch());
+    assertTrue("blendmont.BinByFactor", element.isTemplate());
     assertTrue("blendmont.BinByFactor",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+        element.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // blank
     iterator.next();
@@ -350,18 +351,18 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("LocalAreaTargetSize", iterator.hasNext());
-    iterator.next();
-    assertFalse("LocalAreaTargetSize", iterator.isSection());
-    assertTrue("LocalAreaTargetSize", iterator.isDirective());
+    element = iterator.next();
+    assertFalse("LocalAreaTargetSize", element.isSection());
+    assertTrue("LocalAreaTargetSize", element.isDirective());
     assertEquals("LocalAreaTargetSize", "comparam.track.beadtrack.LocalAreaTargetSize",
-        iterator.getName());
-    assertEquals("LocalAreaTargetSize", "Size of local areas", iterator.getDescription());
+        element.getName());
+    assertEquals("LocalAreaTargetSize", "Size of local areas", element.getDescription());
     assertTrue("LocalAreaTargetSize",
-        iterator.getValueType() == DirectiveValueType.INTEGER_PAIR);
-    assertTrue("LocalAreaTargetSize", iterator.isBatch());
-    assertTrue("LocalAreaTargetSize", iterator.isTemplate());
+        element.getValueType() == DirectiveValueType.INTEGER_PAIR);
+    assertTrue("LocalAreaTargetSize", element.isBatch());
+    assertTrue("LocalAreaTargetSize", element.isTemplate());
     assertTrue("LocalAreaTargetSize",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+        element.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // SobelFilterCentering
     iterator.next();
@@ -377,16 +378,16 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
 
     assertTrue("TwoSurfaces", iterator.hasNext());
-    iterator.next();
-    assertFalse("TwoSurfaces", iterator.isSection());
-    assertTrue("TwoSurfaces", iterator.isDirective());
+    element = iterator.next();
+    assertFalse("TwoSurfaces", element.isSection());
+    assertTrue("TwoSurfaces", element.isDirective());
     assertEquals("TwoSurfaces", "comparam.autofidseed.autofidseed.TwoSurfaces",
-        iterator.getName());
-    assertEquals("TwoSurfaces", "Whether beads on 2 surfaces", iterator.getDescription());
-    assertTrue("TwoSurfaces", iterator.getValueType() == DirectiveValueType.BOOLEAN);
-    assertTrue("TwoSurfaces", iterator.isBatch());
-    assertTrue("TwoSurfaces", iterator.isTemplate());
-    assertTrue("TwoSurfaces", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.NES);
+        element.getName());
+    assertEquals("TwoSurfaces", "Whether beads on 2 surfaces", element.getDescription());
+    assertTrue("TwoSurfaces", element.getValueType() == DirectiveValueType.BOOLEAN);
+    assertTrue("TwoSurfaces", element.isBatch());
+    assertTrue("TwoSurfaces", element.isTemplate());
+    assertTrue("TwoSurfaces", element.getEtomoColumn() == DirectiveDescrEtomoColumn.NES);
 
     DirectiveDescrFile.INSTANCE.releaseIterator(iterator);
   }

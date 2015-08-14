@@ -1,6 +1,6 @@
 .na
 .nh
-.TH reducemtmod 1 4.6.34 BL3DEMC
+.TH reducemtmod 1 4.6.34 IMOD
 .SH NAME
 reducemtmod - to reduce the number of points in a MT model
 .SH SYNOPSIS

@@ -5,22 +5,26 @@ import java.io.File;
 import etomo.storage.autodoc.AutodocFactory;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Default autodoc extension file filter</p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 
 public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
     java.io.FileFilter {
-  public static final String rcsid = "$Id$";
+  private final boolean excludeHidden;
+
+  public AutodocFilter() {
+    excludeHidden = false;
+  }
+
+  public AutodocFilter(final boolean excludeHidden) {
+    this.excludeHidden = excludeHidden;
+  }
 
   public boolean accept(File f) {
     if (!f.exists()) {
@@ -28,7 +32,9 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
       return false;
     }
     if (f.isFile()) {
-      return f.getName().endsWith(AutodocFactory.EXTENSION);
+      String name = f.getName();
+      return name.endsWith(AutodocFactory.Extension.DEFAULT.toString())
+          && (!excludeHidden || !name.startsWith("."));
     }
     return true;
   }

@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "b3dutil.h"
+#include "autodoc.h"
 
 #define NON_OPTION_STRING "NonOptionArgument"
 #define STANDARD_INPUT_STRING "StandardInput"
@@ -33,6 +34,9 @@
 #define OPTFILE_DIR "autodoc"
 #define OPTFILE_EXT "adoc"
 #define OPTDIR_VARIABLE "AUTODOC_DIR"
+#define DEFAULTS_FILE "progDefaults.adoc"
+#define DEFAULTS_DIR "com"
+#define DEFAULT_SUB_STR "%{default}"
 #define PRINTENTRY_VARIABLE  "PIP_PRINT_ENTRIES"
 #define OPEN_DELIM "["
 #define CLOSE_DELIM "]"
@@ -46,6 +50,7 @@ typedef struct pipOptions {
   char *type;           /* Type string */
   char *helpString;     /* Help string */
   char *format;         /* value format: to appear after option for usage/man output */
+  char *defaultVal;     /* Default value when option not entered */
   char **valuePtr;      /* pointer to array of string pointers with values */
   int multiple;         /* 0 if single value allowed, or number of next one
                            being returned (numbered from 1) */
@@ -175,6 +180,7 @@ int PipInitialize(int numOpts)
     sOptTable[i].type = NULL;
     sOptTable[i].helpString = NULL;
     sOptTable[i].format = NULL;
+    sOptTable[i].defaultVal = NULL;
     sOptTable[i].valuePtr = NULL;
     sOptTable[i].multiple = 0;
     sOptTable[i].count = 0;
@@ -211,6 +217,7 @@ void PipDone(void)
     B3DFREE(optp->type);
     B3DFREE(optp->helpString);
     B3DFREE(optp->format);
+    B3DFREE(optp->defaultVal);
     if (optp->valuePtr) {
       for (j = 0; j < optp->count; j++) {
         B3DFREE(optp->valuePtr[j]);
@@ -580,11 +587,15 @@ int PipGetNonOptionArg(int argNo, char **arg)
 int PipGetString(const char *option, char **string)
 {
   char *strPtr;
-  int err;
-  if ((err = GetNextValueString(option, &strPtr)))
-    return err;
-  *string  = strdup(strPtr);
-  return PipMemoryError(*string, "PipGetString");
+  int err, valErr;
+  valErr = GetNextValueString(option, &strPtr);
+  if (!valErr || valErr == 2) {
+    *string  = strdup(strPtr);
+    err = PipMemoryError(*string, "PipGetString");
+    if (err)
+      return err;
+  }
+  return valErr;
 }
 
 /*
@@ -721,7 +732,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
   int i, j, abbrevOK, lastOpt, jlim, optLen, hasbf, numOut = 0, numReal = 0, brokeAtSpace;
   int brokeAtNewLine;
   int helplim = 74;
-  char *sname, *lname, *newLinePt;
+  char *sname, *lname, *newLinePt, *defPtr;
   FILE *out = useStdErr ? stderr : stdout;
   char indent4[] = "    ";
   char *indentStr;
@@ -908,6 +919,22 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       lname = strdup(sOptTable[i].helpString);
       if (PipMemoryError(lname, "PipPrintHelp"))
         return -1;
+
+      /* First look for default variable string and replace it with default */
+      if (sOptTable[i].defaultVal) {
+        while (strlen(lname) + strlen(sOptTable[i].defaultVal) < LINE_STR_SIZE - 10) {
+          defPtr = strstr(lname, DEFAULT_SUB_STR);
+          if (!defPtr)
+            break;
+          strncpy(sLineStr, lname, defPtr - lname);
+          sprintf(&sLineStr[defPtr - lname], "%s%s", sOptTable[i].defaultVal, 
+                  defPtr + strlen(DEFAULT_SUB_STR));
+          free(lname);
+          lname = strdup(sLineStr);
+          if (PipMemoryError(lname, "PipPrintHelp"))
+            return -1;
+        }
+      }
       sname = lname;
       optLen = strlen(sname);
       newLinePt = strchr(sname, '\n');
@@ -1129,11 +1156,12 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
   char *textStr;
   char *helpStr;
   char *formatStr;
+  char *defaultStr;
   int numOpts = 0;
   int bigSize = LINE_STR_SIZE;
   int readingOpt = 0;
   char *longName, *shortName, *type, *usageStr, *tipStr, *manStr;
-  int gotLong, gotShort, gotType, gotUsage, gotTip, gotMan, gotFormat;
+  int gotLong, gotShort, gotType, gotUsage, gotTip, gotMan, gotFormat, gotDefault;
   int gotDelim = 0;
   char *optStr = NULL;
   int optStrSize = 0;
@@ -1266,7 +1294,8 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
   /* rewind file and process the options */
   rewind(optFile);
   longName = shortName = type = usageStr = tipStr = manStr = formatStr = sNullString;
-  gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = gotFormat = 0;
+  defaultStr = sNullString;
+  gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = gotFormat = gotDefault = 0;
 
   while (1) {
     lineLen = PipReadNextLine(optFile, bigStr, bigSize, '#', 0, 0, &indst);
@@ -1334,9 +1363,11 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
       if ((err = PipAddOption(optStr)))
         return err;
 
-      /* Assign format if got one */
+      /* Assign format and default if got one */
       if (gotFormat)
         sOptTable[sNextOption - 1].format = formatStr;
+      if (gotDefault)
+        sOptTable[sNextOption - 1].defaultVal = defaultStr;
 
       /* Clean up memory and reset flags */
       if (gotShort)
@@ -1352,7 +1383,9 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
       if (gotMan)
         free(manStr);
       longName = shortName = type = usageStr = tipStr = manStr = formatStr = sNullString;
+      defaultStr = sNullString;
       gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = gotFormat = 0;
+      gotDefault = 0;
       readingOpt = 0;
     }
 
@@ -1407,6 +1440,9 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
           return err;
         if ((err = CheckKeyword(textStr, "format", &formatStr, &gotFormat, &lastGottenStr,
                                 NULL)))
+          return err;
+        if ((err = CheckKeyword(textStr, "default", &defaultStr, &gotDefault,
+                                &lastGottenStr, NULL)))
           return err;
         
         /* Check for usage if at help level 1 or if we haven't got either of
@@ -1529,6 +1565,7 @@ void PipReadOrParseOptions(int argc, char *argv[], const char *options[],
     }
     PipParseInput(argc, argv, options, numOpts, numOptArgs,
                   numNonOptArgs);
+    PipReadProgDefaults(progName);
   }
 
   /* Output usage and exit if not enough arguments */
@@ -1538,6 +1575,39 @@ void PipReadOrParseOptions(int argc, char *argv[], const char *options[],
     PipPrintHelp(progName, 0, numInFiles, numOutFiles);
     exit(0);
   }
+}
+
+/* 
+ * If there was a failure to read autodoc, call this to check for defaults in the master 
+ * file 
+ */
+void PipReadProgDefaults(const char *progName)
+{
+  char *pipDir;
+  char savePrefix;
+  int i, sectInd, adocInd;
+  pipDir = getenv("IMOD_DIR");
+  if (!pipDir || strlen(pipDir) > TEMP_STR_SIZE - 100)
+    return;
+
+  /* Save and clear out the first character of exit prefix to prevent exit */
+  savePrefix = sExitPrefix[0];
+  sExitPrefix[0] = 0x00;
+  sprintf(sTempStr, "%s%c%s%c%s", pipDir, PATH_SEPARATOR, DEFAULTS_DIR, PATH_SEPARATOR,
+          DEFAULTS_FILE);
+  adocInd = AdocRead(sTempStr);
+  if (adocInd >= 0) {
+
+    /* Look up the program and then check for each option in its section */
+    sectInd = AdocLookupSection("Program", progName);
+    if (sectInd >= 0) {
+      for (i = 0; i < sTableSize; i++)
+        AdocGetString("Program", sectInd, sOptTable[i].longName, 
+                      &sOptTable[i].defaultVal);
+    }
+    AdocClear(adocInd);
+  }
+  sExitPrefix[0] = savePrefix;
 }
 
 /*
@@ -1756,13 +1826,15 @@ static int OptionLineOfValues(const char *option, void *array, int valType,
                               int *numToGet, int arraySize)
 {
   char *strPtr;
-  int err;
+  int err = 0, valErr;
 
   /* Get string  and save pointer to it for error messages */
-  if ((err = GetNextValueString(option, &strPtr)))
+  valErr = GetNextValueString(option, &strPtr);
+  if (!valErr || valErr == 2)
+    err = PipGetLineOfValues(option, strPtr, array, valType, numToGet, arraySize);
+  if (err)
     return err;
-  return PipGetLineOfValues(option, strPtr, array, valType, numToGet, 
-                            arraySize);
+  return valErr;
 }
 
 /*!
@@ -1887,7 +1959,8 @@ int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int 
 
 /*
  * Get a pointer to the value string for the given option.
- * Return < 0 if the option is invalid, 1 if the option was not entered.
+ * Return < 0 if the option is invalid, 1 if the option was not entered, 2 if it was
+ * not entered and a default string is being returned.
  * If the option allows multiple values, advance the multiple counter
  */
 static int GetNextValueString(const char *option, char **strPtr)
@@ -1897,8 +1970,12 @@ static int GetNextValueString(const char *option, char **strPtr)
 
   if ((err = LookupOption(option, sNonOptInd + 1)) < 0)
     return err;
-  if (!sOptTable[err].count)
-    return 1;
+  if (!sOptTable[err].count) {
+    if (!sOptTable[err].defaultVal)
+      return 1;
+    *strPtr = sOptTable[err].defaultVal;
+    return 2;
+  }
 
   if (sOptTable[err].multiple) {
     index = sOptTable[err].multiple - 1;

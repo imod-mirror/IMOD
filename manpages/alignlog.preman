@@ -1,6 +1,6 @@
 .na
 .nh
-.TH alignlog 1 2.6.0 BL3DEMC
+.TH alignlog 1 2.6.0 IMOD
 .SH NAME
 alignlog - extract data from tiltalign log file
 .SH SYNOPSIS

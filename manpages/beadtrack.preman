@@ -1,6 +1,6 @@
 .na
 .nh
-.TH beadtrack 1 4.6.34 BL3DEMC
+.TH beadtrack 1 4.6.34 IMOD
 .SH NAME
 beadtrack - Tracks fiducial gold particles through a tilt series
 .SH SYNOPSIS

@@ -1,18 +1,3 @@
-/**
- * <p>Description: Panel to modify the CCD eraser parameters</p>
- *
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
- *
- */
-
 package etomo.ui.swing;
 
 import java.awt.Component;
@@ -44,10 +29,17 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 
+/**
+ * <p>Description: Panel to modify the CCD eraser parameters</p>
+ *
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     CcdEraserDisplay, Expandable {
-  public static final String rcsid = "$Id$";
-
   static final String ERASE_LABEL = "Create Fixed Stack";
   static final String USE_FIXED_STACK_LABEL = "Use Fixed Stack";
 
@@ -86,7 +78,8 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
       FieldType.INTEGER, "Border pixels: ");
   private final LabeledTextField ltfPolynomialOrder = new LabeledTextField(
       FieldType.INTEGER, "Polynomial order: ");
-  private final CheckBox cbIncludeAdjacentPoints = new CheckBox("Include adjacent points");
+  private final CheckBox cbIncludeAdjacentPoints =
+      new CheckBox("Include adjacent points");
   private final Run3dmodButton btnViewErased = Run3dmodButton.get3dmodInstance(
       "View Fixed Stack", this);
   private final MultiLineButton btnClipStatsRaw = new MultiLineButton(
@@ -116,11 +109,11 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     axisID = id;
     this.dialogType = dialogType;
     globalAdvancedButton.register(this);
-    phManualReplacement = PanelHeader.getAdvancedBasicOnlyInstance(
-        "Manual Pixel Region Replacement", this, DialogType.PRE_PROCESSING,
-        globalAdvancedButton, true);
-    ProcessResultDisplayFactory displayFactory = appMgr
-        .getProcessResultDisplayFactory(axisID);
+    phManualReplacement =
+        PanelHeader.getAdvancedBasicOnlyInstance("Manual Pixel Region Replacement", this,
+            DialogType.PRE_PROCESSING, globalAdvancedButton, true);
+    ProcessResultDisplayFactory displayFactory =
+        appMgr.getProcessResultDisplayFactory(axisID);
     btnErase = (Run3dmodButton) displayFactory.getCreateFixedStack();
     btnErase.setContainer(this);
     btnErase.setDeferred3dmodButton(btnViewErased);
@@ -157,7 +150,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlXRayButtons.add(btnViewXRayModel.getComponent());
     pnlXRayButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlXRayButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlXRayReplacement, pnlXRayButtons);
 
@@ -181,7 +174,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlManualButtons.add(btnCreateModel.getComponent());
     pnlManualButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlManualButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
     UIUtilities.addWithYSpace(pnlManualReplacementBody, pnlManualButtons);
 
     pnlManualReplacementCheckBox.setLayout(new BoxLayout(pnlManualReplacementCheckBox,
@@ -219,9 +212,9 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlClipStats.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(pnlErase);
     pnlEraseButtons.add(pnlClipStats);
-    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.getInstance().getButtonDimension());
     UIUtilities
-        .setButtonSizeAll(pnlClipStats, UIParameters.INSTANCE.getButtonDimension());
+        .setButtonSizeAll(pnlClipStats, UIParameters.getInstance().getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
 
@@ -241,8 +234,8 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
   static CcdEraserXRaysPanel getInstance(final ApplicationManager appMgr,
       final AxisID id, final DialogType dialogType,
       GlobalExpandButton globalAdvancedButton) {
-    CcdEraserXRaysPanel instance = new CcdEraserXRaysPanel(appMgr, id, dialogType,
-        globalAdvancedButton);
+    CcdEraserXRaysPanel instance =
+        new CcdEraserXRaysPanel(appMgr, id, dialogType, globalAdvancedButton);
     instance.addListeners();
     return instance;
   }
@@ -331,8 +324,8 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
       ccdEraserParams.setBigDiffCriterion(ltfBigDiffCriterion.getText(doValidation));
       ccdEraserParams.setExtraLargeRadius(ltfExtraLargeRadius.getText(doValidation));
       if (cbManualReplacement.isSelected()) {
-        ccdEraserParams.setModelFile(applicationManager.getMetaData().getDatasetName()
-            + axisID.getExtension() + ".erase");
+        ccdEraserParams.setModelFile(FileType.MANUAL_REPLACEMENT_MODEL.getFileName(
+            applicationManager, axisID));
       }
       else {
         ccdEraserParams.setModelFile("");
@@ -390,12 +383,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     }
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from CCDEraserActionListener.  Otherwise is comes from a
@@ -405,8 +392,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void buttonAction(String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
       applicationManager.findXrays(axisID, btnFindXRays, null, deferred3dmodButton,
@@ -455,11 +441,12 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
-    TomodataplotsParam.Task[] graph = { TomodataplotsParam.Task.MIN_MAX,
-        TomodataplotsParam.Task.FIXED_MIN_MAX };
-    ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
-        "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile,
-        graph, applicationManager, axisID);
+    TomodataplotsParam.Task[] graph =
+        { TomodataplotsParam.Task.MIN_MAX, TomodataplotsParam.Task.FIXED_MIN_MAX };
+    ContextPopup contextPopup =
+        new ContextPopup(pnlCCDEraser, mouseEvent, "PRE-PROCESSING",
+            ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile, graph,
+            applicationManager, axisID);
   }
 
   private void enableXRayReplacement() {
@@ -494,8 +481,9 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.CCDERASER,
-          axisID);
+      autodoc =
+          AutodocFactory.getInstance(applicationManager, AutodocFactory.CCDERASER,
+              axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -580,7 +568,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 }
