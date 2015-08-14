@@ -981,7 +981,8 @@ def splitAndRunTilt(comfile, message):
 
 # Run findsection on a file, produce a tomopitch model or fill array with Z limits
 def runFindSection(filename, numScales, boxSize, pitchMod = None, topBots = None,
-                   block = None):
+                   block = None, failureOK = False):
+   global suppressAbort
    limitKeys = ['Median Z values', 'autopatchfit combine', 'Absolute limits']
    comRoot = 'findsection_tmp.'
    comLines = ['$findsection -StandardInput',
@@ -998,8 +999,11 @@ def runFindSection(filename, numScales, boxSize, pitchMod = None, topBots = None
    mess = 'Finding Z limits of the material in the tomogram'
    if pitchMod:
       mess = 'Getting a model for tomogram positioning'
-   if runOneProcess(comRoot + 'com', message = mess):
-      return 1
+   suppressAbort = failureOK
+   err = runOneProcess(comRoot + 'com', message = mess)
+   suppressAbort = False
+   if err:
+      return -1
    if topBots:
       loglines = readTextFileReportErr(comRoot + 'log')
       if not loglines:
@@ -1096,10 +1100,10 @@ def needStep(step):
 
 # Report a step was reached if it is in the range to run and in the list to report
 def reportReachedStep(step):
-   reachPoints = (0, 6, 7, detect3DstepNum)
+   reachPoints = (0, 6, 7, detect3DstepNum, 13, 14)
    if step in reachPoints and needStep(step):
-      prnstr('Reached step ' + str(step))
-      prnstr('', flush = True)
+      prnLog('Reached step ' + str(step))
+      prnLog('', flush = True)
 
 
 # SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
@@ -2632,11 +2636,19 @@ def positionTomogram():
       return 1
 
    # Run findsection to get the model
-   if runFindSection(dataName + '.rec', numScales[aliBinning - 1],
-                     boxSizes[aliBinning - 1], pitchMod = 'tomopitch' + axisLet + '.mod',
-                     block = blockSizes[aliBinning - 1]):
+   filename = dataName + '.rec'
+   if not axisNum:
+      filename = setName + '_full.rec'
+   err = runFindSection(filename, numScales[aliBinning - 1],
+                        boxSizes[aliBinning - 1], pitchMod = 'tomopitch' + axisLet +'.mod',
+                        block = blockSizes[aliBinning - 1], failureOK = True):
+
+   # Distinguish an OK findsection failure from other errors that issued ABORT SET
+   if err < 0:
       prnLog('Finding the section for positioning did not work; proceeding if possible')
       return 0
+   if err > 0:
+      return 1
 
    # Get existing Z shift, angle offset, and X tilt
    tiltLines = readTextFileReportErr('tilt' + axisCom)
@@ -3490,10 +3502,12 @@ def runOneAxis():
       return 1
 
    # Make the reconstruction
+   reportReachedStep(13)
    if needStep(14) and generateTomogram():
       return 1
 
    # Run trimvol on full data set or at axis level if directive for it
+   reportReachedStep(14)
    if ((not dualAxis and needStep(trimStepNum)) or (dualAxis and needStep(14.5))) and \
           trimVolume():
       return 1
@@ -4044,6 +4058,7 @@ for dfileInd in range(numSets):
       axisNum = 0
       axisLet = 'a'
       axisInd = 2
+      axisCom = '.com'
       dataName = setName
       if axisFailed:
          abortSet('One of the axes failed')
