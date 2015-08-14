@@ -1,6 +1,6 @@
 .na
 .nh
-.TH remapmodel 1 4.6.34 BL3DEMC
+.TH remapmodel 1 4.6.34 IMOD
 .SH NAME
 remapmodel - to remap Z values and shift coordinates of a model
 .SH SYNOPSIS

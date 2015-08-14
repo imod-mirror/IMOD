@@ -7,16 +7,12 @@ import etomo.ui.swing.Token;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright 2006</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.5  2010/02/17 04:49:43  sueh
@@ -40,19 +36,19 @@ import etomo.ui.swing.Token;
  * <p> </p>
  */
 public interface WritableAutodoc extends ReadOnlyAutodoc {
-  public static final String rcsid = "$Id$";
+  public void addNameValuePairAttribute(String name, String value);
 
-  public void addNameValuePair(String name, String value);
+  public void addNameValuePairAttribute(String name, String value, int lineNum);
 
   public WritableAttribute getWritableAttribute(String name);
 
   public void write() throws LogFile.LockException, IOException;
 
-  public void addComment(Token comment);
+  public void addComment(Token comment, int lineNum);
 
-  public void addEmptyLine();
+  public void addEmptyLine(int lineNum);
 
-  public void addComment(String comment);
+  public void addComment(String comment, int lineNum);
 
   public WritableStatement removeNameValuePair(String name);
 

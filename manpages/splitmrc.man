@@ -1,6 +1,6 @@
 .na
 .nh
-.TH splitmrc 1 2.40 BL3DEMC
+.TH splitmrc 1 2.40 IMOD
 .SH NAME
 splitmrc \- Split an MRC file into CD-sized chucks
 .SH SYNOPSIS

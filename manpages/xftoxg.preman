@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xftoxg 1 4.6.34 BL3DEMC
+.TH xftoxg 1 4.6.34 IMOD
 .SH NAME
 xftoxg - Converts transforms between sections into alignment transforms
 .SH SYNOPSIS

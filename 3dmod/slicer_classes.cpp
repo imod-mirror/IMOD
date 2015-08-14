@@ -116,7 +116,7 @@ static PopupEntry sPopupTable[] = {
  */
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
                            bool rgba, bool doubleBuffer, bool enableDepth, 
-                           QWidget * parent, Qt::WFlags f) 
+                           QWidget * parent, Qt::WindowFlags f) 
   : QMainWindow(parent, f)
 {
   int j;
@@ -200,6 +200,13 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
     mLowHighActions[j]->setVisible(false);
     mLowHighStates[j] = SLICER_LIMIT_INVALID - 1;
   }
+
+  // Make a label for showing the band size while resizing.
+  // Tried a popup menu, which killed the band by stealing mouse movements
+  // Tried a QLabel over the image, it displayed a black box
+  mBandSizeLabel = new QLabel("100x100", this);
+  mBandSizeAction = mToolBar->addWidget(mBandSizeLabel);
+  mBandSizeAction->setVisible(false);
 
   utilTBPushButton("Help", this, mToolBar, &mHelpButton, "Open help window");
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
@@ -713,6 +720,18 @@ void SlicerWindow::enableLowHighButtons(int enable)
   for (int ind = 0; ind < 2; ind++) {
     setLowHighValidity(ind, SLICER_LIMIT_INVALID);
     mLowHighActions[ind]->setVisible(enable != 0);
+  }
+}
+
+void SlicerWindow::manageBandSize(int xsize, int ysize, int action)
+{
+  QString str;
+  str.sprintf("%dx%d", xsize, ysize);
+  mBandSizeLabel->setText(str);
+  if (action >= 0) {
+    mBandSizeAction->setVisible(action > 0);
+    mLowHighActions[0]->setVisible(action == 0);
+    mLowHighActions[1]->setVisible(action == 0);
   }
 }
 

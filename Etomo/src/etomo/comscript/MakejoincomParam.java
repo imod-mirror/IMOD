@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
@@ -27,15 +26,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> Old log: Makejoincom.java,v
  * <p> Revision 1.1.2.1  2004/09/29 17:46:50  sueh
@@ -225,8 +220,6 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class MakejoincomParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   public static final int MIDAS_LIMIT_DEFAULT = 1024;
 
   private static final int commandSize = 3;
@@ -287,24 +280,24 @@ public final class MakejoincomParam implements CommandDetails {
         File section = screen.getSetupSection();
         if (i < totalRows - 1) {
           options.add("-top");
-          //both numbers must exist
+          // both numbers must exist
           options.add(screen.getSampleTopStart().toString() + ","
-              + screen.getSampleTopEnd().toString());
+            + screen.getSampleTopEnd().toString());
         }
         if (i != 0) {
           options.add("-bot");
-          //both numbers must exist
+          // both numbers must exist
           options.add(screen.getSampleBottomStart().toString() + ","
-              + screen.getSampleBottomEnd().toString());
+            + screen.getSampleBottomEnd().toString());
         }
-        //Is the volume rotated?
+        // Is the volume rotated?
         if (screen.isRotated()) {
           rotate = true;
-          //Get the rotation angles from the screen.  Use 0 in place of null.
+          // Get the rotation angles from the screen. Use 0 in place of null.
           ConstEtomoNumber rotationAngleX = screen.getRotationAngleX();
           ConstEtomoNumber rotationAngleY = screen.getRotationAngleY();
           ConstEtomoNumber rotationAngleZ = screen.getRotationAngleZ();
-          //Save the angles, so they can be saved in the state object.
+          // Save the angles, so they can be saved in the state object.
           SlicerAngles rotationAngles = new SlicerAngles();
           rotationAngles.setX(rotationAngleX);
           rotationAngles.setY(rotationAngleY);
@@ -314,8 +307,8 @@ public final class MakejoincomParam implements CommandDetails {
           }
           Integer hashKey = new Integer(i);
           rotationAnglesList.put(hashKey, rotationAngles);
-          //The rotation file does not exist or the angles have changed.
-          //Add the -rot option to run rotatevol and save the angles.
+          // The rotation file does not exist or the angles have changed.
+          // Add the -rot option to run rotatevol and save the angles.
           options.add("-rot");
           StringBuffer buffer = new StringBuffer();
           buffer.append(rotationAngleX.getDefaultedDouble());
@@ -325,24 +318,24 @@ public final class MakejoincomParam implements CommandDetails {
           buffer.append(rotationAngleZ.getDefaultedDouble());
           options.add(buffer.toString());
           options.add("-maxxysize");
-          //Get the .rot file
+          // Get the .rot file
           String rotFileName = section.getName();
           int extIndex = rotFileName.lastIndexOf('.');
           if (extIndex == -1) {
             rotFileName = rotFileName + DatasetFiles.ROTATED_TOMO_EXT;
           }
           else {
-            rotFileName = rotFileName.substring(0, extIndex)
-                + DatasetFiles.ROTATED_TOMO_EXT;
+            rotFileName =
+              rotFileName.substring(0, extIndex) + DatasetFiles.ROTATED_TOMO_EXT;
           }
           File rotFile = new File(manager.getPropertyUserDir(), rotFileName);
-          //See if the rotation file exists and has the same angles
+          // See if the rotation file exists and has the same angles
           SlicerAngles curRotationAngles = state.getRotationAngles(hashKey);
           if (rotFile.exists() && curRotationAngles != null
-              && rotationAngleX.equals(curRotationAngles.getX())
-              && rotationAngleY.equals(curRotationAngles.getY())
-              && rotationAngleZ.equals(curRotationAngles.getZ())) {
-            //Use the existing .rot file, since the angles haven't changed.
+            && rotationAngleX.equals(curRotationAngles.getX())
+            && rotationAngleY.equals(curRotationAngles.getY())
+            && rotationAngleZ.equals(curRotationAngles.getZ())) {
+            // Use the existing .rot file, since the angles haven't changed.
             options.add("-already");
           }
         }
@@ -379,8 +372,8 @@ public final class MakejoincomParam implements CommandDetails {
     return commandName;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+  public ArrayList<String> getLogMessage() throws LogFile.LockException,
+    FileNotFoundException, IOException {
     return null;
   }
 
@@ -470,8 +463,7 @@ public final class MakejoincomParam implements CommandDetails {
   }
 
   public static final class Fields implements etomo.comscript.FieldInterface {
-    private Fields() {
-    }
+    private Fields() {}
 
     public static final Fields ROTATE = new Fields();
     public static final Fields ROTATION_ANGLES_LIST = new Fields();

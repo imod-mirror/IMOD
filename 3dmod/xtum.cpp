@@ -173,7 +173,7 @@ static const char *sliderLabels[] = {"Black Threshold", "White Threshold"};
 
 TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
             bool doubleBuffer, bool enableDepth, QWidget * parent,
-            const char * name, Qt::WFlags f)
+            const char * name, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   int j;

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH joinmodel 1 4.6.34 BL3DEMC
+.TH joinmodel 1 4.6.34 IMOD
 .SH NAME
 joinmodel - to join two models together
 .SH SYNOPSIS

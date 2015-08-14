@@ -116,28 +116,32 @@ if typeName == 'xcorr_pt':
    else:
       exitError("Cannot find tiltxcorr command line in file")
 
-   try:
-      if os.path.exists(rootname + '.preali'):
+   # If the preali does not exist or there is an error reading the header, fall back
+   # to the raw stack size, enhanced properly for montage
+   needRaw = True
+   if os.path.exists(rootname + '.preali'):
+      try:
          (nx, ny, nz) = getmrcsize(rootname + '.preali')
-      else:
+         needRaw = False
+      except ImodpyError:
+         pass
 
+   if needRaw:
+      try:
          # Get the raw stack size, assuming a montage if there is a .pl
          if os.path.exists(rootname + '.pl'):
-            sizeLines = runcmd(fmtstr('montagesize {0}.st {0}.pl', rootname))
-            line = sizeLines[-1]
-            ind = line.find('NZ:')
-            lsplit = line[ind + 3:].split()
-            nx = int(lsplit[0])
-            ny= int(lsplit[1])
+            (montx, monty, montz) = getMontageSize(rootname + '.st', rootname + '.pl')
+            (nx, ny) = runGoodframe(montx, monty)
+            if nx < 0:
+               exitError('Running goodframe to get prealigned stack size')
+               
          else:
             (nx, ny, nz) = getmrcsize(rootname + '.st')
          nx /= binning
          ny /= binning
          
-   except ImodpyError:
-      exitFromImodError(progname)
-   except ValueError:
-      exitError('Getting size from montagesize output')
+      except ImodpyError:
+         exitFromImodError(progname)
 
    fidExt = '.fid'
    fidExt = '_pt.fid'

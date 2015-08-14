@@ -1,6 +1,6 @@
 .na
 .nh
-.TH extractmagrad 1 4.6.34 BL3DEMC
+.TH extractmagrad 1 4.6.34 IMOD
 .SH NAME
 extractmagrad - Extract mag gradients for each image from header
 .SH SYNOPSIS

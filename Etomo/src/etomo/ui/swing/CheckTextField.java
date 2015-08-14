@@ -26,15 +26,11 @@ import etomo.util.Utilities;
  * when the check box is checked.  Implements StateChangeSource with its state equal to
  * whether it has changed since it was checkpointed.</p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.6  2011/05/03 03:13:51  sueh
@@ -65,8 +61,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 final class CheckTextField implements UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox checkBox;
   private final JTextField textField = new JTextField();
@@ -75,11 +69,10 @@ final class CheckTextField implements UIComponent, SwingComponent {
   private final FieldType fieldType;
 
   private String checkpointValue = null;
-  private EtomoNumber nCheckpointValue = null;
   private boolean required = false;
 
   private CheckTextField(final FieldType fieldType, final String label,
-      final EtomoNumber.Type numericType) {
+    final EtomoNumber.Type numericType) {
     this.label = label;
     this.numericType = numericType;
     this.fieldType = fieldType;
@@ -96,7 +89,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
   }
 
   static CheckTextField getNumericInstance(final FieldType fieldType,
-      final String tfLabel, final EtomoNumber.Type numericType) {
+    final String tfLabel, final EtomoNumber.Type numericType) {
     CheckTextField instance = new CheckTextField(fieldType, tfLabel, numericType);
     instance.createPanel();
     instance.updateDisplay();
@@ -116,10 +109,10 @@ final class CheckTextField implements UIComponent, SwingComponent {
     checkBox.setText(label);
     String name = Utilities.convertLabelToName(label);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+        + ' ');
     }
   }
 
@@ -130,23 +123,11 @@ final class CheckTextField implements UIComponent, SwingComponent {
   void checkpoint(final boolean checkboxValue, final String textValue) {
     checkBox.checkpoint(checkboxValue);
     checkpointValue = textValue;
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   void checkpoint() {
     checkBox.checkpoint();
     checkpointValue = getText();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -167,34 +148,39 @@ final class CheckTextField implements UIComponent, SwingComponent {
   }
 
   /**
-   * First checks the checkbox and returns true if the checkbox is different from its
-   * checkpoint.  Then it returns false if the checkbox is not selected, since the value
-   * of the text field is not in use.  Also, if the field is disabled then return false
-   * because its value doesn't matter.  Then it returns true if the checkpoint has not
-   * been done; the checkpoint value is from an outside value, so the current value must
-   * be different from a non-existant checkpoint value.  After eliminating these
-   * possibilities, it returns a boolean based on the difference between the text field
-   * value and the checkpointed value.
-   * @return
+   * @return true if checkBox is visible, enabled, and different from checkpoint or text field is visible, enabled, and different from checkpoint
    */
   boolean isDifferentFromCheckpoint() {
-    if (!checkBox.isEnabled() && !textField.isEnabled()
-        || (!checkBox.isVisible() && !textField.isVisible())) {
-      return false;
-    }
     if (checkBox.isDifferentFromCheckpoint()) {
       return true;
     }
-    if (!checkBox.isSelected() || !textField.isEnabled() || !textField.isVisible()) {
+    // Check the text field.
+    // Disabled or invisible fields cause this function to return false.
+    if (!checkBox.isEnabled() || !checkBox.isSelected() || !textField.isEnabled()
+      || !textField.isVisible()) {
       return false;
     }
     if (checkpointValue == null) {
       return true;
     }
-    if (numericType == null) {
-      return !checkpointValue.equals(textField.getText());
+    // Compare as a number if checkpoint and text are both numbers
+    EtomoNumber.Type type = null;
+    if (fieldType == FieldType.FLOATING_POINT) {
+      type = EtomoNumber.Type.DOUBLE;
     }
-    return !nCheckpointValue.equals(textField.getText());
+    else if (fieldType == FieldType.INTEGER) {
+      type = EtomoNumber.Type.LONG;
+    }
+    EtomoNumber checkpointNumber = new EtomoNumber(type);
+    checkpointNumber.set(checkpointValue);
+    if (checkpointNumber.isValid()) {
+      EtomoNumber currentNumber = new EtomoNumber(type);
+      currentNumber.set(textField.getText());
+      if (currentNumber.isValid()) {
+        return !checkpointNumber.equals(currentNumber);
+      }
+    }
+    return !checkpointValue.equals(textField.getText());
   }
 
   boolean isEnabled() {
@@ -289,8 +275,9 @@ final class CheckTextField implements UIComponent, SwingComponent {
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(),
-          required, false);
+      text =
+        FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), required,
+          false, null);
     }
     return text;
   }

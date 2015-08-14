@@ -1,6 +1,6 @@
 .na
 .nh
-.TH resamplemod 1 4.6.34 BL3DEMC
+.TH resamplemod 1 4.6.34 IMOD
 .SH NAME
 resamplemod - Turn a model perpendicular to Z axis and resection
 .SH SYNOPSIS

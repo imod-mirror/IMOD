@@ -22,6 +22,7 @@
 #include <qstring.h>
 #include <qapplication.h>
 #include <QTimerEvent>
+#include <QDesktopWidget>
 #include "imod_assistant.h"
 #include "imodqtassist.h"
 
@@ -57,6 +58,12 @@ int main(int argc, char *argv[])
   QApplication qapp(argc, argv);
   setlocale(LC_NUMERIC, "C");
 
+  if (argc == 2 && !strcmp(argv[ind], "-d")) {
+    printf("Desktop DPI = %d  %d\n", QApplication::desktop()->physicalDpiX(), 
+           QApplication::desktop()->physicalDpiY());
+    exit(0);
+  }
+
   if (argc < 2) {
     fprintf(stderr, "Usage: imodqtassist [options] path_to_help_collection_file\n");
     fprintf(stderr, "   Options:\n");
@@ -67,8 +74,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\t-q pref\tPrefix to use in front of help page name\n");
     fprintf(stderr, "\t-b\tPrefix is absolute, not appended to qthelp://bl3demc/IMOD/\n");
     fprintf(stderr, "\t-k\tKeep the sidebar (do not hide it)\n");
-    fprintf(stderr, "\t-t\tReport ideal thread count (number of processors) "
-            "and exit\n");
+    fprintf(stderr, "\t-t\tReport ideal thread count (number of processors) and exit\n");
+    fprintf(stderr, "\t-d\tReport resolution of desktop in dots/inch (DPI) and exit\n");
     exit(1);
   }
 

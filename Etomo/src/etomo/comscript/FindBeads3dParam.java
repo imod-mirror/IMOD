@@ -3,12 +3,14 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
@@ -22,15 +24,11 @@ import etomo.type.StringParameter;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 3.10  2011/04/09 06:23:04  sueh
@@ -67,8 +65,6 @@ import etomo.type.StringParameter;
  * <p> </p>
  */
 public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandParam {
-  public static final String rcsid = "$Id$";
-
   public static final String BEAD_SIZE_TAG = "BeadSize";
   public static final String LIGHT_BEADS_TAG = "LightBeads";
   public static final String MIN_RELATIVE_STRENGTH_TAG = "MinRelativeStrength";
@@ -93,8 +89,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
       MIN_SPACING_TAG);
   private final ScriptParameter guessNumBeads = new ScriptParameter(GUESS_NUM_BEADS_TAG);
   private final ScriptParameter maxNumBeads = new ScriptParameter(MAX_NUM_BEADS_TAG);
-  private final ScriptParameter binningOfVolume = new ScriptParameter(
-     "BinningOfVolume");
+  private final ScriptParameter binningOfVolume = new ScriptParameter("BinningOfVolume");
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -130,8 +125,8 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
     minSpacing.parse(scriptCommand);
     guessNumBeads.parse(scriptCommand);
     maxNumBeads.parse(scriptCommand);
-    //binningOfVolume is not displayed and it is always derived from the
-    //inputFile.
+    // binningOfVolume is not displayed and it is always derived from the
+    // inputFile.
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -210,7 +205,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
     return minSpacing.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }
@@ -269,7 +264,14 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
   }
 
   public String getCommandName() {
-    return FileType.FIND_BEADS_3D_COMSCRIPT.getTypeString(manager);
+    AxisType axisType = null;
+    if (manager != null) {
+      BaseMetaData metaData = manager.getBaseMetaData();
+      if (metaData != null) {
+        axisType = metaData.getAxisType();
+      }
+    }
+    return FileType.FIND_BEADS_3D_COMSCRIPT.getTypeString(axisType);
   }
 
   public File getCommandOutputFile() {

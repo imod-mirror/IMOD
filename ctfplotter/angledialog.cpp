@@ -9,11 +9,10 @@
 * 
 *  $Id$
 */
-#include <QtGui>
 
+#include "myapp.h"
 #include "angledialog.h"
 #include "plotter.h"
-#include "myapp.h"
 #include "b3dutil.h"
 #include "ilist.h"
 #include "parse_params.h" //for exitError()

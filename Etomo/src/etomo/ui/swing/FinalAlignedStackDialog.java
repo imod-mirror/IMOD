@@ -54,6 +54,7 @@ import etomo.type.ViewType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -221,7 +222,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private final LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
       FieldType.FLOATING_POINT_PAIR, "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif"));
+      ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+        : "images/openFileFool.png"));
   private final LabeledTextField ltfMtfFile = new LabeledTextField(FieldType.STRING,
       MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
@@ -1009,7 +1011,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   private void chooseConfigFile(FileTextField fileTextField) {
     JFileChooser chooser = new FileChooser(expert.getConfigDir());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -1023,12 +1025,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     btnCtfPlotter.setEnabled(enable);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
@@ -1038,7 +1034,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void buttonAction(final String command, final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFilter.getActionCommand())) {
       expert.mtffilter(btnFilter, null, deferred3dmodButton, run3dmodMenuOptions);
@@ -1093,6 +1089,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       return ProcessingMethod.PP_CPU;
     }
     return ProcessingMethod.LOCAL_CPU;
+  }
+
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
   }
 
   private void changeTab() {
@@ -1176,7 +1176,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.MTF_FILTER,
-          axisID);
+          axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1209,7 +1209,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
         + "aligned stack.");
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CTF_PLOTTER, axisID);
+          AutodocFactory.CTF_PLOTTER, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1246,7 +1246,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     btnCtfPlotter.setToolTipText("Run ctfplotter");
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CTF_PHASE_FLIP, axisID);
+          AutodocFactory.CTF_PHASE_FLIP, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1290,7 +1290,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 

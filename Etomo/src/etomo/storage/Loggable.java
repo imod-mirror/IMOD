@@ -2,20 +2,16 @@ package etomo.storage;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.3  2010/02/17 04:49:31  sueh
@@ -30,9 +26,7 @@ import java.util.List;
  * <p> </p>
  */
 public interface Loggable {
-  public static final String rcsid = "$Id$";
-
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException;
 
   public String getName();

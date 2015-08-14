@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodfindbeads 1 2.50 BL3DEMC
+.TH imodfindbeads 1 2.50 IMOD
 .SH NAME
 imodfindbeads \- Find gold particles in images
 .SH SYNOPSIS

@@ -37,6 +37,7 @@ class MultiSlider;
 class QComboBox;
 class QCheckBox;
 class QSpinBox;
+class QLabel;
 
 class ImodvStereo : public DialogFrame
 {
@@ -47,11 +48,13 @@ class ImodvStereo : public DialogFrame
   ~ImodvStereo() {};
 
   void update();
+  void manageHWlabel();
   QComboBox *mComboBox;
   MultiSlider *mSlider;
   QCheckBox *mImageBox;
   QSpinBox *mViewsAreaSpin;
   QSpinBox *mDeltaZspin;
+  QLabel *mHWonMacLabel;
 
   public slots:
     void newOption(int item);

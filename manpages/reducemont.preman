@@ -1,6 +1,6 @@
 .na
 .nh
-.TH reducemont 1 4.6.34 BL3DEMC
+.TH reducemont 1 4.6.34 IMOD
 .SH NAME
 reducemont - recuts montaged images and reduces them by pixel binning
 .SH SYNOPSIS

@@ -17,10 +17,12 @@ import etomo.ui.swing.Token;
 */
 abstract class WriteOnlyAttributeList {
   public static final String rcsid = "$Id$";
-  
-  abstract WriteOnlyAttributeList addAttribute(Token name);
+
+  abstract WriteOnlyAttributeList addAttribute(Token name, int lineNum);
+
   abstract boolean isGlobal();
-  abstract boolean isAttribute();  
+
+  abstract boolean isAttribute();
 }
 /**
 * <p> $Log$

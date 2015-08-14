@@ -49,7 +49,8 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   private static final String PROCESS_NAME_LABEL = "Process name: ";
 
   private final ImageIcon iconFolder = new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif"));
+      ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+        : "images/openFileFool.png"));
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final JPanel pnlProcessName = new JPanel();
   private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
@@ -83,7 +84,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     ltfProcessName.setTextPreferredSize(new Dimension(125 * (int) Math
-        .round(UIParameters.INSTANCE.getFontSizeAdjustment()),
+        .round(UIParameters.getInstance().getFontSizeAdjustment()),
         FixedDim.folderButton.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(ltfProcessName.getContainer(), constraints);
@@ -112,6 +113,10 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
    */
   public ProcessingMethod getProcessingMethod() {
     return ProcessingMethod.PP_CPU;
+  }
+
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
   }
 
   public void disableGpu(final boolean disable) {

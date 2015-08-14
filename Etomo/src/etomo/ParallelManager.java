@@ -375,7 +375,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     try {
-      imodManager.open(fileType.getImodManagerKey(this), file, menuOptions, flip);
+      imodManager.open(fileType.getImodManagerKey(), file, menuOptions, flip);
     }
     catch (IOException e) {
       e.printStackTrace();

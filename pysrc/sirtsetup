@@ -83,10 +83,11 @@ from pysed import *
 # Initializations (defaults are in Pip calls)
 recchunk = ""
 projchunk = ""
+targetChunks = ""
 
 # Fallbacks from ../manpages/autodoc2man 3 1 sirtsetup
-options = ["co:CommandFile:FN:", "nu:NumberOfProcessors:I:", "st:StartFromZero:B:",
-           "re:ResumeFromIteration:I:", "it:IterationsToRun:I:",
+options = ["co:CommandFile:FN:", "nu:NumberOfProcessors:I:", "ra:ChunksPerProcessor:I:",
+           "st:StartFromZero:B:", "re:ResumeFromIteration:I:", "it:IterationsToRun:I:",
            "le:LeaveIterations:LI:", "sk:SkipVertSliceOutput:B:",
            "cl:CleanUpPastStart:B:", "su:SubareaSize:IP:", "yo:YOffsetOfSubarea:I:",
            "sc:ScaleToInteger:FP:", "tr:TrimvolOptions:CH:", "fl:FlatFilterFraction:F:",
@@ -103,6 +104,7 @@ comfile = PipGetInOutFile('CommandFile', 0)
 # Get options
 numproc = PipGetInteger('NumberOfProcessors', 8)
 procEntered = 1 - PipGetErrNo()
+chunkPerProc = PipGetInteger('ChunksPerProcessor', 0)
 
 if PipGetBoolean('SeparateRecChunks', 0):
    recchunk = "-c"
@@ -171,6 +173,9 @@ if xtiltArr:
 # If GPU is used and number of procs not entered, assume 1 not 8
 if useGPU != None and useGPU >= 0 and not procEntered:
    numproc = 1
+
+if numproc > 1 and chunkPerProc > 0:
+   targetChunks = fmtstr('-t {} -m {}', numproc * chunkPerProc, numproc)
 
 # Figure out if it can be done with internal SIRT
 simpleBP = localali == None and zfactors == None
@@ -511,9 +516,9 @@ if startfirst:
 
    if numproc > 1:
       try:
-         cmdline = fmtstr('splittilt -d {},{} -n {} -o {} -b {} -i {} {} {}', \
-                   alix, aliy, numproc, recchunk, boundpixels, comnum,
-                    doVert, sirtcom)
+         cmdline = fmtstr('splittilt -d {},{} -n {} {} -o {} -b {} -i {} {} {}', 
+                          alix, aliy, numproc, targetChunks, recchunk, boundpixels,
+                          comnum, doVert, sirtcom)
          splitout = runcmd(cmdline)
          numchunk = findSplitComNumber(splitout, 'initial run')
 
@@ -610,8 +615,9 @@ while loopIter < iterations:
    pysed(sedlist, comlines, sirtcom, True)
    if numproc > 1:
       try:
-         cmdline = fmtstr('splittilt -d {},{} -n {} -o {} -b {} -i {} {} {}', \
-                   alix, aliy, numproc, thisChunk, boundpixels, comnum, doVert, sirtcom)
+         cmdline = fmtstr('splittilt -d {},{} -n {} {} -o {} -b {} -i {} {} {}', 
+                          alix, aliy, numproc, targetChunks, thisChunk, boundpixels,
+                          comnum, doVert, sirtcom)
          splitout = runcmd(cmdline)
          numchunk = findSplitComNumber(splitout,
                                        fmtstr('projection for iteration {}', recnum))
@@ -651,8 +657,9 @@ while loopIter < iterations:
       pysed(sedlist, comlines, sirtcom, True)
       if numproc > 1:
          try:
-            cmdline = fmtstr('splittilt -d {},{} -n {} -o {} -b {} -i {} {}', \
-                      alix, aliy, numproc, recchunk, boundpixels, comnum, sirtcom)
+            cmdline = fmtstr('splittilt -d {},{} -n {} {} -o {} -b {} -i {} {}', 
+                             alix, aliy, numproc, targetChunks, recchunk, boundpixels,
+                             comnum, sirtcom)
             splitout = runcmd(cmdline)
             numchunk = findSplitComNumber(splitout, 'difference reconstructi'+\
                                           fmtstr('on for iteration # {}', recnum))

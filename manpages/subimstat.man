@@ -1,6 +1,6 @@
 .na
 .nh
-.TH subimstat 1 4.6.34 BL3DEMC
+.TH subimstat 1 4.6.34 IMOD
 .SH NAME
 subimstat - Subtracts one average image from another with a t-test
 .SH SYNOPSIS

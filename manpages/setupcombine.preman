@@ -1,6 +1,6 @@
 .na
 .nh
-.TH setupcombine 1 4.2.9 BL3DEMC
+.TH setupcombine 1 4.2.9 IMOD
 .SH NAME
 setupcombine \- Create command files for combining dual-axis tomograms
 .SH SYNOPSIS
@@ -12,7 +12,9 @@ tomograms into one.  These files include solvematch.com, matchvol1.com,
 patchcorr.com, matchorwarp.com, volcombine.com, and combine.com, which are all
 used for processing in eTomo.  Files matchvol2.com and warpvol.com are also
 created and could be used at the command line instead of the matchorwarp
-step.
+step.  In all of the parameter entries, Z refers to the thickness
+dimension, although this corresponds to the Y dimension of the volumes
+when running the underlying programs.
 
 .SH OPTIONS
 Setupcombine uses the PIP package for input (see the manual page for pip(1)).

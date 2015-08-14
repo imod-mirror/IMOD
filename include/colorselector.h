@@ -72,7 +72,7 @@ class DLL_IM_EX ColorSelector : public DialogFrame
  public:
   ColorSelector(QWidget *parent, QString label, int red, int green, int blue, 
                 int hotFlag, int hotKey, bool rounded, const char *name = NULL,
-                Qt::WFlags fl = Qt::Window);
+                Qt::WindowFlags fl = Qt::Window);
   ~ColorSelector();
   bool hotSliding() {return mDragging;};
 

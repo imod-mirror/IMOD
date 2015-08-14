@@ -412,7 +412,7 @@ public final class ToolsManager extends BaseManager {
    */
   public void imodViewModel(AxisID axisID, FileType modelFileType) {
     try {
-      imodManager.open(modelFileType.getImodManagerKey(this), axisID,
+      imodManager.open(modelFileType.getImodManagerKey(), axisID,
           modelFileType.getFileName(this, axisID));
     }
     catch (AxisTypeException except) {

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH slashfindspheres 1 2.00 BL3DEMC
+.TH slashfindspheres 1 2.00 IMOD
 .SH NAME
 slashfindspheres \- Inputs spheres from one or more scattered point objects 
 and outputs new spheres with similar pixel values (useful for small vesicles).

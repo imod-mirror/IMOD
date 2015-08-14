@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imavgstat 1 4.6.34 BL3DEMC
+.TH imavgstat 1 4.6.34 IMOD
 .SH NAME
 imavgstat - Computes mean and SD images, and means in selected areas
 .SH SYNOPSIS

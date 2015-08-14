@@ -95,10 +95,14 @@ absence of this option, the program will consider both directions of rotation.
 
 [Field = MirrorXaxis]
 short = x
-type = B
-usage = Mirror one image around X axis
+type = I
+usage = Mirror one image around X axis (1), do not mirror (-1), or try with
+and without mirroring (0, the default)
 tooltip =
-manpage = Mirror one image around the X axis before rotating by 90 degrees.
+manpage = This option controls whether the image from one stack is mirrored 
+around the X axis before rotating by 90 degrees.  Enter 1 to mirror
+always, -1 to never mirror, or 0 to have the program assess both with and
+without mirroring.  The default is 0.
 
 [Field = RunMidas]
 short = m
@@ -107,6 +111,21 @@ usage = Run Midas to set initial translational/rotational alignment
 tooltip =
 manpage = Run Midas on the first pair of views, and use the alignment that you set in
 Midas as the initial alignment for all pairs of views that are considered.
+
+[Field = ScanRotationMaxAndStep]
+short = scan
+type = FP
+usage = Maximum angle and step size to scan for best rotation, or one angle and 0
+tooltip =
+manpage = Either the maximum angle and angular step size at which to apply
+rotation in order to estimate the best rotation; or a single rotation angle to
+apply and a 0 step size; or 0,0 for no rotation scan (legacy behavior).  In
+the latter case, or when the rotation scan finds the best rotation at the end
+the range, an initial run of Xfsimplex(1) will be done to search for
+rotation/translation only.  The default is 20 and 4, which will accommodate
+inaccuracies in 90-degree rotation of up to ~22 degrees, and give fairly
+accurate interpolated rotation values that allow the first Xfsimplex(1) step to
+be skipped.
 
 [Field = CorrespondingCoordFile]
 short = c

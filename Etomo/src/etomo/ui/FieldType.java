@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import etomo.storage.DirectiveValueType;
+import etomo.type.EtomoNumber;
 
 /**
 * <p>Description: An enumerator class which decribes text field types.  Used for
@@ -97,6 +98,20 @@ public final class FieldType {
     }
     if (valueType == DirectiveValueType.FILE) {
       return FILE;
+    }
+    return null;
+  }
+
+  /**
+   * Return the largest possible equivalent numeric type.  Returns null for strings,
+   * arrays, and lists.
+   */
+  public EtomoNumber.Type getEtomoNumberType() {
+    if (this == FieldType.FLOATING_POINT) {
+      return EtomoNumber.Type.DOUBLE;
+    }
+    if (this == FieldType.INTEGER) {
+      return EtomoNumber.Type.LONG;
     }
     return null;
   }

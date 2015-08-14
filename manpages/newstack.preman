@@ -1,6 +1,6 @@
 .na
 .nh
-.TH newstack 1 4.6.34 BL3DEMC
+.TH newstack 1 4.6.34 IMOD
 .SH NAME
 newstack - Make a new mrc image stack.
 .SH SYNOPSIS

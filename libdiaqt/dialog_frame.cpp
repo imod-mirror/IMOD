@@ -38,7 +38,7 @@
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, const char *labels[], 
 			 const char *tips[],
 			 bool equalSized, const char *caption, const char *fallback,
-			 const char *name, Qt::WFlags fl)
+			 const char *name, Qt::WindowFlags fl)
   : QWidget(parent, fl)
 {
   makeDialogFrame(parent, numButtons, 1, labels, tips, equalSized, false,
@@ -53,7 +53,7 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, const char *labels[],
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
                          const char *labels[], const char *tips[], bool equalSized,
                          bool rounded, const char *caption, const char *fallback,
-			 const char *name, Qt::WFlags fl)
+			 const char *name, Qt::WindowFlags fl)
   : QWidget(parent, fl)
 {
   makeDialogFrame(parent, numButtons, numRows, labels, tips, equalSized, 
@@ -63,7 +63,7 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
 void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
                                   const char *labels[], const char *tips[],
                                   bool equalSized, bool rounded, const char *caption,
-                                  const char *fallback, Qt::WFlags fl)
+                                  const char *fallback, Qt::WindowFlags fl)
 {
   int i, row = 0, rowStart = 0;
   QString str;

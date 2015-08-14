@@ -363,7 +363,7 @@ void GrabSlicer::buttonPressed(int which)
   else {
     // For a plugin incorporated into IMOD, this is the path in the compiled qhc file
     // Always have an anchor #TOP at the top so Qt Assistant starts at the top
-    imodShowHelpPage("../plughelp/grabslicer.html#TOP");
+    imodShowHelpPage("plughelp/grabslicer.html#TOP");
 
     // Otherwise, use dia_vasmsg to pass a string from within the code (can contain html).
   }
@@ -464,7 +464,7 @@ QString GrabSlicer::scaleBarLine()
 {
   QString str = "", str2 = "";
   float zapLen, slicerLen, xyzLen, multiZlen, modvLen, useLen = -1., zoom;
-  int err = 1;
+  int thick, err = 1;
   scaleBarAllLengths(zapLen, slicerLen, xyzLen, multiZlen, modvLen);
   if (sPlug.enableScale)
     useLen = sPlug.slicerZap == 0 ? slicerLen : zapLen;
@@ -479,6 +479,13 @@ QString GrabSlicer::scaleBarLine()
   if (!err) {
     str2.sprintf("%sZoom: %g", str.isEmpty() ? "" : "      ", zoom);
     str += str2;
+  }
+  if (sPlug.slicerZap == 0) {
+    err = ivwGetTopSlicerThickness(sPlug.view, &thick);
+    if (!err) {
+      str2.sprintf("%sSlices: %d", str.isEmpty() ? "" : "      ", thick);
+      str += str2;
+    }
   }
   return str;
 }

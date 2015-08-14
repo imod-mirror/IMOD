@@ -1,6 +1,6 @@
 .na
 .nh
-.TH sirtsetup 1 3.10.15 BL3DEMC
+.TH sirtsetup 1 3.10.15 IMOD
 .SH NAME
 sirtsetup \- Produce multiple command files for iterative reconstruction
 .SH SYNOPSIS

@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "imodel.h"
 
 /* These values should match max_obj_num and max_pt in model.inc */
@@ -34,6 +35,16 @@
 #define FWRAP_ERROR_NO_VALUE      -8
 #define FWRAP_ERROR_STRING_LEN    -9
 #define FWRAP_ERROR_FROM_CALL     -10
+#define FWRAP_ERROR_OPENING_FILE  -11
+#define FWRAP_ERROR_READING_FILE  -12
+
+/* Move this number when an error is added */
+#define FWRAP_PAST_ERRORS         -13
+
+static char *sErrorStrings[] = 
+  {"FILE DOES NOT EXIST", "FILE IS NOT AN IMOD MODEL", "", "MODEL HAS NO OBJECTS", "",
+   "", "FAILURE TO ALLOCATE MEMORY", "", "", "", "FILE EXISTS BUT CANNOT BE OPENED",
+   "ERROR READING/PROCESSING MODEL FILE"};
 
 #define NO_VALUE_PUT           -9999.
 
@@ -44,6 +55,7 @@
 #define deleteimod   DELETEIMOD
 #define deleteiobj   DELETEIOBJ
 #define getimod      GETIMOD
+#define imodopenerror IMODOPENERROR
 #define putimod      PUTIMOD
 #define openimoddata OPENIMODDATA
 #define getimodhead  GETIMODHEAD
@@ -52,6 +64,7 @@
 #define putimageref  PUTIMAGEREF
 #define getimodmaxes GETIMODMAXES
 #define putimodmaxes PUTIMODMAXES
+#define getzfromminuspt5 GETZFROMMINUSPT5
 #define getimodscat  GETIMODSCAT
 #define getimodclip  GETIMODCLIP
 #define putimodscat  PUTIMODSCAT
@@ -104,6 +117,7 @@
 #define deleteimod   deleteimod_
 #define deleteiobj   deleteiobj_
 #define getimod      getimod_
+#define imodopenerror imodopenerror_
 #define putimod      putimod_
 #define openimoddata openimoddata_
 #define getimodhead  getimodhead_
@@ -112,6 +126,7 @@
 #define putimageref  putimageref_
 #define getimodmaxes getimodmaxes_
 #define putimodmaxes putimodmaxes_
+#define getzfromminuspt5 getzfromminuspt5_
 #define getimodclip  getimodclip_
 #define getimodscat  getimodscat_
 #define putimodscat  putimodscat_
@@ -214,6 +229,7 @@ static int sMaxValues = 0;
 static ValueStruct *sValuesPut = NULL;
 static NameStruct *sNamesPut = NULL;
 static int sNumNamesPut = 0;
+static int sLastOpenError = 0;
 
 /* Convenience pointers assigned by checkAssignObject... */
 static Iobj *sObj;
@@ -363,31 +379,42 @@ int openimoddata(char *fname, int fsize)
   Ipoint pnt;
   FILE *fin;
   char *cfilename;
+  struct stat buf;
+  int err;
 
+  sLastOpenError = FWRAP_ERROR_MEMORY;
   model = imodNew();
   if (!model)
-    return(-1);
+    return(FWRAP_ERROR_MEMORY);
 
   cfilename = f2cString(fname, fsize);
   if (!cfilename)
     return FWRAP_ERROR_MEMORY;
 
+  sLastOpenError = FWRAP_NOERROR;
   fin = fopen(cfilename, "rb");
-
+  if (!fin) {
+    if (stat(cfilename, &buf))
+      sLastOpenError = FWRAP_ERROR_BAD_FILENAME;
+    else
+      sLastOpenError = FWRAP_ERROR_OPENING_FILE;
+  }
   free(cfilename);
-
-  if (!fin)
-    return(FWRAP_ERROR_BAD_FILENAME);
+  if (sLastOpenError)
+    return(sLastOpenError);
 
   model->file = fin;
-  if (imodReadFile( model)) {
-    fclose(fin);
-    return(FWRAP_ERROR_FILE_NOT_IMOD);
-  }
+  err = imodReadFile( model);
   fclose(fin);
+  if (err) {
+    sLastOpenError = err == -2 ? FWRAP_ERROR_FILE_NOT_IMOD : FWRAP_ERROR_READING_FILE;
+    return(sLastOpenError);
+  }
 
-  if (!model->objsize)
+  if (!model->objsize) {
+    sLastOpenError = FWRAP_ERROR_NO_OBJECTS;
     return(FWRAP_ERROR_NO_OBJECTS);
+  }
 
   /* DNM: need to delete model to avoid memory leak */
   deleteFimod();
@@ -427,6 +454,16 @@ int openimoddata(char *fname, int fsize)
   }
   
   return FWRAP_NOERROR;
+}
+
+/*!
+ * Returns an error string from the last error opening a model into [errlen]
+ */
+void imodopenerror(char *error, int errlen)
+{
+  if (sLastOpenError > -1|| sLastOpenError <= FWRAP_PAST_ERRORS)
+    return c2fString("", error, errlen);
+  return c2fString(sErrorStrings[-1 - sLastOpenError], error, errlen);
 }
 
 /*!
@@ -1686,6 +1723,17 @@ int getimodmaxes(int *xmax, int *ymax, int *zmax)
 }
 
 /*!
+ * Returns 1 if the model flag is set that Z coordinates start at -0.5, or negative
+ * if there is no open model.
+ */
+int getzfromminuspt5()
+{
+  if (!sImod)
+    return(FWRAP_ERROR_NO_MODEL);
+  return (sImod->flags & IMODF_Z_FROM_MINUSPT5) ? 1 : 0;
+}
+  
+/*!
  * Returns header values: pixel size in microns in [um], Z-scale in [zscale],
  * offsets to get from model coordinates to full volume index coordinates in
  * [xoffset], [yoffset], [zoffset], and [ifflip] nonzero if Y/Z are flipped.
@@ -1779,6 +1827,11 @@ int putimageref(float *delta, float *origin)
   iref->ctrans.x = origin[0];
   iref->ctrans.y = origin[1];
   iref->ctrans.z = origin[2];
+  iref->otrans = iref->ctrans;
+  iref->crot.x = 0.;
+  iref->crot.y = 0.;
+  iref->crot.z = 0.;
+  sImod->flags |= IMODF_OTRANS_ORIGIN;
   return FWRAP_NOERROR;
 }
 
@@ -2021,8 +2074,8 @@ void putobjcolor(int *objnum, int *red, int *green, int *blue)
   int r = B3DMIN(255, B3DMAX(0, *red));
   int g = B3DMIN(255, B3DMAX(0, *green));
   int b = B3DMIN(255, B3DMAX(0, *blue));
-  int flag = ((r << FLAG_VALUE_SHIFT) | (g << FLAG_VALUE_SHIFT + 8) |
-              (b << FLAG_VALUE_SHIFT + 16)) + OBJECT_COLOR_FLAG;
+  int flag = ((r << FLAG_VALUE_SHIFT) | (g << (FLAG_VALUE_SHIFT + 8)) |
+              (b << (FLAG_VALUE_SHIFT + 16))) + OBJECT_COLOR_FLAG;
   putimodflag(objnum, &flag);
 }
 
@@ -2041,7 +2094,7 @@ void putsymsize(int *objnum, int *size)
  */
 void putvalblackwhite(int *objnum, int *black, int *white)
 {
-  int flag = (*black << FLAG_VALUE_SHIFT) + (*white << FLAG_VALUE_SHIFT + 8) +
+  int flag = (*black << FLAG_VALUE_SHIFT) + (*white << (FLAG_VALUE_SHIFT + 8)) +
     VAL_BLACKWHITE_FLAG;
   putimodflag(objnum, &flag);
 }

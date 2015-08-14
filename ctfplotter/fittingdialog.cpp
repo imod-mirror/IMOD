@@ -3,18 +3,17 @@
 *
 *  Author: Quanren Xiong
 *
-*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
-*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Copyright (C) 2008-2015 by the Regents of the University of 
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
 */
 
-#include <QtGui>
+#include "myapp.h"
 #include <stdio.h>
 
 #include "fittingdialog.h"
-#include "myapp.h"
+
 #define PRECISION 0.00005
 
 FittingDialog::FittingDialog(MyApp *app, QWidget *parent) :QDialog(parent)
@@ -133,6 +132,16 @@ FittingDialog::FittingDialog(MyApp *app, QWidget *parent) :QDialog(parent)
   vbox2->setSpacing(0);
   vbox2->setContentsMargins(5, 2, 5, 5);
 
+  QHBoxLayout *baseOrderHbox = new QHBoxLayout;
+  mBaselineLabel = new QLabel(tr("Baseline fitting order:"), this);
+  baseOrderHbox->addWidget(mBaselineLabel);
+  mBaselineSpinBox = new QSpinBox(this);
+  mBaselineSpinBox->setRange(0, 4);
+  mBaselineSpinBox->setSingleStep(1);
+  mBaselineSpinBox->setValue(mApp->getBaselineOrder());
+  baseOrderHbox->addWidget(mBaselineSpinBox);
+  mBaselineSpinBox->setToolTip("Set the order for a polynomial fit to make baseline "
+                               "flat, or 0 for none (hot keys 0 to 4 in plotter window)");
 
   mApplyButton= new QPushButton( tr("&Apply"), this);
   mApplyButton->setDefault(true);
@@ -155,12 +164,10 @@ FittingDialog::FittingDialog(MyApp *app, QWidget *parent) :QDialog(parent)
   connect(mX1SimplexRadio, SIGNAL(clicked()), this, SLOT(x1SimplexChecked()) );
   connect(mX2LinearRadio, SIGNAL(clicked()), this, SLOT(x2LinearChecked()) );
   connect(mX2SimplexRadio, SIGNAL(clicked()), this, SLOT(x2SimplexChecked()) );
-  connect(zeroButGroup, SIGNAL(buttonClicked(int)), this, 
-          SLOT(zeroMethodClicked(int)));
-  connect(mPowerCheckBox, SIGNAL(clicked(bool)), this, 
-          SLOT(fitPowerClicked(bool)));
-  connect(mOrderSpinBox, SIGNAL(valueChanged(int)), this,
-          SLOT(orderChanged(int)));
+  connect(zeroButGroup, SIGNAL(buttonClicked(int)), this, SLOT(zeroMethodClicked(int)));
+  connect(mPowerCheckBox, SIGNAL(clicked(bool)), this, SLOT(fitPowerClicked(bool)));
+  connect(mOrderSpinBox, SIGNAL(valueChanged(int)), this, SLOT(orderChanged(int)));
+  connect(mBaselineSpinBox, SIGNAL(valueChanged(int)), this, SLOT(baseOrderChanged(int)));
 
   QHBoxLayout *x1HLayout_1=new QHBoxLayout;
   x1HLayout_1->addWidget(mX1_label_1);
@@ -207,6 +214,7 @@ FittingDialog::FittingDialog(MyApp *app, QWidget *parent) :QDialog(parent)
   mainLayout->addLayout(orderHbox);
   mainLayout->addLayout(x1HLayout_3);
   mainLayout->addLayout(x2HLayout_3);
+  mainLayout->addLayout(baseOrderHbox);
   mainLayout->addLayout(lowHLayout);
   manageWidgets(which);
 }
@@ -291,6 +299,18 @@ void FittingDialog::orderChanged(int value)
 {
   mApp->setPolynomialOrder(value);
   rangeSetted();
+}
+
+void FittingDialog::baseOrderChanged(int value)
+{
+  mApp->setBaselineOrder(value);
+}
+
+void FittingDialog::setBaselineOrder(int value)
+{
+  mBaselineSpinBox->blockSignals(true);
+  mBaselineSpinBox->setValue(value);
+  mBaselineSpinBox->blockSignals(false);
 }
 
 void FittingDialog::manageWidgets(int which)

@@ -36,7 +36,7 @@ class ImodvOlist : public QWidget
   Q_OBJECT
 
  public:
-  ImodvOlist(QWidget *parent, Qt::WFlags fl = Qt::Window);
+  ImodvOlist(QWidget *parent, Qt::WindowFlags fl = Qt::Window);
   ~ImodvOlist() {};
   QFrame *mFrame;
   QScrollArea *mScroll;

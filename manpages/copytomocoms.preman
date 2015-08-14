@@ -1,6 +1,6 @@
 .na
 .nh
-.TH copytomocoms 1 4.2.9 BL3DEMC
+.TH copytomocoms 1 4.2.9 IMOD
 .SH NAME
 copytomocoms \- Create command files for generating tomograms
 .SH SYNOPSIS

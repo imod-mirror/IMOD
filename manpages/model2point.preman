@@ -1,6 +1,6 @@
 .na
 .nh
-.TH model2point 1 4.6.34 BL3DEMC
+.TH model2point 1 4.6.34 IMOD
 .SH NAME
 model2point - converts model file to point file
 .SH SYNOPSIS

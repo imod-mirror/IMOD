@@ -1,6 +1,6 @@
 .na
 .nh
-.TH subm/submfg 1 4.6.22 BL3DEMC
+.TH subm/submfg 1 4.6.22 IMOD
 .SH NAME
 subm/submfg -\ Run an IMOD command file in the background or foreground
 .SH SYNOPSIS

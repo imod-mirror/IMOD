@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xfproduct 1 4.6.34 BL3DEMC
+.TH xfproduct 1 4.6.34 IMOD
 .SH NAME
 xfproduct - forms product of two lists of transformations
 .SH SYNOPSIS

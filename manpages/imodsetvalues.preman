@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodsetvalues 1 4.5.7 BL3DEMC
+.TH imodsetvalues 1 4.5.7 IMOD
 .SH NAME
 imodsetvalues \- store per point or per contour values in an IMOD model.
 .SH SYNOPSIS

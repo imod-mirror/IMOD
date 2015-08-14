@@ -208,7 +208,7 @@ c
       call ialsiz(5,nxyz,nxyzst)
       call ialsam(5,nxyz)
       call ialcel(5,cell)
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
 c       
       write(titlech,3000) dat,tim

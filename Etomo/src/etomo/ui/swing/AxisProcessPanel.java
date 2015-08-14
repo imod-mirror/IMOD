@@ -7,27 +7,28 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import javax.swing.*;
-
 import java.awt.Rectangle;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
@@ -277,22 +278,30 @@ import etomo.type.ProcessName;
  * <p> </p>
  */
 
-public abstract class AxisProcessPanel implements ContextMenu {
-  public static final String rcsid = "$Id$";
-
+public abstract class AxisProcessPanel implements ContextMenu, ActionListener {
   public static final String KILL_BUTTON_LABEL = "Kill Process";
 
-  protected final BaseManager manager;
-  protected final AxisID axisID;
+  private final JPanel panelRoot = new JPanel();
+  private final JPanel panelProcessInfo = new JPanel();
+  private final JPanel outerStatusPanel = new JPanel();
+  private final JPanel innerStatusPanel = new JPanel();
+  private final JPanel panelDialog = new JPanel();
+  private final JPanel parallelStatusPanel = new JPanel();
+  private final EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.Type.INTEGER);
+  private final SimpleButton buttonKillProcess = new SimpleButton(KILL_BUTTON_LABEL);
+  final JPanel panelProcessSelect = new JPanel();
 
-  protected JPanel panelRoot = new JPanel();
-  private JPanel panelProcessInfo = new JPanel();
-  protected final JPanel outerStatusPanel = new JPanel();
-  protected final JPanel innerStatusPanel = new JPanel();
-  protected JPanel panelDialog = new JPanel();
-  protected final JPanel parallelStatusPanel = new JPanel();
-  private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.Type.INTEGER);
-  private KillButtonActionListener actionListener;
+  final BaseManager manager;
+  final AxisID axisID;
+  private final InterfaceType interfaceType;
+  private final boolean popupChunkWarnings;
+  /**
+   * False if parallel processing tables can be displayed, but parallel processing is not
+   * used to run processes for the interface.
+   */
+  private final boolean runnableParallel;
+  private final ProgressPanel progressPanel;
+
   private boolean parallelShowing = false;
   /**
    * processingMethodLocked: when on, prevents any changes to visibility of
@@ -300,46 +309,22 @@ public abstract class AxisProcessPanel implements ContextMenu {
    */
   private boolean processingMethodLocked = false;
 
-  private final boolean popupChunkWarnings;
-
-  // Progress panel
-  final ProgressPanel progressPanel;
-  private final SimpleButton buttonKillProcess = new SimpleButton(KILL_BUTTON_LABEL);
   private ParallelPanel parallelPanel = null;
-
-  // Process select panel
-  protected JPanel panelProcessSelect = new JPanel();
-
-  void showBothAxis() {
-  }
-
-  /**
-   * Sets panel color (does not include the axis button panel)
-   * @param color
-   */
-  void setBackground(Color color) {
-    panelRoot.setBackground(color);
-    outerStatusPanel.setBackground(color);
-    innerStatusPanel.setBackground(color);
-    parallelStatusPanel.setBackground(color);
-    panelDialog.setBackground(color);
-    panelProcessSelect.setBackground(color);
-    progressPanel.setBackground(color);
-  }
 
   /**
    * Constructor
    * @param appManager
    * @param axis
    */
-  AxisProcessPanel(AxisID axis, BaseManager manager, boolean popupChunkWarnings) {
-    progressPanel = ProgressPanel.getInstance("No process", manager, axis);
-    axisID = axis;
+  AxisProcessPanel(AxisID axisID, BaseManager manager, boolean popupChunkWarnings,
+    final boolean runnableParallel, final InterfaceType interfaceType) {
+    this.axisID = axisID;
     this.manager = manager;
     this.popupChunkWarnings = popupChunkWarnings;
+    this.runnableParallel = runnableParallel;
+    this.interfaceType = interfaceType;
+    progressPanel = ProgressPanel.getInstance("No process", manager, axisID);
     // Create the status panel
-    actionListener = new KillButtonActionListener(this);
-    buttonKillProcess.addActionListener(actionListener);
     buttonKillProcess.setEnabled(false);
     buttonKillProcess.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     outerStatusPanel.setLayout(new BoxLayout(outerStatusPanel, BoxLayout.Y_AXIS));
@@ -353,14 +338,31 @@ public abstract class AxisProcessPanel implements ContextMenu {
     innerStatusPanel.add(Box.createRigidArea(FixedDim.x0_y5));
     innerStatusPanel.setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
     buttonKillProcess.setToolTipText("Press to end the current process.");
-    manager.getProcessingMethodMediator(axis).register(this);
+    manager.getProcessingMethodMediator(axisID).register(this);
+    buttonKillProcess.addActionListener(this);
   }
 
-  void buttonKillAction(final ActionEvent event) {
+  void showBothAxis() {}
+
+  /**
+   * Sets panel color (does not include the axis button panel)
+   * @param color
+   */
+  void setBackground(final Color color) {
+    panelRoot.setBackground(color);
+    outerStatusPanel.setBackground(color);
+    innerStatusPanel.setBackground(color);
+    parallelStatusPanel.setBackground(color);
+    panelDialog.setBackground(color);
+    panelProcessSelect.setBackground(color);
+    progressPanel.setBackground(color);
+  }
+
+  public void actionPerformed(final ActionEvent event) {
     manager.kill(axisID);
   }
 
-  protected void initializePanels() {
+  void initializePanels() {
     panelProcessSelect.setAlignmentY(Component.TOP_ALIGNMENT);
     panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
 
@@ -429,9 +431,10 @@ public abstract class AxisProcessPanel implements ContextMenu {
     }
     else {
       if (parallelPanel == null) {
-        parallelPanel = ParallelPanel.getInstance(manager, axisID, manager
-            .getBaseScreenState(axisID).getParallelHeaderState(), this,
-            popupChunkWarnings);
+        parallelPanel =
+          ParallelPanel.getInstance(manager, axisID, manager.getBaseScreenState(axisID)
+            .getParallelHeaderState(), this, popupChunkWarnings, runnableParallel,
+            interfaceType);
         parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
         parallelStatusPanel.add(parallelPanel.getContainer());
       }
@@ -449,7 +452,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     parallelStatusPanel.setVisible(true);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-  
+
   private final void stopParallelPanel() {
     parallelShowing = false;
     parallelPanel.getLoadDisplay().stopLoad();
@@ -464,7 +467,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   final void done() {
     if (parallelPanel != null) {
       parallelPanel.getHeaderState(manager.getBaseScreenState(axisID)
-          .getParallelHeaderState());
+        .getParallelHeaderState());
     }
   }
 
@@ -509,7 +512,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param newDialog
    */
-  final void replaceDialogPanel(Container newDialog) {
+  final void replaceDialogPanel(final Container newDialog) {
     panelDialog.removeAll();
     panelDialog.add(newDialog);
     panelDialog.revalidate();
@@ -531,7 +534,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param label
    * @param nSteps
    */
-  final void setProgressBar(String label, int nSteps, boolean enablePause) {
+  final void setProgressBar(final String label, final int nSteps,
+    final boolean enablePause) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
@@ -547,7 +551,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param label
    * @param nSteps
    */
-  final void setStaticProgressBar(String label) {
+  final void setStaticProgressBar(final String label) {
     progressPanel.setLabel(label);
   }
 
@@ -555,7 +559,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param n
    */
-  final void setProgressBarValue(int n) {
+  final void setProgressBarValue(final int n) {
     progressPanel.setValue(n);
   }
 
@@ -563,7 +567,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param n
    */
-  final void setProgressBarValue(int n, String string) {
+  final void setProgressBarValue(final int n, final String string) {
     progressPanel.setValue(n, string);
   }
 
@@ -571,7 +575,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param label
    */
-  final void startProgressBar(String label, ProcessName processName) {
+  final void startProgressBar(final String label, final ProcessName processName) {
     progressPanel.setLabel(label);
     progressPanel.start();
     buttonKillProcess.setEnabled(true);
@@ -581,7 +585,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    *
    */
-  final void stopProgressBar(ProcessEndState processEndState, String statusString) {
+  final void stopProgressBar(ProcessEndState processEndState, final String statusString) {
     progressPanel.stop(processEndState, statusString);
     buttonKillProcess.setEnabled(false);
     if (parallelPanel != null) {
@@ -592,24 +596,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
   /**
    * Right mouse button context menu
    */
-  public final void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "", manager,
-        axisID);
-  }
-
-  /**
-   * Action listener to handle process kill
-   */
-  class KillButtonActionListener implements ActionListener {
-    AxisProcessPanel adaptee;
-
-    KillButtonActionListener(AxisProcessPanel adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonKillAction(event);
-    }
+  public final void popUpContextMenu(final MouseEvent mouseEvent) {
+    ContextPopup contextPopup =
+      new ContextPopup(panelRoot, mouseEvent, "", manager, axisID);
   }
 
   void createProcessControlPanel() {

@@ -644,9 +644,15 @@ double find_alpha(simplex *root) {
 	for (i=0;i<pdim;i++) ah += (float)((maxs[i]-mins[i])*(maxs[i]-mins[i]));
 	check_ashape(root,ah);
 	for (i=0;i<17;i++) {
-		if (check_ashape(root, am = (al+ah)/2)) ah = am;
-		else al = am;
-		if ((ah-al)/ah<.5) break;
+
+    /* DNM: take assignment out of function call, break lines */
+    am = (al+ah)/2;
+		if (check_ashape(root, am)) 
+      ah = am;
+		else 
+      al = am;
+		if ((ah-al)/ah<.5)
+      break;
 	}
 	return 1.1*ah;
 }

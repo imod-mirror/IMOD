@@ -1,6 +1,6 @@
 .na
 .nh
-.TH edpiecepoint 1 4.6.34 BL3DEMC
+.TH edpiecepoint 1 4.6.34 IMOD
 .SH NAME
 edpiecepoint - edit a list of piece coordinates
 .SH SYNOPSIS

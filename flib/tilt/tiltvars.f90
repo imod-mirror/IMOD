@@ -130,6 +130,11 @@
 ! stretchOffset      X offset of stretched line
 ! sWarpAlpha         Sines of local alpha and beta
 ! sWarpBeta          
+! threshForReproj    Threshold for reprojection of pixels beyond threshold
+! threshPolarity     Polarity for thresholding: < 0 for pixles below threshold
+! threshSumFac       Controls whether pixels are marked or summed
+! threshMarkVal      Value to use for a pixel above threshold
+! threshFillVal      Value to fill with when thresholding
 ! tiltIncWgts        Weight factors for computing local tilt increment
 ! title              Title for header
 ! useGPU             Flag to use the GPU
@@ -205,6 +210,7 @@ module tiltvars
   integer*4 numSIRTiter, numReadNeed, ireadBase, indWorkPlane
   integer*4 ifOutSirtProj, ifOutSirtRec, isignConstraint, iterForReport
   real*4 xprojOffset, yprojOffset, projMean, filterScale, dxWarpDelz
+  real*4 threshForReproj, threshPolarity, threshSumFac, threshMarkVal, threshFillVal
   real*4, allocatable :: reportVals(:,:), cosReproj(:), sinReproj(:)
   !
   integer*4 numGpuPlanes, loadGpuStart, loadGpuEnd

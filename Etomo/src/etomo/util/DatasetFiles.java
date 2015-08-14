@@ -121,7 +121,7 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), getTomogramName(manager, axisID));
   }
 
-  /*public static File getCombinedTomogram(BaseManager manager) { if
+  /* public static File getCombinedTomogram(BaseManager manager) { if
    * (manager.getBaseMetaData().getAxisType() != AxisType.DUAL_AXIS) { return null; }
    * return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT); } */
 
@@ -185,7 +185,7 @@ public final class DatasetFiles {
     return metaData.getName() + FLATTEN_WARP_EXT + XF_EXT;
   }
 
-  /*public static File getFlattenWarpOutputFile(BaseManager manager) { return new
+  /* public static File getFlattenWarpOutputFile(BaseManager manager) { return new
    * File(manager.getPropertyUserDir(), getFlattenWarpOutputName(manager)); } */
 
   public static String getPrealignedStackName(BaseManager manager, AxisID axisID) {
@@ -314,7 +314,7 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + FULL_ALIGNED_EXT;
   }
 
-  /*public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
+  /* public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
    * return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName( manager,
    * axisID)); } public static File getErasedFiducialsFile(BaseManager manager, AxisID
    * axisID) { return new File(manager.getPropertyUserDir(), getErasedFiducialsFileName(
@@ -381,7 +381,7 @@ public final class DatasetFiles {
   }
 
   // other etomo files
-  /*public static File getCommandsFile(BaseManager manager, String subdirName, String
+  /* public static File getCommandsFile(BaseManager manager, String subdirName, String
    * rootName) { return new File(manager.getPropertyUserDir(), getCommandsFileName(
    * subdirName, rootName)); } */
 
@@ -398,7 +398,10 @@ public final class DatasetFiles {
   }
 
   final static String getAutodocName(String name) {
-    return name + AutodocFactory.EXTENSION;
+    if (AutodocFactory.endsWithAutodocExtension(name)) {
+      return name;
+    }
+    return name + AutodocFactory.Extension.DEFAULT;
   }
 
   public static File getShellScript(BaseManager manager, String commandName, AxisID axisID) {
@@ -478,6 +481,10 @@ public final class DatasetFiles {
 
   public static String getParallelDataFileName(String rootName) {
     return rootName + DataFileType.PARALLEL.extension;
+  }
+
+  public static String getBatchRunTomoDataFileName(String rootName) {
+    return rootName + DataFileType.BATCH_RUN_TOMO.extension;
   }
 
   public static String getPeetDataFileName(String rootName) {

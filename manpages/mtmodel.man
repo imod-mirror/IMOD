@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtmodel 1 4.6.34 BL3DEMC
+.TH mtmodel 1 4.6.34 IMOD
 .SH NAME
 mtmodel - to build a MT model out of individual points
 .SH SYNOPSIS

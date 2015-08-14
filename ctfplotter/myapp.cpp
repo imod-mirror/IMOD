@@ -13,7 +13,7 @@
  *  $Id$
  */
 
-#include <QtGui>
+#include "myapp.h"
 #include <qlabel.h>
 #include <qfile.h>
 #include <qtoolbutton.h>
@@ -26,7 +26,6 @@
 #include "plotter.h"
 #include "fittingdialog.h"
 #include "angledialog.h"
-#include "myapp.h"
 #include "simplexfitting.h"
 #include "linearfitting.h"
 
@@ -49,7 +48,7 @@ MyApp::MyApp(int volt, double pSize,
              double focusTol, int tSize, double tAxisAngle, double lAngle,
              double hAngle, double expDefocus, double leftTol,
              double rightTol, int maxCacheSize, int invertAngles,
-             bool doFocalPairProcessing, double fpdz)
+             bool doFocalPairProcessing, double fpdz, int baselineOrder)
     : defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus)
 {
   mSaveModified = false;
@@ -69,6 +68,7 @@ MyApp::MyApp(int volt, double pSize,
   mZeroFitMethod = 0; // 0 CTF, 1 polynomial, 2 intersection
   mVaryCtfPowerInFit = false;
   mPolynomialOrder = 4;
+  mBaselineOrder = baselineOrder;
   mDefocusOption = 0;     //use expected defocus;
   mInitialTileOption = 0; //only use central tiles initially;
   mLeftDefTol = leftTol;
@@ -173,21 +173,33 @@ void MyApp::saveAllPs()
 void MyApp::plotFitPS(bool flagSetInitSetting)
 {
   double *ps = (double *)malloc(mDim * sizeof(double));
+  double *baseline = (double *)malloc(mDim * sizeof(double));
   QVector<QPointF> data;
   int ii;
+  double freq;
 
   // Dividing by the Noise PS happened earlier
 
   PlotSettings plotSetting = PlotSettings();
   double initialMaxY = -100;
+  double initialSecondY = -100;
+  double initialMinY = 100;
+  simplexEngine->fitBaseline(mRAverage, baseline, mBaselineOrder);
   for (ii = 0; ii < mDim; ii++) {
-    ps[ii] = log(mRAverage[ii]);
-    data.append(QPointF(ii / (float)(mDim - 1), ps[ii]));
-    if (ps[ii] > initialMaxY)
+    freq = ii / (float)(mDim - 1);
+    ps[ii] = log(mRAverage[ii]) - baseline[ii];
+    data.append(QPointF(freq, ps[ii]));
+    if (ps[ii] > initialMaxY) {
+      initialSecondY = initialMaxY;
       initialMaxY = ps[ii];
+    } else if (ps[ii] > initialSecondY)
+      initialSecondY = ps[ii];
+    if (ps[ii] < initialMinY)
+      initialMinY = ps[ii];
   }
-  initialMaxY = ceil(initialMaxY);
+  initialMaxY = ceil(5. * (0.1 * initialMaxY + 0.9 * initialSecondY)) / 5.;
   plotSetting.maxY = initialMaxY;
+  plotSetting.minY = floor(5. *(initialMinY - 0.05 * (initialMaxY - initialMinY))) / 5.;
 
   //adjust initial plot setting to data if needed;
   if (flagSetInitSetting && mPlotter)
@@ -199,6 +211,15 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
   linearEngine->setRaw(&ps[0]);
   fitPsFindZero();
   free(ps);
+  free(baseline);
+}
+
+void MyApp::setBaselineOrder(int order)
+{
+  if (debugLevel >= 1)
+    printf("Baseline fitting order set to %d\n", order);
+  mBaselineOrder = order;
+  plotFitPS(false);
 }
 
 /*
@@ -210,7 +231,7 @@ void MyApp::fitPsFindZero()
   double *resLeftFit = (double *)malloc(mDim * sizeof(double));
   double *resRightFit = (double *)malloc(mDim * sizeof(double));
   double inc = 1.0 / (mDim - 1);
-  double zero, defocus, err;
+  double zero, defocus, err, startDef;
 
   double model[7] = {0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
   int ii, order, error, error2 = 0;
@@ -219,6 +240,12 @@ void MyApp::fitPsFindZero()
   case 0:   // CTF like curve
     simplexEngine->setRange(mX1Idx1, mX2Idx2);
     order = mVaryCtfPowerInFit ? 5 : 4;
+
+    startDef = getStartingDefocusAndZeros(zero, err);
+    if (inc * mX2Idx2 >= zero + 1.5 * (err - zero) && (mX2Idx2 + 1 - mX1Idx1) > 
+        2 * (order + 2))
+      order += 2;
+
     // To experiment with restricted fitting when there is one slice
     //if (mNumSlicesDone == 1)
     //order = 2;
@@ -513,9 +540,9 @@ void MyApp::computeInitPS(bool noisePS)
     ii = (i + mHyperRes / 2) / mHyperRes;
     if (mNumNoiseFiles)
       if (numTiltSeries == 1)
-	mRAverage[ii] += psSum[i] / mNoisePS[ii];
+        mRAverage[ii] += psSum[i] / mNoisePS[ii];
       else
-	mRAverage1[ii] += psSum[i] / mNoisePS[ii];
+        mRAverage1[ii] += psSum[i] / mNoisePS[ii];
     else
       mRAverage[ii] += psSum[i];
     mFreqTileCounter[ii] += freqCounter[i] * counter;
@@ -524,9 +551,9 @@ void MyApp::computeInitPS(bool noisePS)
   for (i = 0; i < mDim; i++) {
     if (mFreqTileCounter[i]) {
       if (numTiltSeries == 1 || !mNumNoiseFiles)
-	mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
+        mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
       else
-	mRAverage1[i] = mRAverage1[i] / mFreqTileCounter[i];
+        mRAverage1[i] = mRAverage1[i] / mFreqTileCounter[i];
     }
   }
   
@@ -547,14 +574,14 @@ void MyApp::computeInitPS(bool noisePS)
     defocus2 = defocus1 + mDefocusOffset / 1000.0;
     scaleAndAddStrip(psSum2, stripSum, stripCounter, counter2, localMean2,
                      defocus2 / defocus1, freqInc, mCache2, mRAverage2, 
-		     mFreqTileCounter2);
+                     mFreqTileCounter2);
 
     // For focal pair processing, combine the power spectra from the
     // individual tilt series (in mRAverage{1|2}) and put in mRAverage.
     combinePowerSpectra();
   }
 
-  if (debugLevel >= 1)
+  if (debugLevel >= 2)
     printf("computeInitPS() includes %d tiles\n", counter);
 
   free(psSum);
@@ -671,16 +698,16 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
         if (tiltSeries == 0) {
           cachePtr = mCache;
           freqTileCounterPtr = mFreqTileCounter;
-	  if (mFocalPairProcessing)
-	    avgPtr = mRAverage1;
-	  else
-	    avgPtr = mRAverage;
-	}
-	else { // tiltSeries == 1
-	  cachePtr = mCache2;
-	  avgPtr = mRAverage2;
+          if (mFocalPairProcessing)
+            avgPtr = mRAverage1;
+          else
+            avgPtr = mRAverage;
+        }
+        else { // tiltSeries == 1
+          cachePtr = mCache2;
+          avgPtr = mRAverage2;
           freqTileCounterPtr = mFreqTileCounter2;
-	}
+        }
         for (x = 0; x < mNxx / halfSize - 1; x++) {
           for (y = 0; y < mNyy / halfSize - 1; y++) {
             centerX = x * halfSize + halfSize - mNxx / 2; // tile center
@@ -741,7 +768,6 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
         // Get the signed delta Z for this strip
         deltaZ = (iterNum + 0.5) * (stripWidthPixels / 2.0) * mPixelSize *
           tan(currAngle) / 1000.0; // in microns;
-
         // Compute scale and offset for the strip to the right of center
         tmpMean = effectiveDefocus + deltaZ;
         if (tiltSeries > 0)
@@ -750,7 +776,6 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
         scaleAndAddStrip(rightPsSum, stripAvg, stripCounter, rightCounter,
                          rightMean, tmpMean / effectiveDefocus, freqInc, 
                          cachePtr, avgPtr,freqTileCounterPtr);
-
         // Compute scale and offset for the strip to the left of center
         tmpMean = effectiveDefocus - deltaZ;
         if (tiltSeries > 0)
@@ -762,27 +787,27 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
       }  // for tiltSeries
 
       if (mFocalPairProcessing)
-	combinePowerSpectra();
+        combinePowerSpectra();
 
       mTileIncluded[whichSlice] += leftCounter + rightCounter;
-      if (debugLevel >= 2)
+      if (debugLevel >= 3)
         printf("scanCounter=%d leftCounter=%d rightCounter=%d mTileIncluded[%d]=%d\n",
            scanCounter, leftCounter, rightCounter, whichSlice, mTileIncluded[whichSlice]);
       iterNum++;
     } //while scanCounter < tileMax
 
-    if (debugLevel >= 1)
+    if (debugLevel >= 2)
       printf("%d tiles of slice %d have been included\n",
              mTileIncluded[whichSlice], whichSlice);
 
-    if (debugLevel >= 2)
+    if (debugLevel >= 3)
       printf("***iterNum=%d deltaZ=%f(microns) scanCounter=%d \
          mTileIncluded[%d]=%d\n",
              iterNum, deltaZ, scanCounter, whichSlice,
              mTileIncluded[whichSlice]);
   }// the k-th slice
 
-  if (debugLevel >= 2)
+  if (debugLevel >= 3)
     printf("FFT time %.4f  Total time %.4f\n", procCum, wallTime() - allTime);
 
   free(leftPsSum);
@@ -808,7 +833,7 @@ void MyApp::scaleAndAddStrip
   double hyperInc = freqInc / mHyperRes;
   int *freqCount = cachePtr->getFreqCount();
 
-  if (!counter)
+  if (!counter || xScale <= 0)
     return;
 
   // Get the mean intensity and noise PS based on this mean
@@ -927,9 +952,9 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
       mRAverage[i] = 0.0;
       mFreqTileCounter[i] = 0;
       if (mFocalPairProcessing) {
-	mRAverage1[i] = 0.0;
-	mRAverage2[i] = 0.0;
-	mFreqTileCounter2[i] = 0.0;
+        mRAverage1[i] = 0.0;
+        mRAverage2[i] = 0.0;
+        mFreqTileCounter2[i] = 0.0;
       }
     }
     moreTile(false); //include all the tiles and plot;
@@ -964,6 +989,7 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
   double defTol, axisAngle, leftTol, rightTol;
   double trueStep, minDel, maxDel, mid, minMid, maxMid, loAngle, hiAngle;
   bool tolOk = true;
+  bool removeAll = false;
   if (mPlotter) {
     tolOk = mPlotter->mAngleDia->getTileTolerances(defTol, tSize, axisAngle, leftTol, 
                                                    rightTol);
@@ -990,6 +1016,11 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
       rangeSize = maxAngle - minAngle;
     minDel = minAngle + 0.25 * rangeSize;
     maxDel = maxAngle - 0.25 * rangeSize;
+    if (minAngle < mMinAngle + eps && maxAngle > mMaxAngle - eps) {
+      minDel = mMinAngle - eps;
+      maxDel = mMaxAngle + eps;
+      removeAll = true;
+    }
   } else {
     numSteps = 0;
     for (i = 0; i < mNzz; i++) {
@@ -1002,7 +1033,8 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
     if (numSteps) {
       minDel = mSortedAngles[sortInd] - eps;
       maxDel = mSortedAngles[sortInd + numSteps - 1] + eps;
-    }
+    } 
+    removeAll = numSteps == mNzz;
   }
 
   if (!numSteps)
@@ -1028,9 +1060,13 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
       i = QMessageBox::Yes;
     } else {
       QString str;
-      str.sprintf("Do you want to remove existing defocus values listed in the \n"
-                  "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
-                  maxMid);
+      if (removeAll)
+        str = "You are autofitting to the entire range.\nDo you want to remove all "
+          "existing defocus values listed in the table?";
+      else
+        str.sprintf("Do you want to remove existing defocus values listed in the \n"
+                    "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
+                    maxMid);
       i = QMessageBox::question(NULL, QString("Ctfplotter"), str,
                                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                 QMessageBox::Yes);
@@ -1096,7 +1132,7 @@ void MyApp::setInitTileOption(int index)
 }
 
 /*
- * Determine the noise images to interpolate between and computethe noise PS for
+ * Determine the noise images to interpolate between and compute the noise PS for
  * the given mean level
  */
 void MyApp::setNoiseForMean(double mean)
@@ -1116,6 +1152,9 @@ void MyApp::setNoiseForMean(double mean)
   //     lowMean, highMean);
   lowPs = mAllNoisePS + mNoiseIndexes[highInd - 1] * mDim;
   highPs = mAllNoisePS + mNoiseIndexes[highInd] * mDim;
+
+  // 12/29/14: Linear interpolation/extrapolation is OK; the relation is indeed linear
+  // for CCD and DDD, but for counting cameras there may be curvature
   for (i = 0; i < mDim; i++)
     mNoisePS[i] = lowPs[i] + (highPs[i] - lowPs[i]) * (mean - lowMean) /
       (highMean - lowMean);
@@ -1174,6 +1213,7 @@ void MyApp::writeDefocusFile()
   }
   fclose(fp);
   mSaveModified = false;
+  //saveAllPs();
 }
 
 /*
@@ -1235,4 +1275,55 @@ void MyApp::combinePowerSpectra()
   baseline /= 0.5 * mDim;
   for (i = 0; i < mDim; i++)
     mRAverage[i] = mRAverage1[i] / baseline;
+}
+
+/*
+ * Convenience function to return the starting defocus for a fit and the corresponding
+ * first and second zeros
+ */
+double MyApp::getStartingDefocusAndZeros(double &zero1, double &zero2)
+{
+  double startDef;
+  if (getDefocusOption())
+    startDef = defocusFinder.getDefocus();
+  else
+    startDef = defocusFinder.getExpDefocus();
+  defocusFinder.getTwoZeros(startDef, zero1, zero2);
+  return startDef;
+}
+
+int MyApp::smoothNoisePS()
+{
+  int indStart, indEnd, ind, ifit, del;
+  int nfit = B3DMIN(9, mDim);
+  int order = 2;
+  int firstInd = 2;
+  float xx[32], yy[32], slopes[5], intercept;
+  double *smooth = B3DMALLOC(double, mDim);
+  float *work = B3DMALLOC(float,  (order + 1) * (order + 3 + nfit));
+  if (!smooth || !work)
+    exitError("Array allocation failed");
+  for (ifit = firstInd; ifit < mDim; ifit++) {
+    indStart = B3DMAX(firstInd, ifit - nfit / 2);
+    indEnd = B3DMIN(mDim - 1, indStart + nfit - 1);
+    indStart = indEnd - (nfit - 1);
+    for (ind = indStart; ind <= indEnd; ind++) {
+      del = ind - indStart;
+      xx[del] = del;
+      yy[del] = log(mRAverage[ind]);
+    }
+    if (polynomialFit(xx, yy, nfit, order, slopes, &intercept, work)) {
+      free(work);
+      free(smooth);
+      return 1;
+    }
+    smooth[ifit] = intercept;
+    for (ind = 0; ind < order; ind++)
+      smooth[ifit] += slopes[ind] * pow((double)(ifit - indStart), ind + 1.);
+  }
+  for (ifit = firstInd; ifit < mDim; ifit++)
+    mRAverage[ifit] = exp(smooth[ifit]);
+  free(work);
+  free(smooth);
+  return 0;
 }

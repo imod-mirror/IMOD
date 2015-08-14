@@ -1,6 +1,6 @@
 .na
 .nh
-.TH densnorm 1 4.6.34 BL3DEMC
+.TH densnorm 1 4.6.34 IMOD
 .SH NAME
 densnorm - Normalize densities in an image file
 .SH SYNOPSIS

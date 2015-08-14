@@ -1,6 +1,6 @@
 .na
 .nh
-.TH subimanova 1 4.6.34 BL3DEMC
+.TH subimanova 1 4.6.34 IMOD
 .SH NAME
 subimanova - subtracts image averages with analysis of variance
 .SH SYNOPSIS

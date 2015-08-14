@@ -12,7 +12,7 @@ PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E) \
         xf2rotmagstr$(E)
 
 DISTOBJS = finddistort.$(O) edgesubs.$(O) smoothgrid.$(O) \
- sdsearch.$(O) sdcalc.$(O) multrd.$(O) matinvd.$(O)
+ multrd.$(O) matinvd.$(O)
 
 all: $(PROGS)
 
@@ -24,12 +24,6 @@ edgesubs.$(O):       ../blend/edgesubs.f
 
 smoothgrid.$(O):       ../blend/smoothgrid.f
 	$(FC) $(FFLAGS) -c -o smoothgrid.$(O) ../blend/smoothgrid.f
-
-sdsearch.$(O):       ../blend/sdsearch.f
-	$(FC) $(FFLAGS) -c -o sdsearch.$(O) ../blend/sdsearch.f
-
-sdcalc.$(O):       ../blend/sdcalc.f
-	$(FC) $(FFLAGS) -c -o sdcalc.$(O) ../blend/sdcalc.f
 
 idfprocess$(E): idfprocess.$(O)
 	$(FC) -o idfprocess idfprocess.$(O) $(LDFLG) $(LIWARP) $(IMLIBS) $(FORTCLIBS)

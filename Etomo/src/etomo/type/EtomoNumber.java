@@ -7,15 +7,11 @@ import etomo.comscript.FortranInputString;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.25  2011/02/22 05:38:26  sueh
@@ -139,8 +135,6 @@ import etomo.comscript.FortranInputString;
  * <p> </p>
  */
 public class EtomoNumber extends ConstEtomoNumber {
-  public static final String rcsid = "$Id$";
-
   /**
    * Construct an EtomoNumber with type = INTEGER_TYPE
    *
@@ -174,7 +168,7 @@ public class EtomoNumber extends ConstEtomoNumber {
       reset();
     }
     else if ((prepend == null || prepend.matches("\\s*"))
-        && (key == null || key.matches("\\s*"))) {
+      && (key == null || key.matches("\\s*"))) {
       load(props);
     }
     else if (prepend == null || prepend.matches("\\s*")) {
@@ -229,7 +223,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     set(defaultValue);
   }
-  
+
   public void load(Properties props, String prepend, boolean defaultValue) {
     if (loadIfPresent(props, prepend)) {
       return;
@@ -239,7 +233,7 @@ public class EtomoNumber extends ConstEtomoNumber {
 
   public boolean isKeyPresent(Properties props, String prepend) {
     if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend
-        + "." + name) == null) {
+      + "." + name) == null) {
       return false;
     }
     return true;
@@ -247,7 +241,7 @@ public class EtomoNumber extends ConstEtomoNumber {
 
   public boolean loadIfPresent(Properties props, String prepend) {
     if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend
-        + "." + name) == null) {
+      + "." + name) == null) {
       return false;
     }
     load(props, prepend);
@@ -266,9 +260,10 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return etomoNumber
    */
   public static EtomoNumber load(EtomoNumber instance, Type type, String name,
-      Properties props, String prepend) {
-    String value = props.getProperty(prepend == null || prepend.matches("\\s*") ? name
-        : prepend + "." + name);
+    Properties props, String prepend) {
+    String value =
+      props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend + "."
+        + name);
     if (value == null) {
       return null;
     }
@@ -290,9 +285,10 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return etomoNumber
    */
   public static EtomoNumber load(EtomoNumber instance, String name, Properties props,
-      String prepend) {
-    String value = props.getProperty(prepend == null || prepend.matches("\\s*") ? name
-        : prepend + "." + name);
+    String prepend) {
+    String value =
+      props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend + "."
+        + name);
     if (value == null) {
       return null;
     }
@@ -322,26 +318,18 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     else {
       StringBuffer invalidBuffer = new StringBuffer();
-      currentValue = newNumber(value, invalidBuffer);
+      currentValue = newNumber(applyCeilingValue(applyFloorValue(newNumber(value, invalidBuffer))));
       if (isDebug()) {
         System.out.println("currentValue=" + currentValue + ",invalidBuffer="
-            + invalidBuffer);
+          + invalidBuffer);
       }
       if (invalidBuffer.length() > 0) {
-        if (type == Type.INTEGER && stringArray != null) {
-          for (int i = 0; i < stringArray.length; i++) {
-            if (value.compareToIgnoreCase(stringArray[i]) == 0) {
-              currentValue = newNumber(i);
-              resetState();
-            }
-          }
-        }
         addInvalidReason(invalidBuffer.toString());
-        currentValue = newNumber();
+      }
+      else {
+        setInvalidReason();
       }
     }
-    currentValue = applyCeilingValue(applyFloorValue(currentValue));
-    setInvalidReason();
     return this;
   }
 
@@ -351,7 +339,7 @@ public class EtomoNumber extends ConstEtomoNumber {
 
   public EtomoNumber set(Number value) {
     resetState();
-    currentValue = applyCeilingValue(applyFloorValue(value));
+    currentValue = newNumber(applyCeilingValue(applyFloorValue(value)));
     setInvalidReason();
     return this;
   }
@@ -392,7 +380,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   public void multiply(int i) {
     set(multiply(getValue(), newNumber(i)));
   }
-  
+
   /**
    * Divide the current value by i and store the result as the current value.
    * @param i
@@ -428,12 +416,12 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
 
   /**
-   * Set currentValue to resetValue.  Sets currentValueSet to false.
+   * Sets currentValue to null.
    * @return
    */
   public EtomoNumber reset() {
     resetState();
-    currentValue = applyCeilingValue(applyFloorValue(newNumber()));
+    currentValue = newNumber();
     setInvalidReason();
     return this;
   }

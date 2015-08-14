@@ -14,19 +14,13 @@ import etomo.type.AxisID;
  * <p>Description: Reads statements in order from one or many sections or a
  * subsections.  Receives either an autodoc or a section to read from.</p>
  * 
- * <p>Copyright: Copyright (c) 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public final class CommandReader extends Assert {
-  public static final String rcsid = "$Id$";
-
   private final ReadOnlySectionList sectionList;
   private final AxisID axisID;
   private final String sectionType;
@@ -45,9 +39,9 @@ public final class CommandReader extends Assert {
    * @param axisID
    */
   public static CommandReader getAutodocReader(ReadOnlyAutodoc autodoc,
-      String sectionType, AxisID axisID, VariableList variableList) {
-    CommandReader autodocReader = new CommandReader(autodoc, sectionType, null, axisID,
-        variableList);
+    String sectionType, AxisID axisID, VariableList variableList) {
+    CommandReader autodocReader =
+      new CommandReader(autodoc, sectionType, null, axisID, variableList);
     assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc.isError());
     return autodocReader;
   }
@@ -59,9 +53,9 @@ public final class CommandReader extends Assert {
    * @param sectionName
    */
   public static CommandReader getSectionReader(ReadOnlyAutodoc autodoc,
-      String sectionType, String sectionName, AxisID axisID, VariableList variableList) {
-    CommandReader sectionReader = new CommandReader(autodoc, sectionType, sectionName,
-        axisID, variableList);
+    String sectionType, String sectionName, AxisID axisID, VariableList variableList) {
+    CommandReader sectionReader =
+      new CommandReader(autodoc, sectionType, sectionName, axisID, variableList);
     assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc.isError());
     return sectionReader;
   }
@@ -80,7 +74,7 @@ public final class CommandReader extends Assert {
    * @return
    */
   public static CommandReader getSubsectionReader(ReadOnlySectionList sectionList,
-      ReadOnlySection subsection, AxisID axisID, VariableList variableList) {
+    ReadOnlySection subsection, AxisID axisID, VariableList variableList) {
     return new CommandReader(sectionList, subsection, axisID, variableList);
   }
 
@@ -94,21 +88,21 @@ public final class CommandReader extends Assert {
    * @param variableList
    */
   private CommandReader(ReadOnlyAutodoc autodoc, String sectionType, String sectionName,
-      AxisID axisID, VariableList variableList) {
+    AxisID axisID, VariableList variableList) {
     this.axisID = axisID;
     this.variableList = variableList;
     this.sectionList = autodoc;
     this.sectionType = sectionType;
-    //Get a section from the autodoc.
+    // Get a section from the autodoc.
     // Sets sectionLocation to the first section in sectionList, if sectionName is
-    // empty.  Sets it to null if sectionName is set.
+    // empty. Sets it to null if sectionName is set.
     if (sectionName == null) {
-      //reading an autodoc
+      // reading an autodoc
       sectionLocation = sectionList.getSectionLocation(sectionType);
       statementList = sectionList.nextSection(sectionLocation);
     }
     else {
-      //reading a section
+      // reading a section
       sectionLocation = null;
       statementList = sectionList.getSection(sectionType, sectionName);
     }
@@ -129,13 +123,13 @@ public final class CommandReader extends Assert {
    * @param variableList
    */
   private CommandReader(ReadOnlySectionList sectionList, ReadOnlySection subsection,
-      AxisID axisID, VariableList variableList) {
+    AxisID axisID, VariableList variableList) {
     this.axisID = axisID;
     this.variableList = variableList;
     this.sectionList = sectionList;
     this.sectionType = null;
-    //The passed in subsection is the statementList. SectionList is only used
-    //for printing.
+    // The passed in subsection is the statementList. SectionList is only used
+    // for printing.
     sectionLocation = null;
     statementList = subsection;
     if (statementList == null) {
@@ -203,7 +197,7 @@ public final class CommandReader extends Assert {
    */
   private ReadOnlyStatement nextStatement() {
     if (statementList == null) {
-      //NextSection or getSection failed, so there is nothing left to read.
+      // NextSection or getSection failed, so there is nothing left to read.
       if (debug) {
         System.out.println("nextStatement:statementList is null");
       }
@@ -213,19 +207,19 @@ public final class CommandReader extends Assert {
       ReadOnlyStatement statement = statementList.nextStatement(statementLocation);
       if (statement == null) {
         if (sectionLocation == null) {
-          //Only reading one section and finished with it, so done.
+          // Only reading one section and finished with it, so done.
           if (debug) {
             System.out
-                .println("nextStatement:statement is null & sectionLocation is null");
+              .println("nextStatement:statement is null & sectionLocation is null");
           }
           done = true;
         }
       }
       else {
-        System.err.println("### " + sectionList.getName() + ":"
-            + (sectionType != null ? sectionType : "") + ":" + statementList.getName()
-            + ":" + (axisID != null ? axisID.getExtension() : "") + ":"
-            + statement.getString());
+        System.err.println("### " + sectionList.getName() + ":" + statement.getLineNum()
+          + ":" + (sectionType != null ? sectionType : "") + ":"
+          + statementList.getName() + ":" + (axisID != null ? axisID.getExtension() : "")
+          + ":" + statement.getString());
         return statement;
       }
     }

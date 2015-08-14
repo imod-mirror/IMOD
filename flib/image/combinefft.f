@@ -506,7 +506,7 @@ c       Write the data out, taking inverse FFT and repacking real data first
       enddo
 
       tmean=tsum/nz
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
 c       
       write(titlech,3000) dat,tim

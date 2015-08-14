@@ -122,7 +122,7 @@ int imodCloseFile(Imod *imod)
  * Reads model from file pointer in imod->file and places model in [imod].
  * The model should be set to default settings before calling, either by 
  * allocating with imodNew or by calling imodDefault.
- * Returns -1 for error.
+ * Returns -2 if file is not a binary or ASCII IMOD model, or -1 for other errors.
  */
 int imodReadFile(Imod *imod)
 {
@@ -1108,7 +1108,8 @@ static int imodel_read_sliceang(Imod *imod, FILE *fin)
 /*!
  * Reads an ascii model from file point in imod->file.  This is called
  * automatically by general model reading routines when the file is not
- * recognized as IMOD binary format.  Returns -1 for error.
+ * recognized as IMOD binary format.  Returns -2 for file not an IMOD model or
+ * -1 for other errors.
  */
 int imodReadAscii(Imod *imod)
 {
@@ -1138,9 +1139,9 @@ int imodReadAscii(Imod *imod)
   ob = -1;
 
   len = imodFgetline(imod->file,line, MAXLINE);
-  if (len < 1) return(-1);
+  if (len < 1) return(-2);
   if (!substr(line, "imod"))
-    return -1;
+    return -2;
 
   sscanf(line, "imod %d", &(imod->objsize));
   imod->obj = imodObjectsNew(imod->objsize);

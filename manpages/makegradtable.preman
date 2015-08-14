@@ -1,6 +1,6 @@
 .na
 .nh
-.TH makegradtable 1 4.6.34 BL3DEMC
+.TH makegradtable 1 4.6.34 IMOD
 .SH NAME
 makegradtable - make a magnification gradient table
 .SH SYNOPSIS

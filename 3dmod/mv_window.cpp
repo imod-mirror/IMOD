@@ -124,7 +124,7 @@ int sRToolWithImodv = -1;
 
 // Constructor for window
 ImodvWindow::ImodvWindow(ImodvApp *a,
-                         QWidget * parent, const char * name, Qt::WFlags f)
+                         QWidget * parent, const char * name, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   int numWidg = 0;

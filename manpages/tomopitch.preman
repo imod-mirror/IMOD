@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tomopitch 1 4.6.34 BL3DEMC
+.TH tomopitch 1 4.6.34 IMOD
 .SH NAME
 tomopitch - Determines tomogram shift and angles from models of section
 .SH SYNOPSIS

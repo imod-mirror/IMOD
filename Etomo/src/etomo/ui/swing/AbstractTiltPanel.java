@@ -45,15 +45,11 @@ import etomo.util.InvalidParameterException;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.9  2011/06/28 21:49:38  sueh
@@ -132,8 +128,6 @@ import etomo.util.InvalidParameterException;
  */
 abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     Run3dmodButtonContainer, TiltDisplay, ProcessInterface {
-  public static final String rcsid = "$Id$";
-
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   // Keep components with listeners private.
   private final Run3dmodButton btn3dmodTomogram = Run3dmodButton.get3dmodInstance(
@@ -242,8 +236,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     btnTilt.setDeferred3dmodButton(btn3dmodTomogram);
     btn3dmodTomogram.setSize();
     btnDeleteStack.setSize();
-    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxTilt(manager, axisID,
-        manager.getPropertyUserDir());
+    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxTilt();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess.setText(ParallelPanel.FIELD_LABEL + ParallelPanel.MAX_CPUS_STRING
           + maxCPUs.toString());
@@ -594,8 +587,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     // Use GPU
-    gpusAvailable = Network.isNonLocalOnlyGpuProcessingEnabled(manager, axisID,
-        manager.getPropertyUserDir());
+    gpusAvailable = Network.isNonLocalOnlyGpuProcessingEnabled();
     nonLocalHostGpusAvailable = Network.isNonLocalHostGpuProcessingEnabled(manager,
         axisID, manager.getPropertyUserDir());
     localGpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
@@ -654,6 +646,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       return ProcessingMethod.LOCAL_GPU;
     }
     return ProcessingMethod.LOCAL_CPU;
+  }
+
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
   }
 
   void registerProcessingMethodMediator() {
@@ -1001,7 +997,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  final void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+  public final void action(final String command,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTilt.getActionCommand())) {
       tiltAction(btnTilt, deferred3dmodButton, run3dmodMenuOptions,
@@ -1071,7 +1068,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.TILT, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.TILT, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

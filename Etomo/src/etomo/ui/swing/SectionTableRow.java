@@ -278,7 +278,7 @@ public final class SectionTableRow implements Highlightable {
 
   private SectionTableRowData data;
   private final HeaderCell rowNumber = new HeaderCell(
-      (int) (30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+      (int) (30 * UIParameters.getInstance().getFontSizeAdjustment()));
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;

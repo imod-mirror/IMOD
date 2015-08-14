@@ -14,6 +14,7 @@
 #include <string.h> 
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "iiunit.h"
 #include "iimage.h"
 #include "b3dutil.h"
@@ -56,6 +57,8 @@
 #define ialimodflags IALIMODFLAGS
 #define iiualtsigned IIUALTSIGNED
 #define ialsigned IALSIGNED
+#define iiualtmrcversion IIUALTMRCVERSION
+#define iiuretmrcversion IIURETMRCVERSION
 #define iiuretorigin IIURETORIGIN
 #define irtorg IRTORG
 #define iiualtorigin IIUALTORIGIN
@@ -139,6 +142,8 @@
 #define ialimodflags ialimodflags_
 #define iiualtsigned iiualtsigned_
 #define ialsigned ialsigned_
+#define iiualtmrcversion iiualtmrcversion_
+#define iiuretmrcversion iiuretmrcversion_
 #define iiuretorigin iiuretorigin_
 #define irtorg irtorg_
 #define iiualtorigin iiualtorigin_
@@ -248,7 +253,8 @@ void icrhdr(int *iunit, int *nxyz, int *mxyz, int *mode, int *labels, int *numLa
  * density values in [dmin], [dmax], and [dmean].  A single title can be supplied in
  * an 80-byte array, [label], and will be treated according to the value of [labFlag]: ^
  *  0:  [label] becomes the only title ^
- *  1:  [label] is added at the end of existing titles if there is room ^
+ *  1:  [label] is added at the end of existing titles, replacing the last one if there 
+ * are already 10 titles ^
  *  2:  [label] is added as the first title and others are shifted up ^
  * -1 or anything else: do not add a title ^
  * Returns -1 for various internal errors or 1 for an error writing the header.
@@ -264,9 +270,10 @@ int iiuWriteHeader(int iunit, int *label, int labFlag, float dmin, float dmax,
     return -1;
   if (labFlag == 0) {
     iiuAltLabels(iunit, label, 1);
-  } else if (labFlag == 1 && hdr->nlabl < MRC_NLABELS) {
-    memcpy(hdr->labels[hdr->nlabl], label, MRC_LABEL_SIZE);
-    fixTitlePadding(hdr->labels[hdr->nlabl++]);
+  } else if (labFlag == 1) {
+    hdr->nlabl = B3DMIN(hdr->nlabl + 1, MRC_NLABELS);
+    memcpy(hdr->labels[hdr->nlabl - 1], label, MRC_LABEL_SIZE);
+    fixTitlePadding(hdr->labels[hdr->nlabl - 1]);
   } else if (labFlag == 2) {
     hdr->nlabl = B3DMIN(hdr->nlabl + 1, MRC_NLABELS);
     for (i = hdr->nlabl - 1; i > 0; i--)
@@ -549,7 +556,7 @@ void iiuretimodflags(int *iunit, int *iflags, int *ifImod)
 void irtimodflags(int *iunit, int *iflags, int *ifImod)
 { iiuRetImodFlags(*iunit, iflags, ifImod);}
 
-/*
+/*!
  * Sets the {imodFlags} component to [iflags] for unit [iunit].  Fortran wrappers 
  * iiuAltImodFlags and ialimodflags
  */
@@ -562,7 +569,7 @@ void iiuAltImodFlags(int iunit, int iflags)
 void iiualtimodflags(int *iunit, int *iflags) {iiuAltImodFlags(*iunit, *iflags);}
 void ialimodflags(int *iunit, int *iflags) {iiuAltImodFlags(*iunit, *iflags);}
 
-/*
+/*!
  * Sets flag for whether to write bytes as signed (transient {byteSigned} member) to 
  * value of [iflags] for unit [iunit].  Fortran wrappers iiuAltSigned and ialsigned.
  */
@@ -574,6 +581,41 @@ void iiuAltSigned(int iunit, int iflags)
 
 void iiualtsigned(int *iunit, int *iflags) {iiuAltSigned(*iunit, *iflags);}
 void ialsigned(int *iunit, int *iflags) {iiuAltSigned(*iunit, *iflags);}
+
+/*!
+ * Returns the {nversion} component in [version] for unit [iunit], or 0 if it is not 
+ * between 20140 and 10 * (current year plus 2).  Fortran wrapper iiuRetMRCVersion.
+ */
+void iiuRetMRCVersion(int iunit, int *version)
+{
+  struct tm *tmp;
+  time_t time_tval;
+  char buffer[10];
+  int year;
+  MrcHeader *hdr = iiuMrcHeader(iunit, "iiuRetMRCVersion", 1, 0);
+  time_tval = time(NULL);
+  tmp = localtime(&time_tval);
+  strftime(buffer, 10, "%Y", tmp);
+  year = atoi(buffer);
+  *version = 0;
+  if (hdr->nversion >= 20140 && hdr->nversion < (year + 2) * 10)
+    *version = hdr->nversion;
+}
+
+void iiuretmrcversion(int *iunit, int *version) { iiuRetMRCVersion(*iunit, version);}
+
+/*!
+ * Sets the {nversion} component to [version] for unit [iunit].  This should be set 
+ * non-zero only for a file fully conforming to at least the 2014 MRC standard.  Fortran 
+ * wrapper iiuAltMRCVersion.
+ */
+void iiuAltMRCVersion(int iunit, int version)
+{
+  MrcHeader *hdr = iiuMrcHeader(iunit, "iiuAltMRCVersion", 1, 0);
+  hdr->nversion = version;
+} 
+
+void iiualtmrcversion(int *iunit, int *version) {iiuAltMRCVersion(*iunit, *version);}
 
 /*!
  * Returns the X, Y, and Z origin values into [xorig], [yorig], and [zorig] for unit
@@ -866,7 +908,7 @@ void irtnbsym(int *iunit, int *numBytes) {iiuRetNumExtended(*iunit, numBytes);}
 
 /*!
  * Sets the number of bytes in the extended header of unit [iuit] ito [numBytes].
- * Fortran wrappers iiuAltNumExtended and irtnbsym.
+ * Fortran wrappers iiuAltNumExtended and ialnbsym.
  */
 void iiuAltNumExtended(int iunit, int numBytes)
 {
@@ -970,7 +1012,7 @@ int iiuAltExtendedData(int iunit, int numBytes, int *extra)
   MrcHeader *hdr = iiuMrcHeader(iunit, "iiAltExtendedData", doExit, 2);
   if (!hdr)
     return -1;
-  if (iiuFileType(iunit) == IIFILE_TIFF)
+  if (iiuFileType(iunit) != IIFILE_MRC)
     return 0;
   if (hdr->swapped) {
     fprintf(stdout, "\nERROR: iiuAltExtendedData - Cannot write extra header data to a"
@@ -999,9 +1041,10 @@ void ialsym(int *iunit, int *numBytes, int *extra)
 
 /*!
  * Transfers extended header data from unit [iunit] to [intoUnit], which is not allowed to
- * be a byte-swapped file.  Returns negative values for internal errors, 1 for a read 
- * error, or 2 for a write error.  Fortran wrappers iiuTransExtendedData and 
- * itrextra (a void).
+ * be a byte-swapped MRC file.  Also transfers global and non-ZValue section data between
+ * autodocs associated with these units.  Returns negative values for internal errors,
+ * 1 for a read error, 2 for a write error, or 3 for an error in autodoc transfer. 
+ * Fortran wrappers iiuTransExtendedData and itrextra (a void).
  */
 int iiuTransExtendedData(int intoUnit, int iunit)
 {
@@ -1014,10 +1057,13 @@ int iiuTransExtendedData(int intoUnit, int iunit)
     return -1;
   if (iiuFileType(intoUnit) == IIFILE_TIFF)
     return 0;
+  if (iiuTransAdocSections(intoUnit, iunit))
+    return 3;
   if (!ihdr->next) {
     iiuAltNumExtended(intoUnit, 0);
     return 0;
   }
+      
   extra = B3DMALLOC(int, (ihdr->next + 3) / 4);
   iiuMemoryError(extra, "ERROR: iiuTransExtendedData - Allocating buffer for data");
   jhdr->nint = ihdr->nint;
@@ -1031,3 +1077,4 @@ int iiuTransExtendedData(int intoUnit, int iunit)
 int iiutransextendeddata(int *iunit, int *junit)
 { return iiuTransExtendedData(*iunit, *junit);}
 void itrextra(int *iunit, int *junit) {iiuTransExtendedData(*iunit, *junit);}
+

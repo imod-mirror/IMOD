@@ -30,6 +30,7 @@ class QColorDialog;
 
 #include <qstring.h>
 #include <vector>
+#include <set>
 using namespace std;
 
 //############################################################
@@ -360,6 +361,9 @@ struct DrawingToolsData   // contains all local plugin data
 	int extraObjLW;							//| " " " " " for a yellow livewire line
 	int extraObjLWPts;					//| " " " " " for red livewire points (where clicked)
 	int extraObjWPts;						//| " " " " " for red magic wand area
+
+  set<int> insideCurCont;     // List of contours inside or outside current contour
+  set<int> outsideCurCont;    // when a join begins
 };
 
 
@@ -398,7 +402,7 @@ bool edit_selectVisiblePtNearCoords(Ipoint *mouse, float distScreenPix);
 
 bool edit_copiedContIfDiffSlice(bool selectNewCont);
 
-void edit_executeSculptStart();
+void edit_executeSculptStart(bool makeInsideLists);
 void edit_executeSculpt();
 void edit_executeSculptPush(Ipoint center, float radius);
 void edit_executeSculptPinch(Ipoint center, float radius);

@@ -223,7 +223,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
    */
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     // set center to center thickness and additional diameters
-    TaAnglesLog taAnglesLog = TaAnglesLog.getInstance(manager.getPropertyUserDir(),
+    TaAnglesLog taAnglesLog = TaAnglesLog.getInstance(manager.getPropertyUserDir(),manager,
         axisID);
     ConstEtomoNumber centerToCenterThickness = null;
     try {

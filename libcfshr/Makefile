@@ -19,7 +19,7 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) minimize1D.$(O) \
 	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
 	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) \
 	linearxforms.$(O) regression.$(O) dsyevc3.$(O) dsyevh3.$(O) dsyevq3.$(O) \
-	dsytrd3.$(O)
+	dsytrd3.$(O) multibinstat.$(O) montagexcorr.$(O) sdsearch.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -29,6 +29,12 @@ cubinterp.$(O) : cubinterp.c
 	$(CC) $(CFLAGS) $(OPENMP) -c cubinterp.c
 zoomdown.$(O) : zoomdown.c
 	$(CC) $(CFLAGS) $(OPENMP) -c zoomdown.c
+histogram.$(O) : histogram.c
+	$(CC) $(CFLAGS) $(OPENMP) -c histogram.c
+multibinstat.$(O) : multibinstat.c
+	$(CC) $(CFLAGS) $(OPENMP) -c multibinstat.c
+reduce_by_binning.$(O) : reduce_by_binning.c
+	$(CC) $(CFLAGS) $(OPENMP) -c reduce_by_binning.c
 b3dutil.$(O) : b3dutil.c
 	$(CC) $(CFLAGS) $(OPENMP) -c b3dutil.c
 filtxcorr.$(O) : filtxcorr.c

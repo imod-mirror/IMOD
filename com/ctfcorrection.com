@@ -26,4 +26,4 @@ PixelSize  0.906
 AmplitudeContrast 0.07
 #
 # The distance in pixels between two consecutive strips
-InterpolationWidth 20
+InterpolationWidth 15

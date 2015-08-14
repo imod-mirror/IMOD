@@ -3,7 +3,7 @@ package etomo.ui.swing;
 import java.awt.Container;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -23,15 +23,11 @@ import etomo.type.ToolType;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.3  2011/02/22 21:41:07  sueh
@@ -50,7 +46,8 @@ import etomo.type.ToolType;
  * <p> </p>
  */
 public final class ToolsDialog implements ContextMenu, LogInterface {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final JPanel pnlRoot = new JPanel();
   private final JTextArea taTaskLog = new JTextArea();
@@ -62,7 +59,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   private final BaseManager manager;
 
   private ToolsDialog(final ToolsManager manager, final AxisID axisID,
-      final DialogType dialogType, final ToolType toolType) {
+    final DialogType dialogType, final ToolType toolType) {
     this.toolType = toolType;
     this.manager = manager;
     if (toolType == ToolType.FLATTEN_VOLUME) {
@@ -77,7 +74,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   }
 
   public static ToolsDialog getInstance(final ToolsManager manager, final AxisID axisID,
-      final DialogType dialogType, final ToolType toolType) {
+    final DialogType dialogType, final ToolType toolType) {
     ToolsDialog instance = new ToolsDialog(manager, axisID, dialogType, toolType);
     instance.createPanel();
     return instance;
@@ -99,8 +96,12 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     logger.logMessage(title, axisID, message);
   }
 
-  public void logMessage(String title, AxisID axisID, List<String> message) {
+  public void logMessage(String title, AxisID axisID, ArrayList<String> message) {
     logger.logMessage(title, axisID, message);
+  }
+
+  public void logMessage(final AxisID axisID, final ArrayList<String> message) {
+    logger.logMessage(axisID, message);
   }
 
   public void logMessage(String title, AxisID axisID) {
@@ -115,11 +116,9 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     logger.logMessage(file);
   }
 
-  public void save() {
-  }
+  public void save() {}
 
-  public void msgChanged() {
-  }
+  public void msgChanged() {}
 
   public void append(String line) {
     taTaskLog.append(line);
@@ -151,6 +150,5 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-  }
+  public void popUpContextMenu(MouseEvent mouseEvent) {}
 }

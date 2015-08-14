@@ -23,6 +23,7 @@ import etomo.storage.DirectiveValueType;
 import etomo.storage.DirectiveValues;
 import etomo.type.AxisType;
 import etomo.ui.FieldType;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: Panel for a Setupset directive.</p>
@@ -104,7 +105,8 @@ final class DirectivePanel {
       valueList = null;
       if (valueType == DirectiveValueType.FILE) {
         sbFileValue = new SimpleButton(new ImageIcon(
-            ClassLoader.getSystemResource("images/openFile.gif")));
+            ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+              : "images/openFileFool.png")));
       }
       else {
         sbFileValue = null;
@@ -458,7 +460,7 @@ final class DirectivePanel {
       defaultValueString = value.toString();
     }
     String debugString = "";
-    if (debug.isOn()) {
+    if (debug.isExtraVerbose()) {
       debugString = "  Type:" + directive.getValueType() + ", Batch:"
           + directive.isBatch() + ", Tmplt:" + directive.isTemplate() + ", eTomo:"
           + directive.getEtomoColumn() + ", AxisLevelData:"

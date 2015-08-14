@@ -63,6 +63,35 @@ tooltip =
 manpage = Limiting value for the mean residual; above this value, the program
 will exit with an error.
 
+[Field = ExtraValueSelection]
+short = extra
+type = IPM
+usage = Extra value ID or -column # and polarity for selecting patches based
+on criterion
+tooltip =
+manpage = Select only patches with extra value on one side of a criterion.
+The patch vector file can have additional columns of values after the
+displacements in X, Y, and Z.  These extra columns are numbered from 1, and
+they may also have ID values on the first line of the file indicating their
+type.  To include patches based on values in an extra column, enter two
+numbers for this option: the ID value or the negative of the extra column
+number; and 1 to select patches above the criterion or -1 to select ones below
+it.  You must also enter one or more threshold values with the \fB-select\fR
+option.
+
+[Field = SelectionCriteria]
+short = select
+type = FAM
+usage = One or more criteria for selecting patches based on extra values
+tooltip =
+manpage = One or more criteria for selecting patches based on extra values.
+If multiple criteria are entered, the entire autofitting process with will
+repeated each selection criterion to try to satisfy the first residual
+criterion, then higher residual criteria will be considered.  If there are
+multiple values being selected on, this option must
+be entered the same number of times as the \fB-extra\fR option and it must
+have the same number of criteria entered each time.
+
 [Field = MaxFractionToDrop]
 short = maxfrac
 type = F
@@ -89,6 +118,36 @@ manpage = Two probabilities controlling outlier elimination: a criterion
 probability for a patch to be evaluated as an outlier (default 0.01), and
 a criterion probability for a patch to be eliminated regardless of the
 distribution of extreme values (default 0.002).
+
+[Field = InitialTransformFile]
+short = initial
+type = FN
+usage = File with 3D transformation used to create the volume being aligned
+tooltip = 
+manpage = File with the 3D transformation that was used to create the volume
+being aligned.  This transformation will be multiplied by the refining
+transform and output in the file specified by the \fB-product\fR option.  The
+two options must be entered together.  A side-effect of using this option is
+that the program will report the shift in Y (the presumed depth dimension)
+needed to align corresponding patches in the center of the volumes. 
+
+[Field = ProductTransformFile]
+short = product
+type = FN
+usage = Name of output file for product of initial and refining transforms
+tooltip = 
+manpage = Name of output file for the product of the transform entered with
+the \fB-initial\fR option and the refining transform.
+
+[Field = ScaleShiftByFactor]
+short = scale
+type = F
+usage = Factor by which to scale shifts in the product transform file
+tooltip = 
+manpage = Factor by which to scale shifts in the transform written when the
+\fB-product\fR option is given.
+This option is needed to get a transformation that can be applied to an
+unbinned volume when binned volumes have been analyzed.
 
 [Field = ParameterFile]
 short = param

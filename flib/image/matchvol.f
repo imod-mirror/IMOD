@@ -55,7 +55,7 @@ c
       tempdir = ' '
       tempext='mat      1'
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       

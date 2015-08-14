@@ -45,5 +45,6 @@
 <file>images/movieArrowOn.png</file>
 <file>images/plusSign.png</file>
 <file>images/minusSign.png</file>
+<file>images/exportToFile.png</file>
 </qresource>
 </RCC>

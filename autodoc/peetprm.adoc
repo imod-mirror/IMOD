@@ -1,4 +1,4 @@
-Version = 1.3
+Version = 1.4
 
 [Field = fnVolume]
 comment = The file names of tomograms
@@ -13,7 +13,7 @@ comment = A code specifying how to construct the initial motive list:
 ^1: Use the particle and reference model points to initialize
 ^   rotation around the particle z axis
 ^
-^2: Use the particle and refernce model points to initialize
+^2: Use the particle and reference model points to initialize
 ^   rotation around the particle x and z axes
 ^
 ^3: Uniform random rotations
@@ -85,9 +85,12 @@ comment = specifies the particle's Y axis.
 ^1: particle model points determine the particle Y axis.
 ^2: end points of the contour containing the particle determine the
 ^   particle Y axis.
+^3: user-defined Y axes.
 enum.0.tooltip = Use volume's Y axis as the particle Y axis.
 enum.1.tooltip = Use vector between neighboring model points as the particle Y axis.
 enum.2.tooltip = Use end points of the contour containing the particle as the particle
+Y axis.
+enum.3.tooltip = Y axes will be read from <fnOutput>_Tom<n>_RotAxes.csv in the project directory or <volName>_RotAxes.csv in the volume directory.
 Y axis.
 
 [Field = particlePerCPU]
@@ -266,3 +269,26 @@ comment = OBSOLETE. No longer supported.
 
 [Field = meanFill]
 comment = OBSOLETE. No longer supported.
+
+[Field = cylinderHeight]
+comment = The height in voxels of the cylindrical mask. Blank or NaN 
+^will be treated as infinity, and the cylinder will span the entire volume.
+
+[Field = flgRandomize]
+comment = If 1 (default = 0), select particles for averaging randomly, 
+^rather than by cross-correlation.
+
+[Field = maskBlurStdDev]
+comment = Blur the mask by convolution with a Gaussian having this 
+^standard deviation (in voxels). If omitted or NaN (the default), the 
+^mask will be binary. After blurring, the mask edge will be spread 
+^over approximately 2.5 standard deviations on either side of 
+^the original edge location. 
+
+[Field = flgVolNamesAreTemplates]
+comment = If 1 (default = 0), file names in the volume table (i.e. 
+^volume, model, initial motive list, and wedge mask files names) may be 
+^templates to be expanded rather than individual filenames. For example, 
+^"vol1-10.mrc", would be expanded by PEET to [vol1.mrc, vol2.mrc, 
+^... vol10.mrc]. Any filename ending in 2 numbers separated by a dash 
+^('-') and, optionally, follwed by a suffix, will be considered a template.

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodcurvature 1 2.50 BL3DEMC
+.TH imodcurvature 1 2.50 IMOD
 .SH NAME
 imodcurvature \- Measures radius of curvature of model objects
 .SH SYNOPSIS

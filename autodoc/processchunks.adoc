@@ -28,14 +28,14 @@ usage = Distribute jobs to multiple or specific GPUs on each machine
 tooltip = 
 manpage = Distribute jobs to multiple or specific GPUs on each machine.  With
 this option, each machine name can be followed by a colon and one or more
-specific GPU device numbers separated by colons.  Devices are numbered from 1
-and the numbers must be positive.  The program will run each job with the
-environment variable IMOD_USE_GPU2 set to the given GPU number, or set to 0 for a
-machine where no GPU numbers were entered (0 requests the best available
-GPU on that machine.)  No machine name can be entered more than once, and the "#"
-syntax cannot be used to specify multiple CPUs.  For example,
-"tubule:2:1,eclipse:2,druid" would use two GPUs on tubule, a specific one on
-eclipse, and the best or only one on druid.
+specific GPU device numbers (not number of devices) separated by colons.
+Devices are numbered from 1 and the numbers must be positive.  The program
+will run each job with the environment variable IMOD_USE_GPU2 set to the given
+GPU number, or set to 0 for a machine where no GPU numbers were entered (0
+requests the best available GPU on that machine.)  No machine name can be
+entered more than once. For example, "tubule:2:1,eclipse:2,druid" would use
+two GPUs on tubule, a specific one (not two) on eclipse, and the best or only
+one on druid.
 
 [Field = O]
 type = I

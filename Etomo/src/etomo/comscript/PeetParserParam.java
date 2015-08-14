@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -151,9 +150,9 @@ public final class PeetParserParam implements CommandDetails {
     return new File(prmFile.getAbsolutePath() + ".log");
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
-    List message = new ArrayList();
+    ArrayList<String> message = new ArrayList();
     message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
     message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);
     StringBuffer buffer = new StringBuffer();

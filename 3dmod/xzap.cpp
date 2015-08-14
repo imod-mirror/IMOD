@@ -1126,7 +1126,7 @@ void ZapFuncs::paint()
   if (mBandChanged) {
     imodDialogManager.windowList(&objList, -1, GRAPH_WINDOW_TYPE);
     for (ob = 0; ob < objList.count(); ob++)
-      ((GraphWindow *)objList.at(ob))->xgraphDraw();
+      ((GraphWindow *)objList.at(ob))->draw();
     mBandChanged = 0;
   }
 
@@ -1646,6 +1646,14 @@ void ZapFuncs::keyInput(QKeyEvent *event)
       wprint("\aToggled modeling direction\n");
     }
     handled = 1;
+    break;
+
+  case Qt::Key_K:
+    if (!shifted && !ctrl) {
+      stateToggled(ZAP_TOGGLE_CENTER, 1 - mKeepcentered);
+      mQtWindow->setToggleState(ZAP_TOGGLE_CENTER, mKeepcentered);
+      handled = 1;
+    }
     break;
 
   case Qt::Key_Q:

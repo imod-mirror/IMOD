@@ -1,6 +1,6 @@
 .na
 .nh
-.TH convertmod 1 4.6.34 BL3DEMC
+.TH convertmod 1 4.6.34 IMOD
 .SH NAME
 convertmod - to convert an IMOD model file to a WIMP model file
 .SH SYNOPSIS

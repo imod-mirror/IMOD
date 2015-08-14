@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,7 @@ import etomo.ui.FieldLabels;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -111,6 +113,13 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
     SpacedPanel pnlMissingWedgeCompensation = SpacedPanel.getInstance();
     SpacedPanel pnlEnabled = SpacedPanel.getInstance();
     SpacedPanel pnlTiltRange = SpacedPanel.getInstance();
+    if (Utilities.APRIL_FOOLS) {
+      pnlVolumeSize.setBackground(new Color(254, 253, 161));
+      Color background = new Color(229,146,135);
+      pnlMissingWedgeCompensation.setBackground(background);
+      pnlEnabled.setBackground(background);
+      pnlTiltRange.setBackground(background);
+    }
     // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setComponentAlignmentX(Component.LEFT_ALIGNMENT);

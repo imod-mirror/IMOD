@@ -14,15 +14,11 @@ import etomo.util.MRCHeader;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.40  2011/02/22 05:54:05  sueh
@@ -384,6 +380,8 @@ public class TomogramState extends BaseState {
     invalidEdgeFunctionsA.set(EtomoState.NO_RESULT_VALUE);
     invalidEdgeFunctionsB.set(EtomoState.NO_RESULT_VALUE);
     combineScriptsCreated.set(EtomoState.NO_RESULT_VALUE);
+    adjustOriginA.set(true);
+    adjustOriginB.set(true);
   }
 
   public void store(Properties props) {

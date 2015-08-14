@@ -159,7 +159,10 @@ tooltip =
 manpage = Use this option to taper the image in boxes that fall partially
 outside the input volume.  Enter the number of pixels over which to taper the
 image, and a 0 for tapering outside or 1 for tapering inside the border of the
-real image data.  Tapering is to the mean of the input image file.  Boxes will
+real image data.  Tapering is to the value that was used to fill the
+non-existent image area.  This value is the mean of the existing image if only
+one slice is being extracted at each point and the input file is not a montage,
+otherwise it is the mean of the input image file.  Boxes will
 be tapered in Z as well as in X and Y.
 
 [Field = BlankBetweenImages]

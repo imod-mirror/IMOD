@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tomopieces 1 4.6.34 BL3DEMC
+.TH tomopieces 1 4.6.34 IMOD
 .SH NAME
 tomopieces - compute pieces for combining tomograms
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH slashmasksort 1 2.00 BL3DEMC
+.TH slashmasksort 1 2.00 IMOD
 .SH NAME
 slashmasksort \- Sorts and/or splits contours into a set of new objects based
 on whether its points fall inside any closed contours in the specified 'mask' object(s).

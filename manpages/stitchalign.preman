@@ -1,6 +1,6 @@
 .na
 .nh
-.TH stitchalign 1 4.6.34 BL3DEMC
+.TH stitchalign 1 4.6.34 IMOD
 .SH NAME
 stitchalign - compute alignment for stitching montage of overlapping volumes
 .SH SYNOPSIS

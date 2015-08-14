@@ -1,6 +1,6 @@
 .na
 .nh
-.TH boxavg 1 4.6.34 BL3DEMC
+.TH boxavg 1 4.6.34 IMOD
 .SH NAME
 boxavg - averages images from specified locations in an image file
 .SH SYNOPSIS

@@ -221,15 +221,13 @@ int iiPlistLoadF(FILE *fin, IloadInfo *li, int nx, int ny, int nz)
  * with @mrc_plist_proc given the image dimensions in [nx], [ny], and [nz].
  * Returns -4 for bad arguments, -5 for a memory error, 1 if it is not a 
  * montage or the number of sections does not match, 2 if there are not piece
- * coordinates for every sections, and -3, -2, or -1 for an 
+ * coordinates for every sections, or -3, -2, or -1 for an 
  * error in @@autodoc.html#AdocOpenImageMetadata@.
  */
 int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx, 
                         int ny, int nz)
 {
-  int adocIndex, montage, numSect, sectType, i;
-  char *sectNames[2] = {"ZValue", "Image"};
-  
+  int adocIndex, montage, numSect, sectType;
 
   if (!filename || nx < 1 || ny < 1 || nz < 1)
     return -4;
@@ -237,30 +235,60 @@ int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx
                                     &sectType);
   if (adocIndex < 0)
     return adocIndex;
+  return iiPlistFromAutodoc(adocIndex, 1, li, nx, ny, nz, montage, numSect, sectType);
+}  
 
-  if (!montage || numSect != nz) {
-    AdocClear(adocIndex);
+/*!
+ * Reads a list of piece coordinates from the autodoc with index [adocIndex].  Provided 
+ * that the [montage] is non-zero and that [numSect] equals [nz] sections, it places 
+ * the coordinates in the @@mrcfiles.html#IloadInfo structure@ [li], and processes it
+ * with @mrc_plist_proc given the image dimensions in [nx], [ny], and [nz].  The 
+ * [montage], [numSect], and [sectType] arguments should be the values returned by
+ * @@autodoc.html#AdocOpenImageMetadata@ or @@autodoc.html#AdocGetImageMetaInfo@.
+ * Set [clearOnDone] non-zero to have the autodoc cleared out upon completion.
+ * Returns -4 for bad arguments, -5 for a memory error, 1 if it is not a 
+ * montage or the number of sections does not match, or 2 if there are not piece
+ * coordinates for every section.
+ */
+int iiPlistFromAutodoc(int adocIndex, int clearOnDone,  IloadInfo *li, int nx, int ny, 
+                       int nz, int montage, int numSect, int sectType)
+{
+  char *sectNames[3] = {ADOC_ZVALUE_NAME, "Image", ADOC_ZVALUE_NAME};
+  int i, index;
+  if (adocIndex < 0 || nx < 1 || ny < 1 || nz < 1)
+    return -4;
+  if (!montage || numSect != nz || AdocSetCurrent(adocIndex)) {
+    if (clearOnDone)
+      AdocClear(adocIndex);
     return 1;
   }
 
   li->pcoords = (int *)malloc(sizeof(int) * 3 * nz);
   if (!li->pcoords) {
-    AdocClear(adocIndex);
+    if (clearOnDone)
+      AdocClear(adocIndex);
     return -5;
   }
   li->plist = nz;
 
   for (i = 0; i < nz; i++) {
-    if (AdocGetThreeIntegers(sectNames[sectType-1], i, "PieceCoordinates",
+    index = i;
+    if (sectType == 3) {
+      index = AdocLookupByNameValue(ADOC_ZVALUE_NAME, i);
+      if (index < 0)
+        break;
+    }
+    if (AdocGetThreeIntegers(sectNames[sectType-1], index, "PieceCoordinates",
                              &li->pcoords[i*3], &li->pcoords[i*3+1], 
                              &li->pcoords[i*3+2]))
       break;
   }
-  AdocClear(adocIndex);
+  if (clearOnDone)
+    AdocClear(adocIndex);
   if (i < nz) {
     free(li->pcoords);
     li->plist = 0;
     return 2;
   }
   return(mrc_plist_proc(li, nx, ny, nz));
-}  
+}

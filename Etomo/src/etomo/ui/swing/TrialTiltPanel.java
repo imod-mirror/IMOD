@@ -64,7 +64,8 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final SpacedPanel pnlBody = SpacedPanel.getInstance();
   private final JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
-  private final ComboBox cmboTrialTomogramName =  ComboBox.getUnlabeledInstance(lblTrialTomogramName);
+  private final ComboBox cmboTrialTomogramName = ComboBox
+      .getUnlabeledInstance(lblTrialTomogramName);
   private final MultiLineButton btnTrial = new MultiLineButton("Generate Trial Tomogram");
   private final Run3dmodButton btn3dmodTrial = Run3dmodButton.get3dmodInstance(
       "View Trial in 3dmod", this);
@@ -245,12 +246,6 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
@@ -260,7 +255,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrial.getActionCommand())) {
       manager.trialAction(

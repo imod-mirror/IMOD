@@ -3,15 +3,11 @@ package etomo.storage.autodoc;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2006</p>
+* <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$
 * <p> Revision 1.1  2007/04/09 20:49:11  sueh
@@ -27,8 +23,6 @@ package etomo.storage.autodoc;
 * <p> </p>
 */
 public interface ReadOnlyStatement {
-  public static final String rcsid = "$Id$";
-
   /**
    * Get the Type of the instance.  This is a substitute for instanceof.
    * @return
@@ -81,4 +75,6 @@ public interface ReadOnlyStatement {
    * @return
    */
   public ReadOnlySection getSubsection();
+
+  public int getLineNum();
 }

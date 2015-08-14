@@ -41,7 +41,8 @@ static void copyToCenter(void *array, int type, int nxbox, int nybox,
  * image in the padding area will be tapered from the value of a pixel at the 
  * edge of the input image edge down to a common value.  That value is either
  * the mean at the edge of the input image, if [ifmean] is zero, or the value
- * supplied in [dmeanin], if [ifmean] is nonzero.
+ * supplied in [dmeanin], if [ifmean] is nonzero.  The offset to the original data in the
+ * padded array is ([nx] - [nxbox]) / 2, ([ny] - [nybox]) / 2.
  */
 void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
                       float *brray, int nxdim, int nx, int ny, int ifmean,
@@ -168,7 +169,8 @@ void taperoutpad(void *array, int *nxbox, int *nybox, float *brray, int *nxdim,
  * and its X dimension is specified by [nxdim].  The padded image size is 
  * specified by [nx] and [ny], and [nxtap] and [nytap] indicate the number of
  * pixels over which to taper in X and Y.  The output array can be the same as
- * the input array if the input image fills the entire array.
+ * the input array if the input image fills the entire array.  The offset to the 
+ * original image in the padded array is [nx] / 2 - [nxbox] / 2, [ny] / 2 - [nybox] / 2.
  */
 void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
                      int iy0, int iy1, float *brray, int nxdim, int nx, int ny,
@@ -324,7 +326,8 @@ void taperinpadex(void *array, int *nxdimin, int *ix0, int *ix1,
  * larger rectangles; the each pixel in first rectangle contains the average
  * of the three nearest pixels on the outer edge of the actual data; each pixel
  * in the second rectangle is the average of the 5 nearest pixels in the first
- * rectangle, etc.
+ * rectangle, etc.  The offset to the original data in the
+ * padded array is ([nx] - [nxbox]) / 2, ([ny] - [nybox]) / 2.
  */
 void sliceSmoothOutPad(void *array, int type, int nxbox, int nybox, 
                          float *brray, int nxdim, int nx, int ny)

@@ -69,8 +69,9 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   }
 
   public static PostProcessingDialog getInstance(final ApplicationManager manager,
-      final boolean lockDialog) {
-    PostProcessingDialog instance = new PostProcessingDialog(manager, lockDialog);
+      final boolean trimvolInputFileMissing) {
+    PostProcessingDialog instance = new PostProcessingDialog(manager,
+        trimvolInputFileMissing);
     instance.addListeners();
     instance.tabbedPane.setSelectedIndex(Tab.DEFAULT.toInt());
     return instance;

@@ -10,14 +10,14 @@
 *  $Id$
 */
 
-#include <QtGui>
+#include "myapp.h"
+#include <QPrintDialog>
 
 #include <cmath>
 
 #include "fittingdialog.h"
 #include "angledialog.h"
 #include "plotter.h"
-#include "myapp.h"
 #include "ctfmain.h"
 
 #include "b3dutil.h"
@@ -479,6 +479,15 @@ void Plotter::keyPressEvent(QKeyEvent *event)
     mZoomStack[mCurZoom].scroll(0, +1);
     refreshPixmap();
     break;
+  case Qt::Key_0:
+  case Qt::Key_1:
+  case Qt::Key_2:
+  case Qt::Key_3:
+  case Qt::Key_4:
+    mApp->setBaselineOrder(event->key() - Qt::Key_0);
+    if (mFittingDia)
+      mFittingDia->setBaselineOrder(event->key() - Qt::Key_0);
+    break;
   default:
     QWidget::keyPressEvent(event);
   }
@@ -580,7 +589,7 @@ void Plotter::drawGrid(QPainter *painter, bool onScreen)
 void Plotter::drawCurves(QPainter *painter)
 {
   static const QColor colorForIds[6] = {
-    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow
+    Qt::magenta, Qt::green, Qt::blue, Qt::red, Qt::cyan, Qt::yellow
   };
   PlotSettings settings = mZoomStack[mCurZoom];
   QRect rect(Margin, Margin,

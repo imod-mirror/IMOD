@@ -9,19 +9,13 @@ import etomo.ui.swing.Token;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class NameValuePair extends Statement {
-  public static final String rcsid = "$Id$";
-
   private static final Type TYPE = Statement.Type.NAME_VALUE_PAIR;
 
   /**
@@ -33,8 +27,9 @@ final class NameValuePair extends Statement {
   private Token value = null;
   private Token newDelimiter = null;
 
-  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement) {
-    super(previousStatement);
+  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement,
+    final int lineNum) {
+    super(previousStatement, lineNum);
     this.parent = parent;
   }
 
@@ -119,7 +114,7 @@ final class NameValuePair extends Statement {
   }
 
   void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
-      IOException {
+    IOException {
     for (int i = 0; i < name.size(); i++) {
       ((Attribute) name.get(i)).write(file, writerId);
       if (i < name.size() - 1) {
@@ -129,8 +124,8 @@ final class NameValuePair extends Statement {
     file.write(' ' + parent.getCurrentDelimiter() + ' ', writerId);
     if (value != null) {
       value.write(file, writerId);
-      file.newLine(writerId);
     }
+    file.newLine(writerId);
     if (newDelimiter != null) {
       parent.setCurrentDelimiter(newDelimiter);
     }

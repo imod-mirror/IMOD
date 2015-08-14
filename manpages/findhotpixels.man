@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findhotpixels 1 4.6.34 BL3DEMC
+.TH findhotpixels 1 4.6.34 IMOD
 .SH NAME
 findhotpixels - find pixels to exclude from X-ray analysis in SerialEM
 .SH SYNOPSIS

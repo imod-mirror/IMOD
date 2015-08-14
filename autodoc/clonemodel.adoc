@@ -58,7 +58,7 @@ manpage = Print help output.
 [Field = ContourNumbers]
 short = contours
 type = LI
-usage = Contours in the model of the original volume to include (default = all).
+usage = "Contours in the model of the original volume to include (default = all)."
 tooltip =
 manpage = A comma and dash separated list of contour numbers. If entered, 
 clones will be created only at points belonging to one of the specified 

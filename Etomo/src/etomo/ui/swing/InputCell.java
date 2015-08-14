@@ -18,19 +18,13 @@ import etomo.util.Utilities;
  * following calls to its 
  * constructor or initializer:  setBackground, setForeground(), setFont()
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
-abstract class InputCell implements Cell {
-  public static final String rcsid = "$Id$";
-
+abstract class InputCell extends Cell {
   private boolean editable = true;
   private boolean highlight = false;
   private boolean warning = false;
@@ -52,7 +46,7 @@ abstract class InputCell implements Cell {
 
   abstract void setToolTipText(String toolTipText);
 
-  public  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+  public void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
     jpanelContainer = panel;
@@ -81,9 +75,9 @@ abstract class InputCell implements Cell {
   }
 
   public final void setWarning(boolean warning) {
-    //if switching from error to warning, turn off error first
+    // if switching from error to warning, turn off error first
     if (warning && error) {
-      this.warning = false;//prevent recursion
+      this.warning = false;// prevent recursion
       setError(false);
     }
     this.warning = warning;
@@ -101,9 +95,9 @@ abstract class InputCell implements Cell {
   }
 
   final void setError(boolean error) {
-    //if switching from warning to error, turn off warning first
+    // if switching from warning to error, turn off warning first
     if (error && warning) {
-      this.error = false;//prevent recursion
+      this.error = false;// prevent recursion
       setWarning(false);
     }
     this.error = error;
@@ -167,22 +161,22 @@ abstract class InputCell implements Cell {
   public void msgLabelChanged() {
     setName();
   }
-  
+
   String convertLabelToName() {
     return Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
-        .getText() : null, columnHeader != null ? columnHeader.getText() : null);
+      .getText() : null, columnHeader != null ? columnHeader.getText() : null);
   }
 
   /**
    * Build the name out of table header, row header, and column header.
    */
-   void setName() {
+  void setName() {
     String name = convertLabelToName();
     getComponent().setName(
-        getFieldType().toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+      getFieldType().toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getComponent().getName() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+        + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 }

@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -25,15 +24,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.18  2011/02/22 03:41:43  sueh
@@ -97,7 +92,8 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class XfmodelParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private static final ProcessName PROCESS_NAME = ProcessName.XFMODEL;
   public static final String COMMAND_NAME = PROCESS_NAME.toString();
@@ -162,7 +158,7 @@ public final class XfmodelParam implements CommandDetails {
     options.add("-ChunkSizes");
     IntKeyList.Walker startListWalker = state.getJoinStartListWalker(trial);
     IntKeyList.Walker endListWalker = state.getJoinEndListWalker(trial);
-    //check for valid lists
+    // check for valid lists
     if (startListWalker.size() == endListWalker.size()) {
       StringBuffer buffer = new StringBuffer();
       while (startListWalker.hasNext()) {
@@ -227,8 +223,8 @@ public final class XfmodelParam implements CommandDetails {
       }
       if (inFile.equals(outFile)) {
         UIHarness.INSTANCE.openMessageDialog(manager,
-            "Cannot overwrite xfmodel input file, " + inFile + " with output file, "
-                + outFile + ".", "XfmodelParam Error");
+          "Cannot overwrite xfmodel input file, " + inFile + " with output file, "
+            + outFile + ".", "XfmodelParam Error");
         return false;
       }
     }
@@ -309,8 +305,8 @@ public final class XfmodelParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+  public ArrayList<String> getLogMessage() throws LogFile.LockException,
+    FileNotFoundException, IOException {
     return null;
   }
 
@@ -381,7 +377,6 @@ public final class XfmodelParam implements CommandDetails {
   public static final class Fields implements etomo.comscript.FieldInterface {
     public static final Fields OUTPUT_FILE = new Fields();
 
-    private Fields() {
-    }
+    private Fields() {}
   }
 }

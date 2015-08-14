@@ -18,6 +18,7 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.type.ConstStringParameter;
 import etomo.ui.FieldType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -104,7 +105,8 @@ final class FileTextField implements FileTextFieldInterface {
   private final FieldType FIELD_TYPE = FieldType.STRING;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif")));
+      ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+        : "images/openFileFool.png")));
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
@@ -151,7 +153,7 @@ final class FileTextField implements FileTextFieldInterface {
       panel.add(this.label);
     }
     field = new TextField(FIELD_TYPE, label, null);
-    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.getInstance()
         .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(field.getComponent(), constraints);
@@ -224,7 +226,7 @@ final class FileTextField implements FileTextFieldInterface {
   private void action() {
     // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(propertyUserDir));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     if (fileSelectionMode != -1) {
       chooser.setFileSelectionMode(fileSelectionMode);
     }

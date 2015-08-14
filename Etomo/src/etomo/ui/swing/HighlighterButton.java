@@ -64,7 +64,7 @@ final class HighlighterButton {
     }
     // button
     cell = HeaderCell.getToggleInstance("=>",
-        (int) (40 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+        (int) (40 * UIParameters.getInstance().getFontSizeAdjustment()));
     cell.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     cell.setEnabled(true);
     cell.addActionListener(new HBActionListener(this));
