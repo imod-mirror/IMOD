@@ -2641,7 +2641,7 @@ def positionTomogram():
       filename = setName + '_full.rec'
    err = runFindSection(filename, numScales[aliBinning - 1],
                         boxSizes[aliBinning - 1], pitchMod = 'tomopitch' + axisLet +'.mod',
-                        block = blockSizes[aliBinning - 1], failureOK = True):
+                        block = blockSizes[aliBinning - 1], failureOK = True)
 
    # Distinguish an OK findsection failure from other errors that issued ABORT SET
    if err < 0:
