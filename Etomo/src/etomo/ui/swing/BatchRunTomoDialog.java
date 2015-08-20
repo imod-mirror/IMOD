@@ -465,7 +465,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
       StringBuilder errMsg = new StringBuilder();
       boolean deliverToDirectory = cbDeliverToDirectory.isSelected();
-      table.getParameters(param, deliverToDirectory, errMsg);
+      if (!table.getParameters(param, deliverToDirectory, errMsg, doValidation)) {
+        return false;
+      }
       if (errMsg.length() > 0) {
         if (deliverToDirectory) {
           errMsg
