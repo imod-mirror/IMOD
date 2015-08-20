@@ -87,14 +87,14 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
    * @return error message if invalid
    */
   public String validate() {
-    if (rootName == null) {
+    if (rootName.isEmpty()) {
       return "Missing root name.";
     }
     return null;
   }
 
   public String getMetaDataFileName() {
-    if (rootName == null) {
+    if (rootName.isEmpty()) {
       return null;
     }
     return DatasetFiles.getBatchRunTomoDataFileName(rootName.toString());
@@ -105,7 +105,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   }
 
   public String getName() {
-    if (rootName == null) {
+    if (rootName.isEmpty()) {
       return NEW_TITLE;
     }
     return rootName.toString();
