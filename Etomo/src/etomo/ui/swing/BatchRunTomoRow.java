@@ -616,7 +616,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
         fcEditDataset.add(panel, layout, constraints);
       }
       else {
+        constraints.ipadx = 1;
         fcDatasetStatus.add(panel, layout, constraints);
+        constraints.ipadx = 0;
         fcEndingStep.add(panel, layout, constraints);
         cbcRun.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -705,10 +707,17 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     rowMetaData.setEndingStep(endingStep);
   }
 
-  public void getParameters(final BatchruntomoParam param,
+  /**
+   * Update param and return true if the row can be run.
+   * @param param
+   * @param deliverToDirectory
+   * @param errMsg
+   * @return true if run is checked and enabled
+   */
+  public boolean getParameters(final BatchruntomoParam param,
     final boolean deliverToDirectory, final StringBuilder errMsg) {
     if (!cbcRun.isSelected() || !cbcRun.isEnabled()) {
-      return;
+      return false;
     }
     File stack = new File(fcStack.getExpandedValue());
     param.addDirectiveFile(new File(stack.getParent(), getBatchDirectiveFileName(fcStack
@@ -718,6 +727,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer,
     if (!param.addCurrentLocation(stack.getParent(), !deliverToDirectory, errMsg)) {
       errMsg.append(": " + stack.getAbsolutePath() + ".  ");
     }
+    return true;
   }
 
   private String getBatchDirectiveFileName(final String fileName) {
