@@ -26,7 +26,6 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
-import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
@@ -520,9 +519,6 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   public String getName() {
-    if (metaData == null) {
-      return MetaData.getNewFileTitle();
-    }
     return metaData.getName();
   }
 
