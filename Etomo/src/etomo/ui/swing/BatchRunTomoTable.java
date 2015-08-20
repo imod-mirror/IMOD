@@ -48,6 +48,7 @@ import etomo.ui.FieldDisplayer;
 import etomo.ui.PreferredTableSize;
 import etomo.ui.SharedStrings;
 import etomo.ui.TableListener;
+import etomo.ui.UIComponent;
 
 /**
  * <p>Description: </p>
@@ -59,12 +60,14 @@ import etomo.ui.TableListener;
  * @version $Id$
  */
 final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
-  ActionListener, StatusChangeListener, StatusChanger {
+  ActionListener, StatusChangeListener, StatusChanger, UIComponent, SwingComponent {
   private static final String STACK_TITLE = "Stack";
   private static final int MAX_HEADER_ROWS = 3;
   private static final int NUM_STACKS_HEADER_ROWS = MAX_HEADER_ROWS;
   private static final int NUM_DATASET_HEADER_ROWS = 1;
   private static final int NUM_RUN_HEADER_ROWS = 2;
+  private static final AxisID AXIS_ID = AxisID.ONLY;
+  private static final String RUN_LABEL = "Run";
 
   private final JPanel pnlRoot = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -163,7 +166,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     hcStep[0] = new HeaderCell();
     hcStep[1] = new HeaderCell("Reached");
     hcRun[0] = new HeaderCell();
-    hcRun[1] = new HeaderCell("Run");
+    hcRun[1] = new HeaderCell(RUN_LABEL);
     hcEtomo[0] = new HeaderCell("Open");
     hcEtomo[1] = new HeaderCell("Dataset");
     // preferred width of the dataset view
@@ -343,7 +346,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     rowList.addStatusChangeListener(listener);
   }
 
-  Component getComponent() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Component getComponent() {
     return pnlRoot;
   }
 
@@ -374,9 +381,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     rowList.getParameters(metaData);
   }
 
-  void getParameters(final BatchruntomoParam param, final boolean deliverToDirectory,
-    final StringBuilder errMsg) {
-    rowList.getParameters(param, deliverToDirectory, errMsg);
+  boolean getParameters(final BatchruntomoParam param, final boolean deliverToDirectory,
+    final StringBuilder errMsg, final boolean doValidation) {
+    return rowList.getParameters(param, deliverToDirectory, errMsg, doValidation);
   }
 
   boolean saveAutodocs(final TemplatePanel templatePanel,
@@ -842,7 +849,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           return false;
         }
         if (UIHarness.INSTANCE.openYesNoDialog(manager, "Delete the highlighted row?",
-          AxisID.ONLY)) {
+          AXIS_ID)) {
           row.remove();
           row.delete();
           list.remove(index);
@@ -1061,11 +1068,19 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       metaData.setEarliestRunEndingStep(earliestRunEndingStep);
     }
 
-    private void getParameters(final BatchruntomoParam param,
-      final boolean deliverToDirectory, final StringBuilder errMsg) {
+    private boolean getParameters(final BatchruntomoParam param,
+      final boolean deliverToDirectory, final StringBuilder errMsg,
+      final boolean doValidation) {
+      boolean run = false;
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).getParameters(param, deliverToDirectory, errMsg);
+        run = list.get(i).getParameters(param, deliverToDirectory, errMsg) || run;
       }
+      if (doValidation && !run) {
+        UIHarness.INSTANCE.openMessageDialog(manager, table, "Must check at least one "
+          + RUN_LABEL + " checkbox", "Nothing to Do", AXIS_ID);
+        return false;
+      }
+      return true;
     }
 
     private boolean saveAutodocs(final TemplatePanel templatePanel,
