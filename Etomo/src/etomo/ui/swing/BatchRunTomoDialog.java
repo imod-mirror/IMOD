@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -61,7 +62,8 @@ import etomo.util.Utilities;
  * @version $Id$
  */
 public final class BatchRunTomoDialog implements ActionListener, ResultListener,
-  ChangeListener, Expandable, ProcessInterface, StatusChanger, StatusChangeListener {
+  ChangeListener, Expandable, ProcessInterface, StatusChanger, StatusChangeListener,
+  ContextMenu {
   private static final String DELIVER_TO_DIRECTORY_NAME = "Move datasets to";
 
   private final JPanel pnlRoot = new JPanel();
@@ -301,6 +303,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     table.msgStatusChangerStarted(this);
     // The step panel needs to listen for changes to the earliestRunStep.
     table.addStatusChangeListenerToRowList(stepPanel);
+    tabbedPane.addMouseListener(new GenericMouseAdapter(this));
   }
 
   /**
@@ -323,6 +326,32 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       return;
     }
     listeners.add(listener);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = new String[] { "batchruntomo", "3dmod" };
+    String[] manPage = new String[] { "batchruntomo.html", "3dmod.html" };
+    String[] logFileLabel = new String[] { "batchruntomo" };
+    String[] logFile = new String[] { getRootName() + ".log" };
+    String anchor = null;
+    if (curTab == BatchRunTomoTab.BATCH) {
+      anchor = "BatchSetup";
+    }
+    else if (curTab == BatchRunTomoTab.STACKS) {
+      anchor = "Stacks";
+    }
+    else if (curTab == BatchRunTomoTab.DATASET) {
+      anchor = "SetValues";
+    }
+    else if (curTab == BatchRunTomoTab.RUN) {
+      anchor = "Run";
+    }
+    ContextPopup contextPopup =
+      new ContextPopup(pnlRoot, mouseEvent, anchor, ContextPopup.BATCHRUNTOMO_GUIDE,
+        manPagelabel, manPage, logFileLabel, logFile, manager, axisID);
   }
 
   public void msgStatusChangerStarted(final StatusChanger changer) {
