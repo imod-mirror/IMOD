@@ -184,15 +184,17 @@ import etomo.util.EnvironmentVariable;
  */
 
 public final class ContextPopup {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   public static final String TOMO_GUIDE = "tomoguide.html";
   public static final String JOIN_GUIDE = "tomojoin.html";
   public static final String SERIAL_GUIDE = "serialalign.html";
+  public static final String BATCHRUNTOMO_GUIDE = "batchGuide.html";
 
   private final JPopupMenu contextMenu = new JPopupMenu("Help Documents");
   private final JMenuItem serialSectionsGuideItem = new MenuItem(
-      "Serial Section Guide ...");
+    "Serial Section Guide ...");
   private final JMenuItem tomoGuideItem = new MenuItem("Tomography Guide ...");
   private final JMenuItem modelGuideItem = new MenuItem("IMOD Users Guide ...");
   private final JMenuItem it3dmodGuide = new MenuItem("3dmod Users Guide ...");
@@ -200,6 +202,7 @@ public final class ContextPopup {
   private final JMenuItem joinGuideItem = new MenuItem("Join Users Guide ...");
   private final JMenuItem peetGuideItem = new MenuItem("PEET Users Guide ...");
   private final JMenuItem peetHelpItem = new MenuItem("PEET Help ...");
+  private final JMenuItem batchGuideItem = new MenuItem("Batch Interface Guide ...");
 
   private final ActionListener actionListener;
   private final MouseEvent mouseEvent;
@@ -222,7 +225,7 @@ public final class ContextPopup {
    * @param tomoAnchor The tomography guide HTML anchor for the current popup.
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final BaseManager manager, final AxisID axisID) {
+    final String tomoAnchor, final BaseManager manager, final AxisID axisID) {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
@@ -242,7 +245,7 @@ public final class ContextPopup {
     };
 
     // add the menu items
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, null);
     showMenu(component);
   }
 
@@ -256,8 +259,8 @@ public final class ContextPopup {
    * @param manPage The name of the HTML man pages.
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
-      final String[] manPage, final BaseManager manager, final AxisID axisID) {
+    final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
+    final String[] manPage, final BaseManager manager, final AxisID axisID) {
     this.mouseEvent = mouseEvent;
     validate(manPageLabel, manPage);
     anchor = tomoAnchor;
@@ -275,7 +278,7 @@ public final class ContextPopup {
         for (int i = 0; i < getManPageItem().length; i++) {
           if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                axisID);
+              axisID);
           }
         }
 
@@ -288,7 +291,7 @@ public final class ContextPopup {
 
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, guideToAnchor);
     showMenu(component);
   }
 
@@ -300,8 +303,8 @@ public final class ContextPopup {
    * @param guideToAnchor
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String guideToAnchor, final BaseManager manager,
-      final AxisID axisID) {
+    final String tomoAnchor, final String guideToAnchor, final BaseManager manager,
+    final AxisID axisID) {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
@@ -322,7 +325,7 @@ public final class ContextPopup {
     };
 
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, guideToAnchor);
     showMenu(component);
   }
 
@@ -340,15 +343,15 @@ public final class ContextPopup {
    * @param manager
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
-      final String[] manPage, final String[] logFileLabel, final String[] logFile,
-      final BaseManager manager, final AxisID axisID) {
+    final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
+    final String[] manPage, final String[] logFileLabel, final String[] logFile,
+    final BaseManager manager, final AxisID axisID) {
     this.mouseEvent = mouseEvent;
     validate(manPageLabel, manPage);
     if (logFileLabel.length != logFile.length) {
       StringBuffer message = new StringBuffer();
       message
-          .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
+        .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
       for (int i = 0; i < logFileLabel.length; i++) {
         message.append(logFileLabel[i] + "\n");
       }
@@ -376,7 +379,7 @@ public final class ContextPopup {
             /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
              * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                axisID);
+              axisID);
           }
         }
 
@@ -386,7 +389,7 @@ public final class ContextPopup {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
-                + File.separator + getLogFileName()[i]));
+              + File.separator + getLogFileName()[i]));
           }
         }
 
@@ -402,7 +405,7 @@ public final class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, guideToAnchor);
     showMenu(component);
   }
 
@@ -422,16 +425,15 @@ public final class ContextPopup {
    * @param axisID
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
-      final String[] manPage, final String[] logFileLabel, final String[] logFile,
-      final TomodataplotsParam.Task[] graph, final BaseManager manager,
-      final AxisID axisID) {
+    final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
+    final String[] manPage, final String[] logFileLabel, final String[] logFile,
+    final TomodataplotsParam.Task[] graph, final BaseManager manager, final AxisID axisID) {
     this.mouseEvent = mouseEvent;
     validate(manPageLabel, manPage);
     if (logFileLabel.length != logFile.length) {
       StringBuffer message = new StringBuffer();
       message
-          .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
+        .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
       for (int i = 0; i < logFileLabel.length; i++) {
         message.append(logFileLabel[i] + "\n");
       }
@@ -460,7 +462,7 @@ public final class ContextPopup {
             /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
              * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                axisID);
+              axisID);
             return;
           }
         }
@@ -471,7 +473,7 @@ public final class ContextPopup {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
-                + File.separator + getLogFileName()[i]));
+              + File.separator + getLogFileName()[i]));
             return;
           }
         }
@@ -499,7 +501,7 @@ public final class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, guideToAnchor);
     showMenu(component);
   }
 
@@ -520,17 +522,17 @@ public final class ContextPopup {
    * @param serialSections
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
-      final String[] manPage, final String[] logFileLabel, final String[] logFile,
-      final TomodataplotsParam.Task[] graph, final BaseManager manager,
-      final AxisID axisID, final boolean serialSections) {
+    final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
+    final String[] manPage, final String[] logFileLabel, final String[] logFile,
+    final TomodataplotsParam.Task[] graph, final BaseManager manager,
+    final AxisID axisID, final boolean serialSections) {
     this.mouseEvent = mouseEvent;
     this.serialSections = serialSections;
     validate(manPageLabel, manPage);
     if (logFileLabel.length != logFile.length) {
       StringBuffer message = new StringBuffer();
       message
-          .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
+        .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
       for (int i = 0; i < logFileLabel.length; i++) {
         message.append(logFileLabel[i] + "\n");
       }
@@ -559,7 +561,7 @@ public final class ContextPopup {
             /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
              * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                axisID);
+              axisID);
             return;
           }
         }
@@ -570,7 +572,7 @@ public final class ContextPopup {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
-                + File.separator + getLogFileName()[i]));
+              + File.separator + getLogFileName()[i]));
             return;
           }
         }
@@ -598,7 +600,7 @@ public final class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, guideToAnchor);
     showMenu(component);
   }
 
@@ -617,9 +619,9 @@ public final class ContextPopup {
    * @param manager
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
-      final String[] manPage, final String[] logFileLabel, final String[] logFile,
-      final BaseManager manager, final AxisID axisID, final String subdirName) {
+    final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
+    final String[] manPage, final String[] logFileLabel, final String[] logFile,
+    final BaseManager manager, final AxisID axisID, final String subdirName) {
     this.mouseEvent = mouseEvent;
     validate(manPageLabel, manPage);
     if (logFileLabel.length != logFile.length) {
@@ -644,7 +646,7 @@ public final class ContextPopup {
             /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
              * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                axisID);
+              axisID);
           }
         }
 
@@ -654,8 +656,8 @@ public final class ContextPopup {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
-                + (subdirName != null ? File.separator + subdirName : "")
-                + File.separator + getLogFileName()[i]));
+              + (subdirName != null ? File.separator + subdirName : "") + File.separator
+              + getLogFileName()[i]));
           }
         }
 
@@ -671,7 +673,7 @@ public final class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, guideToAnchor);
     showMenu(component);
   }
 
@@ -687,8 +689,8 @@ public final class ContextPopup {
   * @param manager
   */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String[] manPageLabel, final String[] manPage, final boolean addPeetGuide,
-      final BaseManager manager, final AxisID axisID) {
+    final String[] manPageLabel, final String[] manPage, final boolean addPeetGuide,
+    final BaseManager manager, final AxisID axisID) {
     this.mouseEvent = mouseEvent;
     validate(manPageLabel, manPage);
     calcImodURL();
@@ -703,7 +705,7 @@ public final class ContextPopup {
             /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
              * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                axisID);
+              axisID);
           }
         }
 
@@ -714,7 +716,7 @@ public final class ContextPopup {
             if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
               TextPageWindow logFileWindow = new TextPageWindow();
               logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
-                  + File.separator + getLogFileName()[i]));
+                + File.separator + getLogFileName()[i]));
             }
           }
         }
@@ -729,7 +731,7 @@ public final class ContextPopup {
 
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(addPeetGuide);
+    addStandardMenuItems(addPeetGuide, null);
     showMenu(component);
   }
 
@@ -742,7 +744,7 @@ public final class ContextPopup {
    * @param axisID
    */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final BaseManager manager, final AxisID axisID, final boolean serialSections) {
+    final BaseManager manager, final AxisID axisID, final boolean serialSections) {
     this.serialSections = serialSections;
     this.mouseEvent = mouseEvent;
     calcImodURL();
@@ -756,7 +758,7 @@ public final class ContextPopup {
           for (int i = 0; i < manPageItem.length; i++) {
             if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
               ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
-                  axisID);
+                axisID);
             }
           }
         }
@@ -768,7 +770,7 @@ public final class ContextPopup {
             if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
               TextPageWindow logFileWindow = new TextPageWindow();
               logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
-                  + File.separator + getLogFileName()[i]));
+                + File.separator + getLogFileName()[i]));
             }
           }
         }
@@ -782,7 +784,7 @@ public final class ContextPopup {
     };
 
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, null);
     showMenu(component);
   }
 
@@ -804,10 +806,10 @@ public final class ContextPopup {
   * @param axisID used for updating the log file
   */
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
-      final String tomoAnchor, final String[] manPageLabel, final String[] manPage,
-      final String[] logWindowLabel, final Vector logFileLabel, final Vector logFile,
-      final TomodataplotsParam.Task[] graph, final ApplicationManager applicationManager,
-      final String updateLogCommandName, final AxisID axisID) {
+    final String tomoAnchor, final String[] manPageLabel, final String[] manPage,
+    final String[] logWindowLabel, final Vector logFileLabel, final Vector logFile,
+    final TomodataplotsParam.Task[] graph, final ApplicationManager applicationManager,
+    final String updateLogCommandName, final AxisID axisID) {
     this.mouseEvent = mouseEvent;
     validate(manPageLabel, manPage);
     if (logFileLabel.size() != logFile.size()) {
@@ -831,7 +833,7 @@ public final class ContextPopup {
         for (int i = 0; i < getManPageItem().length; i++) {
           if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
             ImodqtassistProcess.INSTANCE.open(applicationManager, "man/"
-                + getManPageName()[i], axisID);
+              + getManPageName()[i], axisID);
           }
         }
 
@@ -848,11 +850,11 @@ public final class ContextPopup {
             for (int j = 0; j < logFileList.length; j++) {
               logFileFullPath[j] = path + logFileList[j];
             }
-            TabbedTextWindow logFileWindow = new TabbedTextWindow(logWindowLabel[i],
-                axisID);
+            TabbedTextWindow logFileWindow =
+              new TabbedTextWindow(logWindowLabel[i], axisID);
             try {
               if (logFileWindow.openFiles(applicationManager, logFileFullPath,
-                  (String[]) logFileLabel.get(i), axisID)) {
+                (String[]) logFileLabel.get(i), axisID)) {
                 logFileWindow.setVisible(true);
               }
               else {
@@ -873,8 +875,8 @@ public final class ContextPopup {
                 logFileWindow.dispose();
               }
               UIHarness.INSTANCE.openMessageDialog(applicationManager,
-                  "WARNING:  Ran out of memory.  Will not display log file."
-                      + "\nPlease close open windows or exit Etomo.", "Out of Memory");
+                "WARNING:  Ran out of memory.  Will not display log file."
+                  + "\nPlease close open windows or exit Etomo.", "Out of Memory");
               throw e;
             }
           }
@@ -906,14 +908,20 @@ public final class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(false);
+    addStandardMenuItems(false, null);
     showMenu(component);
   }
 
   /**
    *
    */
-  private void addStandardMenuItems(final boolean addPeetGuide) {
+  private void
+    addStandardMenuItems(final boolean addPeetGuide, final String guideToAnchor) {
+    boolean batch = guideToAnchor != null && guideToAnchor.equals(BATCHRUNTOMO_GUIDE);
+    if (batch) {
+      contextMenu.add(batchGuideItem);
+      batchGuideItem.addActionListener(actionListener);
+    }
     // Construct the context menu
     if (addPeetGuide) {
       contextMenu.add(peetGuideItem);
@@ -921,7 +929,7 @@ public final class ContextPopup {
       peetGuideItem.addActionListener(actionListener);
       peetHelpItem.addActionListener(actionListener);
       if (!EnvironmentVariable.INSTANCE.exists(null, null,
-          EnvironmentVariable.PARTICLE_DIR, null)) {
+        EnvironmentVariable.PARTICLE_DIR, null)) {
         peetHelpItem.setEnabled(false);
       }
     }
@@ -943,6 +951,10 @@ public final class ContextPopup {
       contextMenu.add(joinGuideItem);
       joinGuideItem.addActionListener(actionListener);
     }
+    if (!batch) {
+      contextMenu.add(batchGuideItem);
+      batchGuideItem.addActionListener(actionListener);
+    }
   }
 
   /**
@@ -963,7 +975,7 @@ public final class ContextPopup {
   }
 
   private void globalItemAction(final ActionEvent actionEvent,
-      final String tomoGuideLocation, final BaseManager manager, final AxisID axisID) {
+    final String tomoGuideLocation, final BaseManager manager, final AxisID axisID) {
     globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE, manager, axisID);
   }
 
@@ -973,10 +985,10 @@ public final class ContextPopup {
    * @param tomoGuideLocation
    */
   private void globalItemAction(final ActionEvent actionEvent, String guideLocation,
-      final String guide, final BaseManager manager, final AxisID axisID) {
+    final String guide, final BaseManager manager, final AxisID axisID) {
     // Add TOP anchor when no anchor has been set.
     if (guideLocation != null && !guideLocation.matches("\\s*")
-        && guideLocation.indexOf("#") == -1) {
+      && guideLocation.indexOf("#") == -1) {
       guideLocation += Constants.TOP_ANCHOR;
     }
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
@@ -988,7 +1000,7 @@ public final class ContextPopup {
       }
       else {
         ImodqtassistProcess.INSTANCE.open(manager, TOMO_GUIDE + Constants.TOP_ANCHOR,
-            axisID);
+          axisID);
       }
     }
 
@@ -996,21 +1008,21 @@ public final class ContextPopup {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "guide.html"); manpage.setVisible(true); */
       ImodqtassistProcess.INSTANCE.open(manager, "guide.html" + Constants.TOP_ANCHOR,
-          axisID);
+        axisID);
     }
 
     if (actionEvent.getActionCommand() == it3dmodGuide.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "3dmodguide.html"); manpage.setVisible(true); */
       ImodqtassistProcess.INSTANCE.open(manager,
-          "3dmodguide.html" + Constants.TOP_ANCHOR, axisID);
+        "3dmodguide.html" + Constants.TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "UsingEtomo.html"); manpage.setVisible(true); */
       ImodqtassistProcess.INSTANCE.open(manager,
-          "UsingEtomo.html" + Constants.TOP_ANCHOR, axisID);
+        "UsingEtomo.html" + Constants.TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
@@ -1022,19 +1034,27 @@ public final class ContextPopup {
       }
       else {
         ImodqtassistProcess.INSTANCE.open(manager, JOIN_GUIDE + Constants.TOP_ANCHOR,
-            axisID);
+          axisID);
       }
     }
-
+    if (actionEvent.getActionCommand() == batchGuideItem.getText()) {
+      if (guide != null && guide.equals(BATCHRUNTOMO_GUIDE)) {
+        ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
+      }
+      else {
+        ImodqtassistProcess.INSTANCE.open(manager, BATCHRUNTOMO_GUIDE
+          + Constants.TOP_ANCHOR, axisID);
+      }
+    }
     if (actionEvent.getActionCommand() == peetGuideItem.getText()) {
       ImodqtassistProcess.INSTANCE.open(manager,
-          "PEETmanual.html" + Constants.TOP_ANCHOR, axisID);
+        "PEETmanual.html" + Constants.TOP_ANCHOR, axisID);
     }
     if (actionEvent.getActionCommand() == peetHelpItem.getText()) {
       BaseProcessManager.startSystemProgramThread(
-          new String[] { new File(new File(new File(EnvironmentVariable.INSTANCE
-              .getValue(null, null, EnvironmentVariable.PARTICLE_DIR, null)), "bin"),
-              "PEETHelp").getAbsolutePath() }, axisID, manager);
+        new String[] { new File(new File(new File(EnvironmentVariable.INSTANCE.getValue(
+          null, null, EnvironmentVariable.PARTICLE_DIR, null)), "bin"), "PEETHelp")
+          .getAbsolutePath() }, axisID, manager);
     }
     if (actionEvent.getActionCommand() == serialSectionsGuideItem.getText()) {
       if (guide != null && guide.equals(SERIAL_GUIDE)) {
@@ -1042,7 +1062,7 @@ public final class ContextPopup {
       }
       else {
         ImodqtassistProcess.INSTANCE.open(manager, SERIAL_GUIDE + Constants.TOP_ANCHOR,
-            axisID);
+          axisID);
       }
     }
   }
@@ -1065,7 +1085,7 @@ public final class ContextPopup {
   }
 
   private void addGraphMenuItems(final BaseManager manager, final AxisID axisID,
-      final TomodataplotsParam.Task[] graph) {
+    final TomodataplotsParam.Task[] graph) {
     graphTask = new ArrayList<TaskInterface>();
     for (int i = 0; i < graph.length; i++) {
       if (graph[i].isAvailable(manager, axisID)) {
@@ -1106,8 +1126,8 @@ public final class ContextPopup {
    */
   private void calcImodURL() {
     try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURI().toURL().toString()
-          + "/html/";
+      imodURL =
+        EtomoDirector.INSTANCE.getIMODDirectory().toURI().toURL().toString() + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
@@ -1117,7 +1137,7 @@ public final class ContextPopup {
   }
 
   private void validate(final String[] manPageLabel, final String[] manPage)
-      throws IllegalArgumentException {
+    throws IllegalArgumentException {
     // Check to make sure that the menu label and man page arrays are the same
     // length
     if (manPageLabel.length != manPage.length) {
