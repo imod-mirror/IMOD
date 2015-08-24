@@ -58,7 +58,7 @@ def findTitle(lib):
 # Very simple startup here
 import sys, os, os.path, glob, shutil
 
-sys.path.append('../pysrc')
+sys.path.insert(0, '../pysrc')
 from imodpy import *
 from pysed import *
 
