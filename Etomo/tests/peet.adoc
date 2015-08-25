@@ -248,12 +248,28 @@ tf.volume-table-2-tilt-range.1=
 tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
 [[if = test-gui]]
+  assert.cb.use-tilt-range-in-averaging=on
+  assert.cb.use-tilt-range-in-alignment=on
   assert.enabled.sp.edge-shift=
   assert.enabled.sp.weight-groups=
   assert.enabled.tf.volume-table-2-tilt-range=
   assert.enabled.tf.volume-table-2-tilt-range.1=
+  assert.enabled.rb.1=
+  assert.enabled.rb.2-or-more=
+  assert.enabled.cb.use-tilt-range-in-alignment=
 [[]]
 cb.enabled=off
+[[if = test-gui]]
+  assert.cb.use-tilt-range-in-averaging=off
+  assert.cb.use-tilt-range-in-alignment=off
+  assert.disabled.tf.volume-table-2-tilt-range=
+  assert.disabled.tf.volume-table-2-tilt-range.1=
+  assert.disabled.sp.edge-shift=
+  assert.disabled.sp.weight-groups=
+  assert.disabled.rb.1=
+  assert.disabled.rb.2-or-more=
+  assert.disabled.cb.use-tilt-range-in-alignment=
+[[]]
 
 
 [function = masking]
