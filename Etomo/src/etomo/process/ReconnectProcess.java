@@ -12,6 +12,7 @@ import etomo.ProcessingMethodMediator;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstStringProperty;
+import etomo.type.CurrentArrayList;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -21,26 +22,22 @@ import etomo.ui.swing.UIHarness;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
- * 
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  */
-public final class ReconnectProcess implements SystemProcessInterface, Runnable {
-  public static final String rcsid = "$Id$";
-
+public class ReconnectProcess implements SystemProcessInterface, Runnable {
   private final BaseManager manager;
 
-  private final BaseProcessManager processManager;
-  private final ProcessMonitor monitor;
+  final BaseProcessManager processManager;
+  final ProcessMonitor monitor;
   private final ProcessData processData;
   private final AxisID axisID;
-  private final boolean popupChunkWarnings;
+  final boolean popupChunkWarnings;
+  // Use reconnect to update dialog - clear processData once process is done.
+  private final boolean reconnectWhenNotRunning;
 
   private ProcessSeries processSeries;
   private ProcessEndState endState = null;
@@ -56,7 +53,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
    * levels>2.
    * @param levels
    */
-  public void dumpState(int levels) {
+  void dumpState(int levels) {
     System.err.print("[");
     levels--;
     if (levels > 0) {
@@ -104,9 +101,10 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
     System.err.println(",logSuccessTag:" + logSuccessTag + "]");
   }
 
-  private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
-      ProcessMonitor monitor, ProcessData processData, AxisID axisID,
-      final ProcessSeries processSeries, final boolean popupChunkWarnings) {
+  ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
+    ProcessMonitor monitor, ProcessData processData, AxisID axisID,
+    final ProcessSeries processSeries, final boolean popupChunkWarnings,
+    final boolean reconnectWhenNotRunning) {
     this.manager = manager;
     this.processManager = processManager;
     this.monitor = monitor;
@@ -114,35 +112,46 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
     this.axisID = axisID;
     this.processSeries = processSeries;
     this.popupChunkWarnings = popupChunkWarnings;
+    this.reconnectWhenNotRunning = reconnectWhenNotRunning;
   }
 
   static ReconnectProcess getInstance(BaseManager manager,
-      BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
-      AxisID axisID, final ProcessSeries processSeries) throws LogFile.LockException {
-    ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
-        processData, axisID, processSeries, true);
-    instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+    BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
+    AxisID axisID, final ProcessSeries processSeries) throws LogFile.LockException {
+    ReconnectProcess instance =
+      new ReconnectProcess(manager, processManager, monitor, processData, axisID,
+        processSeries, true, false);
+    instance.logFile =
+      LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         processData.getProcessName());
     return instance;
   }
 
   static ReconnectProcess getLogInstance(BaseManager manager,
-      BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
-      AxisID axisID, String logFileName, String logSuccessTag,
-      ConstStringProperty subDirName, final ProcessSeries processSeries,
-      final boolean popupChunkWarnings) throws LogFile.LockException {
-    ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
-        processData, axisID, processSeries, popupChunkWarnings);
-    if (subDirName.isEmpty()) {
-      instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileName);
+    BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
+    AxisID axisID, String logFileName, String logSuccessTag,
+    ConstStringProperty subDirName, final ProcessSeries processSeries,
+    final boolean popupChunkWarnings, final boolean reconnectWhenNotRunning)
+    throws LogFile.LockException {
+    ReconnectProcess instance =
+      new ReconnectProcess(manager, processManager, monitor, processData, axisID,
+        processSeries, popupChunkWarnings, reconnectWhenNotRunning);
+    instance.initLogInstance(logFileName, logSuccessTag, subDirName);
+    return instance;
+  }
+
+  void initLogInstance(final String logFileName, final String logSuccessTag,
+    final ConstStringProperty subDirName) throws LogFile.LockException {
+    if (subDirName == null || subDirName.isEmpty()) {
+      logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileName);
     }
     else {
-      instance.logFile = LogFile.getInstance(new File(manager.getPropertyUserDir(),
-          subDirName.toString()), logFileName);
+      logFile =
+        LogFile.getInstance(
+          new File(manager.getPropertyUserDir(), subDirName.toString()), logFileName);
     }
-    instance.logSuccessTag = logSuccessTag;
-    instance.monitorControl = true;
-    return instance;
+    this.logSuccessTag = logSuccessTag;
+    monitorControl = true;
   }
 
   /**
@@ -150,8 +159,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
    * here would override it.  Should never happen because the process monitor
    * should not set the computer map in the process during a reconnect.
    */
-  public final void setComputerMap(Map<String,String> computerMap) {
-  }
+  public final void setComputerMap(Map<String, String> computerMap) {}
 
   public ProcessSeries getProcessSeries() {
     return processSeries;
@@ -169,8 +177,8 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   }
 
   public void run() {
-    if (processData == null || !processData.isRunning()
-        || processData.isOnDifferentHost()) {
+    if (processData == null || (!processData.isRunning() && !reconnectWhenNotRunning)
+      || processData.isOnDifferentHost()) {
       return;
     }
 
@@ -181,21 +189,19 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
     try {
       Thread.sleep(500);
     }
-    catch (InterruptedException e) {
-    }
+    catch (InterruptedException e) {}
     LogFile.WritingId logWritingId = null;
     try {
       if (!monitorControl) {
         // make sure nothing else is writing or backing up the log file
         logWritingId = logFile.openForWriting();
       }
-      while ((!monitorControl && processData.isRunning())
-          || (monitorControl && monitor.isRunning())) {
+      while ((!monitorControl && (reconnectWhenNotRunning || processData.isRunning()))
+        || (monitorControl && monitor.isRunning())) {
         try {
           Thread.sleep(500);
         }
-        catch (InterruptedException e) {
-        }
+        catch (InterruptedException e) {}
       }
     }
     catch (LogFile.LockException e) {
@@ -209,13 +215,12 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
         try {
           Thread.sleep(500);
         }
-        catch (InterruptedException e) {
-        }
+        catch (InterruptedException e) {}
       }
     }
     if (logSuccessTag == null) {
-      messages = ProcessMessages.getInstance(manager, "Reconstruction of",
-          "slices complete.");
+      messages =
+        ProcessMessages.getInstance(manager, "Reconstruction of", "slices complete.");
     }
     else {
       messages = ProcessMessages.getInstance(manager, logSuccessTag);
@@ -231,11 +236,20 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       e.printStackTrace();
     }
     int exitValue = 0;
-    if (messages.isError() || !messages.isSuccess()) {
+    if (!messages.isEmpty(ProcessMessages.MessageType.ERROR) || !messages.isSuccess()) {
       exitValue = 1;
     }
-    processManager.msgReconnectDone(this, exitValue, popupChunkWarnings);
+    msgDone(exitValue);
     mediator.deregister(this);
+    if (reconnectWhenNotRunning) {
+      // The next reconnect won't check to see if the process is run - remove process data
+      // for completed process.
+      resetProcessData();
+    }
+  }
+
+  void msgDone(final int exitValue) {
+    processManager.msgReconnectDone(this, exitValue, popupChunkWarnings);
   }
 
   public ProcessData getProcessData() {
@@ -244,6 +258,12 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 
   public String getShellProcessID() {
     return processData.getPid();
+  }
+
+  public final void setKeyArray(CurrentArrayList<String> keyArray) {
+    if (processData != null && keyArray != null) {
+      processData.setKeyArray(keyArray);
+    }
   }
 
   /**
@@ -340,10 +360,16 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   public final void pause(AxisID axisID) {
     if (monitor == null) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Unable to pause.",
-          "Function Not Available");
+        "Function Not Available");
     }
     else {
       monitor.pause(this, axisID);
+    }
+  }
+
+  public void resetProcessData() {
+    if (processData != null) {
+      processData.reset();
     }
   }
 

@@ -41,6 +41,7 @@ public class XcorrProcessWatcher implements ProcessMonitor {
     this.axisID = axisID;
     this.blendmont = blendmont;
   }
+  public void halt() {}
 
   public void stop() {
     stop = true;

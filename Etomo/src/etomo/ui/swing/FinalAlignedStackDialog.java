@@ -789,7 +789,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     JPanel pnlInvertTiltAngles = new JPanel();
     pnlInvertTiltAngles.setLayout(new BoxLayout(pnlInvertTiltAngles, BoxLayout.X_AXIS));
     pnlInvertTiltAngles.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlInvertTiltAngles.add(cbInvertTiltAngles);
+    pnlInvertTiltAngles.add(cbInvertTiltAngles.getComponent());
     pnlInvertTiltAngles.add(Box.createHorizontalGlue());
     ctfCorrectionBodyPanel.add(pnlInvertTiltAngles);
     // ctf plotter
@@ -813,13 +813,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
         BoxLayout.X_AXIS));
     useExpectedDefocusPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
     ctfCorrectionPanel.add(useExpectedDefocusPanel);
-    useExpectedDefocusPanel.add(cbUseExpectedDefocus);
+    useExpectedDefocusPanel.add(cbUseExpectedDefocus.getComponent());
     useExpectedDefocusPanel.add(Box.createHorizontalGlue());
 
     JPanel pnlParallelProcess = new JPanel();
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(cbParallelProcess.getComponent());
     pnlParallelProcess.add(Box.createHorizontalGlue());
     ctfCorrectionPanel.add(pnlParallelProcess);
     ctfCorrectionPanel.add(ltfInterpolationWidth);

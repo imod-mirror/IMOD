@@ -69,6 +69,10 @@ public final class Colors {
   static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204, 255, 255);
   static final ColorUIResource HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
     184, 230, 230);
+  static final ColorUIResource RUN_HIGHLIGHT_BACKGROUND = new ColorUIResource(204, 255, 204);
+  static final ColorUIResource RUN_HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
+    184, 230, 184);
+  
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
   private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(25, 25,

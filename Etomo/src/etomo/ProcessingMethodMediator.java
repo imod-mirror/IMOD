@@ -31,7 +31,7 @@ import etomo.ui.swing.ProcessInterface;
  */
 public final class ProcessingMethodMediator {
   public static final String rcsid =
-      "$Id$";
+    "$Id$";
 
   /**
    * reconnectProcess: Only one.  May or may not register before a dialog is
@@ -86,9 +86,8 @@ public final class ProcessingMethodMediator {
     // Show the reconnect process method
     ProcessingMethod method = reconnectProcess.getProcessingMethod();
     if (axisProcessPanel != null) {
-      if (!method.isLocal()) {
+      if (method != null && !method.isLocal()) {
         // Does the monitor start before the process? Maybe, so force the
-        // axisProcessPanel to show the parallel panel.
         axisProcessPanel.forceShowParallelPanel(true);
       }
       else {
@@ -302,7 +301,7 @@ public final class ProcessingMethodMediator {
   }
 
   public void setMethod(final ProcessInterface origin, final ProcessingMethod method,
-      final ProcessingMethod secondaryMethod, final boolean visible) {
+    final ProcessingMethod secondaryMethod, final boolean visible) {
     // Ignore an unregistered process interface
     // Don't change processing method while reconnect process exists
     if (origin != processInterface || reconnectProcess != null) {
@@ -336,11 +335,11 @@ public final class ProcessingMethodMediator {
    * @return
    */
   public ProcessingMethod getRunMethodForParallelPanel(
-      final ProcessingMethod parallelPanelMethod) {
+    final ProcessingMethod parallelPanelMethod) {
     if (processInterface != null) {
       ProcessingMethod processInterfaceMethod = processInterface.getProcessingMethod();
-      if (!processInterfaceMethod.isLocal() &&
-          parallelPanelMethod == ProcessingMethod.QUEUE) {
+      if (!processInterfaceMethod.isLocal()
+        && parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
       }
       return processInterfaceMethod;
@@ -351,12 +350,12 @@ public final class ProcessingMethodMediator {
   }
 
   public ProcessingMethod getSecondaryRunMethodForParallelPanel(
-      final ProcessingMethod parallelPanelMethod) {
+    final ProcessingMethod parallelPanelMethod) {
     if (processInterface != null) {
       ProcessingMethod processInterfaceMethod =
-          processInterface.getSecondaryProcessingMethod();
-      if (processInterfaceMethod != null && !processInterfaceMethod.isLocal() &&
-          parallelPanelMethod == ProcessingMethod.QUEUE) {
+        processInterface.getSecondaryProcessingMethod();
+      if (processInterfaceMethod != null && !processInterfaceMethod.isLocal()
+        && parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
       }
       return processInterfaceMethod;
@@ -373,7 +372,7 @@ public final class ProcessingMethodMediator {
    * @return
    */
   public ProcessingMethod getRunMethodForProcessInterface(
-      final ProcessingMethod processInterfaceMethod) {
+    final ProcessingMethod processInterfaceMethod) {
     if (parallelPanel != null) {
       if (!parallelPanel.isRunnable()) {
         // If the parallel panel is not runnable, then this mediator is primarily being
@@ -382,8 +381,8 @@ public final class ProcessingMethodMediator {
         return ProcessingMethod.DEFAULT;
       }
       ProcessingMethod parallelPanelMethod = parallelPanel.getProcessingMethod();
-      if (!processInterfaceMethod.isLocal() &&
-          parallelPanelMethod == ProcessingMethod.QUEUE) {
+      if (!processInterfaceMethod.isLocal()
+        && parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
       }
     }

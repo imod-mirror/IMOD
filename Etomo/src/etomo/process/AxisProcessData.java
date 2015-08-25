@@ -40,7 +40,7 @@ public final class AxisProcessData {
 
   void dumpState() {
     System.err.println("[processMonitorThreadA:" + processMonitorThreadA
-        + ",processMonitorThreadB:" + processMonitorThreadB + ",killedList:");
+      + ",processMonitorThreadB:" + processMonitorThreadB + ",killedList:");
     if (killedList != null) {
       System.err.println(killedList.toString());
     }
@@ -54,8 +54,8 @@ public final class AxisProcessData {
 
   public String toString() {
     return "threadAxisA=" + threadAxisA + ",threadAxisB=" + threadAxisB
-        + ",\nprocessMonitorThreadA=" + processMonitorThreadA + ",processMonitorThreadB="
-        + processMonitorThreadB + ",\nkilledList=" + killedList;
+      + ",\nprocessMonitorThreadA=" + processMonitorThreadA + ",processMonitorThreadB="
+      + processMonitorThreadB + ",\nkilledList=" + killedList;
   }
 
   boolean isThreadAxisNull(final AxisID axisID) {
@@ -119,7 +119,7 @@ public final class AxisProcessData {
    * @param axisID
    */
   void mapAxisProcessMonitor(final Thread processMonitorThread, final Monitor monitor,
-      final AxisID axisID) {
+    final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       processMonitorThreadB = processMonitorThread;
       monitorB = monitor;
@@ -128,6 +128,34 @@ public final class AxisProcessData {
       processMonitorThreadA = processMonitorThread;
       monitorA = monitor;
     }
+  }
+
+  /**
+   * Tells the monitor to halt.  If the monitor has this functionality, it halts with a
+   * valid state, without running end-of-monitor functionality.  Waits for monitor thread
+   * to end.
+   * @param axisID
+   */
+  void haltMonitorThread(final AxisID axisID) {
+    try {
+      if (axisID == AxisID.SECOND) {
+        if (monitorB != null) {
+          monitorB.halt();
+          if (processMonitorThreadB != null) {
+            processMonitorThreadB.join();
+          }
+        }
+      }
+      else {
+        if (monitorA != null) {
+          monitorA.halt();
+          if (processMonitorThreadA != null) {
+            processMonitorThreadA.join();
+          }
+        }
+      }
+    }
+    catch (InterruptedException e) {}
   }
 
   void clearThread(final ComScriptProcess script) {

@@ -29,17 +29,21 @@ import etomo.ui.UIComponent;
 * <p> $Log$ </p>
 */
 public final class MinibuttonCell extends InputCell implements UIComponent,
-    SwingComponent, Run3dmodMenuTarget, ContextMenu {
+  SwingComponent, Run3dmodMenuTarget, ContextMenu {
   public static final String rcsid = "$Id:$";
 
   private final Minibutton button;
   private final Run3dmodMenu contextMenu;
   private final Run3dmodButtonContainer container;
 
+  private boolean enabled = true;
+  private boolean debug = false;
+
   private MinibuttonCell(final Icon icon, final boolean run3dmod,
-      final Run3dmodButtonContainer container) {
+    final Run3dmodButtonContainer container) {
     this.container = container;
-    button = Minibutton.getSquareInstance(icon,
+    button =
+      Minibutton.getSquareInstance(icon,
         BorderFactory.createBevelBorder(BevelBorder.RAISED));
     if (run3dmod) {
       contextMenu = Run3dmodMenu.get3dmodButtonInstance(this, null);
@@ -55,7 +59,7 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
   }
 
   static MinibuttonCell getRun3dmodInstance(final Icon icon,
-      final Run3dmodButtonContainer container) {
+    final Run3dmodButtonContainer container) {
     MinibuttonCell instance = new MinibuttonCell(icon, true, container);
     instance.addListeners();
     return instance;
@@ -97,12 +101,18 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
     button.addActionListener(listener);
   }
 
-  public void setEnabled(boolean enable) {
-    button.setEnabled(enable);
+  void setDebug(final boolean input) {
+    super.setDebug(input);
+    debug = input;
+  }
+
+  void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    button.setEnabled(enabled && isEditable());
   }
 
   public boolean isEnabled() {
-    return button.isEnabled();
+    return enabled;
   }
 
   public void setDisabledIcon(final Icon icon) {
