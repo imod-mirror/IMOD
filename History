@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/25/15: In eTomo - Batchruntomo Interface added run batchruntomo
+functionality.(Bug# 1871)
+
+7/25/15: In eTomo - Batchruntomo Interface fixed problems found in previous
+version of the interface.(Bug# 1891)
+
 7/29/15: Created an open channel between contours instead of overlapping
 connectors When joining closed contours in 3dmod, and made it avoid a
 self-crossing joined contour when one contour is inside another. Also made the
