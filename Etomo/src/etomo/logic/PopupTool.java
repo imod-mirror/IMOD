@@ -2,9 +2,6 @@ package etomo.logic;
 
 import java.util.ArrayList;
 
-import etomo.BaseManager;
-import etomo.type.BaseMetaData;
-
 /**
  * <p>Description: Handles message wrapping.</p>
  * <p/>
@@ -22,22 +19,14 @@ public class PopupTool {
    * Wrap a message and add it to messageArray.  Multiple messages may be added to
    * messageArray.  MessageArray may be passed in as null.
    *
-   * @param manager
    * @param message
    * @param messageArray
    * @return messageArray
    */
-  public static ArrayList<String> wrapMessage(final BaseManager manager, final String message,
+  public static ArrayList<String> wrapMessage(final String message,
     ArrayList<String> messageArray) {
     if (messageArray == null) {
       messageArray = new ArrayList<String>();
-      if (manager != null) {
-        // Add extra information at the beginning of the message
-        BaseMetaData metaData = manager.getBaseMetaData();
-        if (metaData != null) {
-          messageArray.add(manager.getName() + ":");
-        }
-      }
     }
     if (message == null) {
       if (messageArray.size() == 0) {

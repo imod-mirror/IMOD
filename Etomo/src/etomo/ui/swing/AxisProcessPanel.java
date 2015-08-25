@@ -563,6 +563,10 @@ public abstract class AxisProcessPanel implements ContextMenu, ActionListener {
     progressPanel.setValue(n);
   }
 
+  final void setProgressBarString(final String barString) {
+    progressPanel.setBarString(barString);
+  }
+
   /**
    * 
    * @param n

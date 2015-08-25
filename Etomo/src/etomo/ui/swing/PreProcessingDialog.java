@@ -176,7 +176,7 @@ public final class PreProcessingDialog extends ProcessDialog {
         .setBorder(new BeveledBorder("Digital Micrograph Conversion").getBorder());
     pnlDMConvert.add(textDM2MRC);
     pnlDMConvert.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlDMConvert.add(cbUniqueHeaders);
+    pnlDMConvert.add(cbUniqueHeaders.getComponent());
     // applicationManager.isDigitalMicrographData();
     disableDM2MRC();
 

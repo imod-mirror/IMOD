@@ -211,18 +211,18 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     // ScaleToInteger panel
     pnlScaleToInteger.setLayout(new BoxLayout(pnlScaleToInteger, BoxLayout.X_AXIS));
     pnlScaleToInteger.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlScaleToInteger.add(cbScaleToInteger);
+    pnlScaleToInteger.add(cbScaleToInteger.getComponent());
     pnlScaleToInteger.add(Box.createHorizontalGlue());
     // SkipVertSliceOutput panel
     pnlSkipVertSliceOutput.setLayout(new BoxLayout(pnlSkipVertSliceOutput,
         BoxLayout.X_AXIS));
     pnlSkipVertSliceOutput.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlSkipVertSliceOutput.add(cbSkipVertSliceOutput);
+    pnlSkipVertSliceOutput.add(cbSkipVertSliceOutput.getComponent());
     pnlSkipVertSliceOutput.add(Box.createHorizontalGlue());
     // CleanUpPastStart panel
     pnlCleanUpPastStart.setLayout(new BoxLayout(pnlCleanUpPastStart, BoxLayout.X_AXIS));
     pnlCleanUpPastStart.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlCleanUpPastStart.add(cbCleanUpPastStart);
+    pnlCleanUpPastStart.add(cbCleanUpPastStart.getComponent());
     pnlCleanUpPastStart.add(Box.createHorizontalGlue());
     // start from panel
     pnlStartFrom.setLayout(new BoxLayout(pnlStartFrom, BoxLayout.Y_AXIS));
@@ -292,7 +292,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         && !differentFromCheckpointFlag;
     rbResumeFromLastIteration.setEnabled(enableResume);
     rbResumeFromIteration.setEnabled(enableResume);
-    cmbResumeFromIteration.setComboBoxEnabled(enableResume && rbResumeFromIteration.isSelected());
+    cmbResumeFromIteration.setEnabled(enableResume && rbResumeFromIteration.isSelected());
     // Don't allow the resume radio buttons to be selected when they are disabled
     if (!enableResume
         && (rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected())) {
@@ -304,7 +304,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     ltfSubareaSize.setEnabled(subarea && !resume);
     ltfYOffsetOfSubarea.setEnabled(subarea && !resume);
     radiusAndSigmaPanel.setEnabled(!resume);
-    cmbResumeFromIteration.setComboBoxEnabled(rbResumeFromIteration.isEnabled()
+    cmbResumeFromIteration.setEnabled(rbResumeFromIteration.isEnabled()
         && rbResumeFromIteration.isSelected());
   }
 

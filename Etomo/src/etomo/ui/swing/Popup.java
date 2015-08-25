@@ -69,7 +69,7 @@ public final class Popup {
    */
   void open() {
     // Wrap the message
-    ArrayList<String> wrappedMessage = PopupTool.wrapMessage(null, message, null);
+    ArrayList<String> wrappedMessage = PopupTool.wrapMessage(message, null);
     Object[] messageArray;
     if (wrappedMessage == null || wrappedMessage.isEmpty()) {
       messageArray = null;

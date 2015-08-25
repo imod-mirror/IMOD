@@ -40,6 +40,7 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   private boolean fieldIsBackedUp = false;
   private BooleanFieldSetting fieldHighlight = null;
   private DirectiveDef directiveDef = null;
+  private boolean enabled = true;
 
   CheckBoxCell() {
     super();
@@ -130,7 +131,13 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   public void setEnabled(final boolean enabled) {
-    setEditable(enabled);
+    this.enabled = enabled;
+    checkBox.setEnabled(enabled && isEditable());
+    setBackground();
+  }
+
+  public boolean isEnabled() {
+    return enabled;
   }
 
   public void setLabel(final String label) {
@@ -171,10 +178,6 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
 
   public void setValue(final String value) {
     checkBox.setSelected(new EtomoBoolean2().set(value).is());
-  }
-
-  public boolean isEnabled() {
-    return checkBox.isEnabled();
   }
 
   public boolean isSelected() {
@@ -315,8 +318,32 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     return checkBox.getBorder().getBorderInsets(checkBox).left;
   }
 
-  void setToolTipText(String text) {
+  public void setToolTipText(String text) {
     checkBox.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      checkBox.setToolTipText(field.getTooltip());
+    }
+  }
+
+  public String getTooltip() {
+    return checkBox.getToolTipText();
+  }
+
+  public void addTooltip(final String text) {
+    if (text == null) {
+      return;
+    }
+    String tooltip = checkBox.getToolTipText();
+    if (tooltip == null) {
+      setToolTipText(text);
+    }
+    else {
+      checkBox
+        .setToolTipText(tooltip + " & " + TooltipFormatter.INSTANCE.format(text));
+    }
   }
 }
 /**

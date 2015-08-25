@@ -256,6 +256,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   public void dumpState() {
   }
+  public void halt() {}
 
   abstract void initializeProgressBar();
 

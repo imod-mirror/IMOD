@@ -633,7 +633,7 @@ public class EtomoDirector {
 
   public ManagerKey openBatchRunTomo(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openBatchRunTomo((String) null, makeCurrent, axisID);
+    return openBatchRunTomo(BatchRunTomoMetaData.NEW_TITLE, makeCurrent, axisID);
   }
 
   /**
@@ -753,12 +753,13 @@ public class EtomoDirector {
   private ManagerKey openBatchRunTomo(String batchRunTomoFileName, boolean makeCurrent,
     AxisID axisID) {
     BatchRunTomoManager manager;
-    if (batchRunTomoFileName == null) {
+    if (batchRunTomoFileName == null
+      || batchRunTomoFileName.equals(BatchRunTomoMetaData.NEW_TITLE)) {
       manager = new BatchRunTomoManager();
+      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
     }
     else {
       manager = new BatchRunTomoManager(batchRunTomoFileName);
-      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
     }
     ManagerKey key = setManager(manager, makeCurrent);
     if (!manager.isValid()) {

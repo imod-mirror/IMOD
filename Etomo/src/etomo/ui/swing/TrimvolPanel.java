@@ -356,7 +356,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     JPanel pnlConvertToBytes = new JPanel();
     pnlConvertToBytes.setLayout(new BoxLayout(pnlConvertToBytes, BoxLayout.X_AXIS));
     pnlConvertToBytes.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlConvertToBytes.add(cbConvertToBytes);
+    pnlConvertToBytes.add(cbConvertToBytes.getComponent());
     pnlConvertToBytes.add(Box.createHorizontalGlue());
     pnlScale.add(pnlConvertToBytes);
     pnlScale.add(pnlScaleFixed);

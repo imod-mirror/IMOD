@@ -217,6 +217,8 @@ public final class FileType {
     "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType TRIAL_JOIN = FileType.getImodInstance(true, false,
     "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
+  public static final FileType BATCH_RUN_TOMO_LOG = FileType.getInstance(true,
+    false, "", ".log");
   public static final FileType ERASER_LOG = FileType.getInstance(false, true, "eraser",
     ".log");
   public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,

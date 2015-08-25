@@ -367,7 +367,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
     // InitialVolumeMatching
     pnlInitialVolumeMatching.setLayout(new BoxLayout(pnlInitialVolumeMatching,
       BoxLayout.X_AXIS));
-    pnlInitialVolumeMatching.add(cbInitialVolumeMatching);
+    pnlInitialVolumeMatching.add(cbInitialVolumeMatching.getComponent());
     pnlInitialVolumeMatching.add(Box.createHorizontalGlue());
     // SolveMatch
     pnlSolveMatch.setBorder(new EtchedBorder("Solvematch Parameters").getBorder());
@@ -404,13 +404,13 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
     pnlFiducialRadio.add(rbUseModelOnly.getComponent());
     // ImodMatchModels
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
-    pnlImodMatchModels.add(cbBinBy2);
+    pnlImodMatchModels.add(cbBinBy2.getComponent());
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
     // UseCorrespondingPoints
     pnlUseCorrespondingPoints.setLayout(new BoxLayout(pnlUseCorrespondingPoints,
       BoxLayout.X_AXIS));
     pnlUseCorrespondingPoints.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlUseCorrespondingPoints.add(cbUseCorrespondingPoints);
+    pnlUseCorrespondingPoints.add(cbUseCorrespondingPoints.getComponent());
     pnlUseCorrespondingPoints.add(Box.createHorizontalGlue());
     // Dualvolmatch
     if (pnlDualvolmatch != null) {

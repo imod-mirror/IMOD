@@ -422,14 +422,14 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     // if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
     // cbWholeTomogram.setEnabled(false);
     // }
-    pnlWholeTomogram.add(cbWholeTomogram);
+    pnlWholeTomogram.add(cbWholeTomogram.getComponent());
     pnlWholeTomogram.add(spinBinning.getContainer());
 
     JPanel pnlTomoParams = new JPanel();
     pnlTomoParams.setLayout(new BoxLayout(pnlTomoParams, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlTomoParams, cbUseGpu);
+    UIUtilities.addWithYSpace(pnlTomoParams, cbUseGpu.getComponent());
     UIUtilities.addWithYSpace(pnlTomoParams, ltfSampleThickness.getContainer());
-    UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess.getComponent());
     UIUtilities.addWithYSpace(pnlTomoParams, ltfRotation.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, pnlWholeTomogram);
     UIUtilities.alignComponentsX(pnlTomoParams, Component.LEFT_ALIGNMENT);

@@ -17,26 +17,36 @@ import etomo.util.DatasetFiles;
  * @version $Id$
  */
 public final class BatchRunTomoMetaData extends BaseMetaData {
-  public static final String rcsid = "$Id:$";
-
   public static final String NEW_TITLE = "Batch Run Tomo";
+  private static final String ENDING_STEP_KEY = "EndingStep";
+  private static final String EARLIEST_RUN_KEY = "EarliestRun";
+  private static final String STATUS_KEY = "Status";
+  private static final String STARTING_STEP_KEY = "StartingStep";
 
   private StringProperty rootName = new StringProperty("RootName");
   private StringProperty deliverToDirectory = new StringProperty("DeliverToDirectory");
   private StringProperty inputDirectiveFile = new StringProperty("InputDirectiveFile");
   // Key is stackID
-  private final OrderedHashMap<String,BatchRunTomoRowMetaData> rowMetaDataMap =
-      new OrderedHashMap<String,BatchRunTomoRowMetaData>();
+  private final OrderedHashMap<String, BatchRunTomoRowMetaData> rowMetaDataMap =
+    new OrderedHashMap<String, BatchRunTomoRowMetaData>();
   // metadata for the global dataset dialog
   private final BatchRunTomoDatasetMetaData datasetMetaData =
-      new BatchRunTomoDatasetMetaData();
+    new BatchRunTomoDatasetMetaData();
   private final PanelHeaderSettings datasetTableHeader = new PanelHeaderSettings(
-      "datasetTableHeader");
+    "datasetTableHeader");
+  private EtomoBoolean2 useExistingAlignment = new EtomoBoolean2("UseExistingAlignment");
+  private EtomoBoolean2 useEndingStep = new EtomoBoolean2(ENDING_STEP_KEY + ".Use");
+  private EtomoBoolean2 useStartingStep = new EtomoBoolean2(STARTING_STEP_KEY + ".Use");
 
   private final TableReference tableReference;
 
+  private EndingStep earliestRunEndingStep = null;
+  private BatchRunTomoStatus status = BatchRunTomoStatus.DEFAULT;
+  private EndingStep endingStep = null;
+  private StartingStep startingStep = null;
+
   public BatchRunTomoMetaData(final LogProperties logProperties,
-      final TableReference tableReference) {
+    final TableReference tableReference) {
     super(logProperties);
     this.tableReference = tableReference;
     axisType = AxisType.SINGLE_AXIS;
@@ -77,14 +87,14 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
    * @return error message if invalid
    */
   public String validate() {
-    if (rootName == null) {
+    if (rootName.isEmpty()) {
       return "Missing root name.";
     }
     return null;
   }
 
   public String getMetaDataFileName() {
-    if (rootName == null) {
+    if (rootName.isEmpty()) {
       return null;
     }
     return DatasetFiles.getBatchRunTomoDataFileName(rootName.toString());
@@ -95,7 +105,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   }
 
   public String getName() {
-    if (rootName == null) {
+    if (rootName.isEmpty()) {
       return NEW_TITLE;
     }
     return rootName.toString();
@@ -123,16 +133,33 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     deliverToDirectory.reset();
     inputDirectiveFile.reset();
     datasetTableHeader.reset();
+    earliestRunEndingStep = null;
+    status = null;
+    useExistingAlignment.reset();
+    useEndingStep.reset();
     rowMetaDataMap.clear();
+    endingStep = null;
+    startingStep = null;
+    useStartingStep.reset();
     // load
     prepend = createPrepend(prepend);
+    String group = prepend + ".";
     rootName.load(props, prepend);
     deliverToDirectory.load(props, prepend);
     inputDirectiveFile.load(props, prepend);
     datasetTableHeader.load(props, prepend);
     datasetMetaData.load(props, prepend);
     tableReference.load(props, prepend);
+    earliestRunEndingStep =
+      EndingStep.getInstance(props.getProperty(group + ENDING_STEP_KEY + "."
+        + EARLIEST_RUN_KEY));
     Iterator<String> iterator = tableReference.idIterator();
+    status = BatchRunTomoStatus.getInstance(props.getProperty(group + STATUS_KEY));
+    useExistingAlignment.load(props, prepend);
+    useEndingStep.load(props, prepend);
+    endingStep = EndingStep.getInstance(props.getProperty(group + ENDING_STEP_KEY));
+    startingStep = StartingStep.getInstance(props.getProperty(group + STARTING_STEP_KEY));
+    useStartingStep.load(props, prepend);
     while (iterator.hasNext()) {
       String stackID = iterator.next();
       if (!BatchRunTomoRowMetaData.isRowNumberNull(props, prepend, stackID)) {
@@ -145,16 +172,101 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
 
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
+    String group = prepend + ".";
     rootName.store(props, prepend);
     deliverToDirectory.store(props, prepend);
     inputDirectiveFile.store(props, prepend);
     datasetTableHeader.store(props, prepend);
     datasetMetaData.store(props, prepend);
     tableReference.store(props, prepend);
+    if (earliestRunEndingStep != null) {
+      props.setProperty(group + ENDING_STEP_KEY + "." + EARLIEST_RUN_KEY,
+        earliestRunEndingStep.getValue().toString());
+    }
+    else {
+      props.remove(group + ENDING_STEP_KEY + "." + EARLIEST_RUN_KEY);
+    }
+    if (status != null) {
+      props.setProperty(group + STATUS_KEY, status.getText().toString());
+    }
+    else {
+      props.remove(group + STATUS_KEY);
+    }
+    useExistingAlignment.store(props, prepend);
+    useEndingStep.store(props, prepend);
+    if (endingStep != null) {
+      props.setProperty(group + ENDING_STEP_KEY, endingStep.getValue().toString());
+    }
+    else {
+      props.remove(group + ENDING_STEP_KEY);
+    }
+    if (startingStep != null) {
+      props.setProperty(group + STARTING_STEP_KEY, startingStep.getValue().toString());
+    }
+    else {
+      props.remove(group + STARTING_STEP_KEY);
+    }
+    useStartingStep.store(props, prepend);
     Iterator<BatchRunTomoRowMetaData> iterator = rowMetaDataMap.values().iterator();
     while (iterator.hasNext()) {
       iterator.next().store(props, prepend);
     }
+  }
+
+  public void setUseStartingStep(final boolean input) {
+    useStartingStep.set(input);
+  }
+
+  public void setUseEndingStep(final boolean input) {
+    useEndingStep.set(input);
+  }
+
+  public void setStartingStep(final StartingStep input) {
+    startingStep = input;
+  }
+
+  public void setEndingStep(final EndingStep input) {
+    endingStep = input;
+  }
+
+  public boolean isUseStartingStep() {
+    return useStartingStep.is();
+  }
+
+  public boolean isUseEndingStep() {
+    return useEndingStep.is();
+  }
+
+  public StartingStep getStartingStep() {
+    return startingStep;
+  }
+
+  public EndingStep getEndingStep() {
+    return endingStep;
+  }
+
+  public void setUseExistingAlignment(final boolean input) {
+    useExistingAlignment.set(input);
+  }
+
+  public boolean isUseExistingAlignment() {
+    return useExistingAlignment.is();
+  }
+
+  public void setStatus(final BatchRunTomoStatus input) {
+    status = input;
+  }
+
+  public void setEarliestRunEndingStep(final EndingStep input) {
+    earliestRunEndingStep = input;
+  }
+
+  public BatchRunTomoStatus getStatus() {
+    return status;
+  }
+
+  public EndingStep getEarliestRunEndingStep() {
+    return earliestRunEndingStep;
   }
 
   public OrderedHashMap.ReadOnlyArray<BatchRunTomoRowMetaData> getOrderedRows() {

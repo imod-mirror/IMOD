@@ -72,7 +72,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     JPanel pnlRunMidas = new JPanel();
     pnlRunMidas.setLayout(new BoxLayout(pnlRunMidas, BoxLayout.X_AXIS));
     pnlRunMidas.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlRunMidas.add(cbRunMidas);
+    pnlRunMidas.add(cbRunMidas.getComponent());
     pnlRunMidas.add(Box.createHorizontalGlue());
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfidBody.add(pnlRunMidas);
@@ -100,7 +100,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
     panelTransferfidBody.add(opnlSearchDirection);
     cbMirrorInX.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    panelTransferfidBody.add(cbMirrorInX);
+    panelTransferfidBody.add(cbMirrorInX.getComponent());
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
     JPanel pnlTransferfid = new JPanel();

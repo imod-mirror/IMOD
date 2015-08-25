@@ -129,7 +129,7 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
     // checkbox panel
     pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.X_AXIS));
     pnlCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlCheckBox.add(cbOverlapTimesFour);
+    pnlCheckBox.add(cbOverlapTimesFour.getComponent());
     pnlCheckBox.add(Box.createHorizontalGlue());
     // buttons panel
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);

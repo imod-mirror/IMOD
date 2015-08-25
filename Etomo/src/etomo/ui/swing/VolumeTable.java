@@ -37,7 +37,7 @@ import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.util.Utilities;
 
 /**
@@ -238,7 +238,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
   private final CheckBox cbFlgVolNamesAreTemplates = new CheckBox(
-    FieldLabels.FLG_VOL_NAMES_ARE_TEMPLATES_LABEL);
+    SharedStrings.FLG_VOL_NAMES_ARE_TEMPLATES_LABEL);
   private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read tilt file");
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
@@ -512,7 +512,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     // buttons - bottom
     pnlBottomButtons.setLayout(new BoxLayout(pnlBottomButtons, BoxLayout.X_AXIS));
-    pnlBottomButtons.add(cbFlgVolNamesAreTemplates);
+    pnlBottomButtons.add(cbFlgVolNamesAreTemplates.getComponent());
     pnlBottomButtons.add(Box.createHorizontalGlue());
     pnlBottomButtons.add(r3bVolume.getComponent());
     pnlBottomButtons.add(Box.createHorizontalGlue());

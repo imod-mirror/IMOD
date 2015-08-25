@@ -64,7 +64,7 @@ final class DirectivePanel {
   private File lastFileChooserLocation = null;
 
   private DirectivePanel(final BaseManager manager, final Directive directive,
-      final DirectiveTool tool, final AxisType sourceAxisType) {
+    final DirectiveTool tool, final AxisType sourceAxisType) {
     this.directive = directive;
     this.tool = tool;
     this.sourceAxisType = sourceAxisType;
@@ -81,13 +81,13 @@ final class DirectivePanel {
     booleanValueType = valueType == DirectiveValueType.BOOLEAN;
     if (booleanValueType || directive.isChoiceList()) {
       if (booleanValueType) {
-        cbValue = ComboBox.getInstance(title, false);
+        cbValue = ComboBox.getInstance(title);
         cbValue.addItem("Yes");
         cbValue.addItem("No");
         valueList = null;
       }
       else {
-        cbValue = ComboBox.getInstance(title, true);
+        cbValue = ComboBox.getEmptyChoiceInstance(title);
         DirectiveDescrFile.ChoiceList choiceList = directive.getChoiceList();
         int size = choiceList.size();
         valueList = new String[size];
@@ -104,7 +104,8 @@ final class DirectivePanel {
       cbValue = null;
       valueList = null;
       if (valueType == DirectiveValueType.FILE) {
-        sbFileValue = new SimpleButton(new ImageIcon(
+        sbFileValue =
+          new SimpleButton(new ImageIcon(
             ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
               : "images/openFileFool.png")));
       }
@@ -115,8 +116,9 @@ final class DirectivePanel {
   }
 
   static DirectivePanel getInstance(final BaseManager manager, final Directive directive,
-      final DirectiveTool tool, final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(manager, directive, tool, sourceAxisType);
+    final DirectiveTool tool, final AxisType sourceAxisType) {
+    DirectivePanel instance =
+      new DirectivePanel(manager, directive, tool, sourceAxisType);
     instance.createPanel(directive);
     instance.setTooltips();
     instance.addListeners();
@@ -131,7 +133,7 @@ final class DirectivePanel {
     }
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
-    pnlRoot.add(cbInclude);
+    pnlRoot.add(cbInclude.getComponent());
     if (cbValue != null) {
       pnlRoot.add(cbValue.getComponent());
     }
@@ -248,12 +250,14 @@ final class DirectivePanel {
    * @param expandChange - no effect
    * @return the solo instance visibility, or true
    */
-  public boolean msgControlChanged(final boolean includeChange, final boolean expandChange) {
+  public boolean
+    msgControlChanged(final boolean includeChange, final boolean expandChange) {
     if (includeChange) {
       setIncluded();
     }
     tool.setDebug(debug);
-    boolean visible = tool.isDirectiveVisible(directive, cbInclude.isSelected(),
+    boolean visible =
+      tool.isDirectiveVisible(directive, cbInclude.isSelected(),
         isDifferentFromCheckpoint(false));
     pnlRoot.setVisible(visible);
     return visible;
@@ -345,7 +349,7 @@ final class DirectivePanel {
       }
     }
     else if (!FieldValidator.equals(fieldType, ltfValue.getText(),
-        input.ltfValue.getText())) {
+      input.ltfValue.getText())) {
       return false;
     }
     return true;
@@ -461,13 +465,14 @@ final class DirectivePanel {
     }
     String debugString = "";
     if (debug.isExtraVerbose()) {
-      debugString = "  Type:" + directive.getValueType() + ", Batch:"
-          + directive.isBatch() + ", Tmplt:" + directive.isTemplate() + ", eTomo:"
-          + directive.getEtomoColumn() + ", AxisLevelData:"
-          + directive.getInDirectiveFileDebugString();
+      debugString =
+        "  Type:" + directive.getValueType() + ", Batch:" + directive.isBatch()
+          + ", Tmplt:" + directive.isTemplate() + ", eTomo:" + directive.getEtomoColumn()
+          + ", AxisLevelData:" + directive.getInDirectiveFileDebugString();
     }
-    String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription()
-        + "." + (valueString != null ? "  Dataset value:" + valueString : "")
+    String tooltip =
+      directive.getKeyDescription() + ":  " + directive.getDescription() + "."
+        + (valueString != null ? "  Dataset value:" + valueString : "")
         + (defaultValueString != null ? "  Original value:" + defaultValueString : "")
         + debugString;
     cbInclude.setToolTipText(tooltip);

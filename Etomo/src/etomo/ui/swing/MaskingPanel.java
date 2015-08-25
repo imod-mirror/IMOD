@@ -239,7 +239,7 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     pnlCylinderOrientationCheckBox.setLayout(new BoxLayout(
         pnlCylinderOrientationCheckBox, BoxLayout.X_AXIS));
     pnlCylinderOrientationCheckBox.setAlignmentX(Box.RIGHT_ALIGNMENT);
-    pnlCylinderOrientationCheckBox.add(cbCylinderOrientation);
+    pnlCylinderOrientationCheckBox.add(cbCylinderOrientation.getComponent());
     pnlCylinderOrientationCheckBox.add(Box.createHorizontalGlue());
     // cylinder rotation
     pnlCylinderRotation.setLayout(new BoxLayout(pnlCylinderRotation, BoxLayout.X_AXIS));
